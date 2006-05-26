@@ -1,0 +1,58 @@
+\documentclass[a4paper,twoside,openright,12pt]{report}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[onehalfspace]{setspace}
+
+% set up floats
+\renewcommand{\topfraction}{.8}
+\renewcommand{\bottomfraction}{.8}
+\renewcommand{\textfraction}{.2}
+\renewcommand{\floatpagefraction}{.8}
+
+\parskip 10pt
+\newcommand{\note}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
+
+% ignore Overfull \vbox messages
+\vfuzz 2pt
+
+%\clubpenalty=9999
+%\widowpenalty=9999
+%\interfootnotelinepenalty=9999
+
+
+\begin{document}
+
+%%%%%%%%%%%%% Titles %%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{titles}
+\cleardoublepage
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%% The Meat %%%%%%%%%%%%%%%%%%%%%%
+
+%\input{annotation.sty}
+%\suppressnotes
+
+\include{01-introduction}
+\include{02-background}
+\include{03-cownfs}
+\include{04-envoy}
+\include{05-evaluation}
+\include{06-conclusion}
+
+
+%%%%%%%%%%%%% Apendicies/Bib %%%%%%%%%%%%%%%%%%%
+
+%\appendix
+%\include{appendix}
+%
+%\addcontentsline{toc}{chapter}{References}
+%\bibliography{refs}
+%\bibliographystyle{calistyle}
+
+%
+% Temporarily at the end (so page numbers are sensible)
+% 
+%\include{toc}
+%\tableofcontents
+
+\end{document}
