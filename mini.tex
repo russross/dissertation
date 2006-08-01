@@ -1,0 +1,84 @@
+\documentclass[a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{sabon}
+
+\title{Dissertation Structure}
+\author{Russ Ross}
+\date{August 2006}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+
+- virtual machine clusters
+- mobile VMs
+- stock base images with customization
+- commodity disks
+- coherent persistent caching
+- serve from local machine cache when uncontended, NFS-like when shared
+  - based on actual contention, not potential contention
+- snapshots and forks
+- simple security model that maps well to familiar Unix semantics
+
+\subsection{Virtual machines}
+\subsection{Motivation}
+\begin{itemize}
+\item virtual machine clusters---admin domain as aggregator and secure manager
+\item mobile VMs
+\item stock base images with customization---rapid deployment of services
+\item commodity disks
+\item perfectly consistent persistent caching
+\item local impact---heavy users bear most of the load, non-users none of it
+\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
+\item in steady state, coordination based on actual contention, not potential contention
+\item snapshots and forks
+\item simple security model that maps well to familiar Unix semantics
+\item distribute only as necessary; favor centralization when practical
+\item private images act like local images, shared images scale gracefully
+\end{itemize}
+
+
+\section{Background}
+
+\subsection{Xen}
+\subsection{XenoServers}
+\subsection{CoWNFS}
+\subsection{Parallax}
+\subsection{9p}
+\subsection{Related works}
+\begin{itemize}
+\item Network file systems (NFS, AFS, Coda, 9p, Venti)
+\item P2P file systems (content addressed, DHT)
+\item Distributed (xFS)
+\item Cluster (object layers, big shared volumes)
+\item Block device servers (SANs, Parallax)
+\item File distribution systems (Bittorrent, Gnutella)
+\item VMs (Ventana, XenoServers work, Parallax, VMWare?)
+\end{itemize}
+
+
+\section{Design}
+
+\subsection{User interface tour}
+\subsection{High-level architecture overview}
+\subsection{Storage layer}
+\subsection{Envoy layer}
+\subsection{Lease migration}
+\subsection{Forks and snapshots}
+\subsection{Security}
+
+\section{The Envoy prototype}
+
+\subsection{}
+
+\section{Evaluation}
+
+\subsection{Baseline comparisons to userspace 9p server}
+\subsection{}
+
+\section{Conclusion and future work}
+
+\end{document}

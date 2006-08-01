@@ -6,6 +6,7 @@
 \fontscheme default
 \graphics default
 \paperfontsize default
+\spacing single 
 \papersize Default
 \paperpackage a4
 \use_geometry 0
@@ -23,10 +24,25 @@
 \papersides 1
 \paperpagestyle default
 
-\layout Itemize
+\layout Section
 
 Introduction
+\layout Itemize
+
+Distributed systems vs.
+ centralized systems
 \begin_deeper 
+\begin_deeper 
+\layout Itemize
+
+lots of systems at extremes: NFS and its ilk and one and DHTs at the other
+\layout Itemize
+
+We favor centralized when practical, distributed when necessary
+\layout Itemize
+
+optimize for the common case, gracefully decline
+\end_deeper 
 \layout Itemize
 
 Storage needs in VM clusters
@@ -109,16 +125,16 @@ CoWNFS
 
 Envoy
 \end_deeper 
-\layout Itemize
+\layout Section
 
 Background
-\begin_deeper 
 \layout Itemize
 
 Xen and the virtualization renaissance
 \layout Itemize
 
 Related works
+\begin_deeper 
 \begin_deeper 
 \layout Itemize
 
