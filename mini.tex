@@ -1,6 +1,10 @@
 \documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
 \usepackage{sabon}
+
+\bibliographystyle{plain}
 
 \title{Dissertation Structure}
 \author{Russ Ross}
@@ -11,32 +15,38 @@
 \maketitle
 
 \section{Introduction}
-
-
-- virtual machine clusters
-- mobile VMs
-- stock base images with customization
-- commodity disks
-- coherent persistent caching
-- serve from local machine cache when uncontended, NFS-like when shared
-  - based on actual contention, not potential contention
-- snapshots and forks
-- simple security model that maps well to familiar Unix semantics
+Thesis: virtual machine clusters have new storage requirements
+\begin{itemize}
+\item lots of images: 1,000s of nodes and 10s of VMs per node
+\item migration: no such thing as local storage
+\item deployment: image forks are essential to make lightweight service deployment practical
+\item commodity disks: VMs on commodity hardware are driving this area, using the big cheap (and unreliable) disks is a no brainer
+\item topology: admin domain as aggregation point for persistent caching and buffering
+\item service model: lightweight private images mixed with synchronous shared images
+\item security: admin domain lets us trust servers, private images means we should give as much control to clients as possible
+\item snapshots: rollback for debugging and forensics
+\item scalability: burden for private images should fall completely on the local node, shared images should be limited only by (actual) contention
+\end{itemize}
 
 \subsection{Virtual machines}
 \subsection{Motivation}
+\subsubsection{Things that a VM cluster calls for}
 \begin{itemize}
 \item virtual machine clusters---admin domain as aggregator and secure manager
 \item mobile VMs
 \item stock base images with customization---rapid deployment of services
 \item commodity disks
+\item snapshots and forks
+\end{itemize}
+
+\subsubsection{Desirable properties that the envoy model achieves}
+\begin{itemize}
+\item distribute only when there's a reason; favor centralization when practical
 \item perfectly consistent persistent caching
 \item local impact---heavy users bear most of the load, non-users none of it
 \item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
 \item in steady state, coordination based on actual contention, not potential contention
-\item snapshots and forks
 \item simple security model that maps well to familiar Unix semantics
-\item distribute only as necessary; favor centralization when practical
 \item private images act like local images, shared images scale gracefully
 \end{itemize}
 
@@ -50,13 +60,13 @@
 \subsection{9p}
 \subsection{Related works}
 \begin{itemize}
-\item Network file systems (NFS, AFS, Coda, 9p, Venti)
+\item Network file systems (NFS, Sprite, AFS, Coda, 9p, Venti)
 \item P2P file systems (content addressed, DHT)
 \item Distributed (xFS)
-\item Cluster (object layers, big shared volumes)
-\item Block device servers (SANs, Parallax)
+\item Cluster (object layers, big shared volumes, GFS, Lustre)
+\item Block device servers (SANs, Parallax, FAB)
 \item File distribution systems (Bittorrent, Gnutella)
-\item VMs (Ventana, XenoServers work, Parallax, VMWare?)
+\item VM work (Ventana, CoWNFS, Parallax, VMWare?)
 \end{itemize}
 
 
@@ -69,6 +79,8 @@
 \subsection{Lease migration}
 \subsection{Forks and snapshots}
 \subsection{Security}
+\subsection{Recovery}
+\subsection{Deleting snapshots}
 
 \section{The Envoy prototype}
 
@@ -80,5 +92,14 @@
 \subsection{}
 
 \section{Conclusion and future work}
+\begin{itemize}
+\item Envoy model in other settings
+\item Readonly leases
+\item Other partitioning/lease migration strategies
+\item Implementation in NFSv4?
+\end{itemize}
+
+\nocite{*}
+\bibliography{fs}
 
 \end{document}
