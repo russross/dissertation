@@ -15,7 +15,7 @@
 \maketitle
 
 \section{Introduction}
-Thesis: virtual machine clusters have new storage requirements
+Thesis: storage requirements of virtual machine clusters are not met by existing solutions; the balance of private and shared storage needs is best addressed by optimizing for uncontended access and reverting to a client-server model in the presence of contention
 \begin{itemize}
 \item lots of images: 1,000s of nodes and 10s of VMs per node
 \item migration: no such thing as local storage
@@ -61,12 +61,12 @@ Thesis: virtual machine clusters have new storage requirements
 \subsection{Related works}
 \begin{itemize}
 \item Network file systems (NFS, Sprite, AFS, Coda, 9p, Venti)
-\item P2P file systems (content addressed, DHT)
 \item Distributed (xFS)
 \item Cluster (object layers, big shared volumes, GFS, Lustre)
 \item Block device servers (SANs, Parallax, FAB)
+\item P2P file systems (content addressed, DHT)
 \item File distribution systems (Bittorrent, Gnutella)
-\item VM work (Ventana, CoWNFS, Parallax, VMWare?)
+\item previous VM storage work (Ventana, CoWNFS, Parallax, VMWare?)
 \end{itemize}
 
 
@@ -74,6 +74,7 @@ Thesis: virtual machine clusters have new storage requirements
 
 \subsection{User interface tour}
 \subsection{High-level architecture overview}
+Big diagram.
 \subsection{Storage layer}
 \subsection{Envoy layer}
 \subsection{Lease migration}
@@ -84,12 +85,40 @@ Thesis: virtual machine clusters have new storage requirements
 
 \section{The Envoy prototype}
 
-\subsection{}
+\subsection{Mapping Envoy to 9p}
+\subsection{Simplifications and assumptions}
+Big diagram from Design with modifications.
+\subsection{Storage layer}
+\subsection{Synchronization}
+\subsection{Caching}
 
 \section{Evaluation}
 
 \subsection{Baseline comparisons to userspace 9p server}
-\subsection{}
+\begin{itemize}
+\item Standard benchmarks (Bonnie, etc.)
+\item Local machine vs. forwarded
+\item Read/write heavy vs. metadata heavy
+\item With and without persistent cache
+\end{itemize}
+\subsection{Effects of fancy features}
+\begin{itemize}
+\item Snapshots: pause time and cache effects
+\item Lease migration: pause time and cache effects
+\item Rebalancing: 2-way contention on the ``wrong'' host vs. hosted by the dominant user
+\end{itemize}
+\subsection{Scaling}
+\begin{itemize}
+\item Load handling on a single host
+\item Independence of private images
+\item Loading the storage layer
+\end{itemize}
+\subsection{Case studies}
+\begin{itemize}
+\item Service deployment
+\item Quantifying sharing (FC upgrade)
+\end{itemize}
+
 
 \section{Conclusion and future work}
 \begin{itemize}
@@ -100,6 +129,6 @@ Thesis: virtual machine clusters have new storage requirements
 \end{itemize}
 
 \nocite{*}
-\bibliography{fs}
+%\bibliography{fs}
 
 \end{document}
