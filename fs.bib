@@ -7,6 +7,9 @@
                  Architectural Support for Programming Languages and
                  Operating Systems (ASPLOS~XI)"}
 
+@String{australia98 = "Proceedings of the 21st Australian Computer
+                 Science Conference"}
+
 @String{cluster00 = "Proceedings of the IEEE International Conference on
                  Cluster Computing 2000"}
 
@@ -22,8 +25,11 @@
 @String{fast05 = "Proceedings of the 4th USENIX Conference on File and
                  Storage Technologies (FAST~'05)"}
 
-@String{hotos03 = "Proceedings of the 9th Workshop on Hot Topics in
-                 Operating Systems (HotOS~IX)"}
+@String{hotos03 = "Proceedings of the 9th USENIX Workshop on Hot Topics
+                 in Operating Systems (HotOS~IX)"}
+
+@String{hotos05 = "Proceedings of the 10th USENIX Workshop on Hot Topics
+                 in Operating Systems (HotOS~X)"}
 
 @String{hpdc04 = "Proceedings of the 13th IEEE International Symposium
                  on High-Performance Distributed Computing"}
@@ -32,12 +38,22 @@
                  Workshops on Web Engineering and Peer-to-Peer
                  Computing"}
 
+@String{nsdi05 = "Proceedings of the 2nd Symposium on Networked Systems
+                 Design and Implementation (NSDI~'05)"}
+
+@String{nsdi06 = "Proceedings of the 3rd Symposium on Networked Systems
+                 Design and Implementation (NSDI~'06)"}
+
 @String{osdi02 = "Proceedings of the 5th Symposium on Operating Systems
                  Design and Implementation (OSDI~'02)"}
 
+@String{sigmetrics97 = "Proceedings of the International Conference on
+                 Measurements and Modeling of Computer Systems
+                 (SIGMETRICS~'97)"}
+
 @String{sigmetrics00 = "Proceedings of the International Conference on
                  Measurements and Modeling of Computer Systems
-                 (SIGMETRICS~2000)"}
+                 (SIGMETRICS~'00)"}
 
 @String{sigops92 = "Proceedings of the 5th {ACM SIGOPS} European
                  Workshop"}
@@ -45,8 +61,14 @@
 @String{sigops02 = "Proceedings of the 10th {ACM SIGOPS} European
                  Workshop"}
 
+@String{sigops04 = "Proceedings of the 11th {ACM SIGOPS} European
+                 Workshop"}
+
 @String{sosp91 = "Proceedings of the 13th {ACM} Symposium on Operating
                  Systems Principles (SOSP~'91)"}
+
+@String{sosp93 = "Proceedings of the 14th {ACM} Symposium on Operating
+                 Systems Principles (SOSP~'93)"}
 
 @String{sosp95 = "Proceedings of the 15th {ACM} Symposium on Operating
                  Systems Principles (SOSP~'95)"}
@@ -57,22 +79,37 @@
 @String{sosp99 = "Proceedings of the 17th {ACM} Symposium on Operating
                  Systems Principles (SOSP~'99)"}
 
+@String{sosp01 = "Proceedings of the 18th {ACM} Symposium on Operating
+                 Systems Principles (SOSP~'01)"}
+
 @String{sosp03 = "Proceedings of the 19th {ACM} Symposium on Operating
-                 Systems Principles"}
+                 Systems Principles (SOSP~'03)"}
+
+@String{sosp05 = "Proceedings of the 20th {ACM} Symposium on Operating
+                 Systems Principles (SOSP~'05)"}
 
 @String{srds02 = "Proceedings of the 21st Symposium on Reliable
                  Distributed Systems (SRDS~2002)"}
 
-@String{usenix94 = "Proceedings of the {USENIX} Summer 1994 Technical
-                 Conference"}
+@String{ukuug90 = "Proceedings of the Summer {UKUUG} Conference"}
+
+@String{usenixsummer94 = "Proceedings of the {USENIX} Summer 1994
+                 Technical Conference"}
+
+@String{usenixwinter94 = "Proceedings of the {USENIX} Winter 1994
+                 Technical Conference"}
 
 @String{workos93 = "Proceedings of the Fourth Workshop on Workstation
                  Operating Systems"}
 
 % Cities
+@String{asheville = "Asheville, North Carolina"}
+
 @String{boltonlanding = "Bolton Landing, New York"}
 
 @String{boston = "Boston, Massachusetts"}
+
+@String{brighton = "Brighton, United Kingdom"}
 
 @String{cambridge = "Cambridge, Massachusetts"}
 
@@ -83,6 +120,10 @@
 @String{coppermountain = "Copper Mountain Resort, Colorado"}
 
 @String{honolulu = "Honolulu, Hawaii"}
+
+@String{lakelouis = "Chateau Lake Louise, Banff, Canada"}
+
+@String{leuven = "Leuven, Belgium"}
 
 @String{lihue =  "Lihue, Hawaii"}
 
@@ -96,6 +137,8 @@
 
 @String{pacificgrove = "Pacific Grove, California"}
 
+@String{perth =  "Perth, Australia"}
+
 @String{saintmichel = "Le Mont Saint-Michel, France"}
 
 @String{saintemilion = "Saint-Emilion, France"}
@@ -104,7 +147,13 @@
 
 @String{sanfran = "San Francisco, California"}
 
+@String{sanjose = "San Jose, California"}
+
 @String{santaclara = "Santa Clara, California"}
+
+@String{santafe = "Santa Fe, New Mexico"}
+
+@String{seattle = "Seattle, Washington"}
 
 % Papers
 @InProceedings{abd-el-malek,
@@ -158,6 +207,45 @@
   month =        jun,
 }
 
+@PhdThesis{burns,
+  author =       "Randal C. Burns",
+  title =        "Data Management in a Distributed File System for
+                 Storage Area Networks",
+  school =       "University of California at Santa Cruz",
+  year =         "2000",
+}
+
+@Misc{callaghan,
+  author =       "B. Callaghan and B. Pawlowski and P. Staubach",
+  title =        "{NFS} Version 3 Protocol Specification",
+  howpublished = "RFC 1813",
+  month =        jun,
+  year =         "1995",
+}
+
+@InProceedings{clark,
+  author =       "Christopher Clark and Keir Fraser and Steven Hand and
+                 Jacob Gorm Hansen and Eric Jul and Christian Limpach
+                 and Ian Pratt and Andrew Warfield",
+  title =        "Live Migration of Virtual Machines",
+  booktitle =    nsdi05,
+  pages =        "273--286",
+  year =         "2005",
+  address =      boston,
+  month =        may,
+}
+
+@InProceedings{fox,
+  author =       "Armando Fox and Steven D. Gribble and Yatin Chawathe
+                 and Eric A. Brewer and Paul Gauthier",
+  title =        "Cluster-based Scalable Network Services",
+  booktitle =    sosp97,
+  pages =        "78--91",
+  year =         "1997",
+  address =      sanmalo,
+  month =        oct,
+}
+
 @InProceedings{frolund,
   author =       "Svend Frølund and Arif Merchant and Yasushi Saito and
                  Susan Spence and Alistair Veitch",
@@ -168,6 +256,17 @@
   month =        jun,
 }
 
+@InProceedings{garfinkel,
+  author =       "Tal Garfinkel and Ben Pfaff and Jim Chow and Mendel
+                 Rosenblum and Dan Boneh",
+  title =        "Terra: {A} Virtual-machine Based Platform for Trusted
+                 Computing",
+  booktitle =    sosp03,
+  year =         "2003",
+  address =      boltonlanding,
+  month =        oct,
+}
+
 @InProceedings{ghemawat,
   author =       "Sanjay Ghemawat and Howard Gobioff and Shun-Tak
                  Leung",
@@ -176,6 +275,62 @@
   year =         "2003",
   address =      boltonlanding,
   month =        oct,
+}
+
+@InProceedings{gibson,
+  author =       "Garth A. Gibson and David Nagle and Khalil Amiri and
+                 Fay W. Chang and Eugene M. Feinberg and Howard Gobioff
+                 and Chen Lee and Berend Ozceri and Erik Riedel and
+                 David Rochberg and Jim Zelenka",
+  title =        "File Server Scaling with Network-attached Secure
+                 Disks",
+  booktitle =    sigmetrics97,
+  pages =        "272--284",
+  year =         "1997",
+  address =      seattle,
+  month =        jun,
+}
+
+@Article{gifford,
+  author =       "David K. Gifford and Roger M. Needham and Michael D.
+                 Schroeder",
+  title =        "The {Cedar} file system",
+  journal =      "Communications of the {ACM}",
+  year =         "1988",
+  volume =       "31",
+  number =       "3",
+  pages =        "288--298",
+}
+
+@InProceedings{hartman,
+  author =       "John H. Hartman and John K. Ousterhout",
+  title =        "The {Zebra} Striped Network File System",
+  booktitle =    sosp93,
+  pages =        "29--43",
+  year =         "1993",
+  address =      asheville,
+  month =        dec,
+}
+
+@InProceedings{hitz,
+  author =       "Dave Hitz and James Lau and Michael Malcolm",
+  title =        "File System Design for an {NFS} File Server
+                 Appliance",
+  booktitle =    usenixwinter94,
+  pages =        "235--246",
+  year =         "1994",
+  address =      sanfran,
+  month =        jan,
+}
+
+@InProceedings{khalidi,
+  author =       "Yousef A. Khalidi and Michael N. Nelson",
+  title =        "Extensible File Systems in {Spring}",
+  booktitle =    sosp93,
+  pages =        "1--15",
+  year =         "1993",
+  address =      asheville,
+  month =        dec,
 }
 
 @InProceedings{kim,
@@ -208,6 +363,17 @@
   month =        oct,
 }
 
+@InProceedings{mcgregor,
+  author =       "A. {McGregor} and J. Cleary",
+  title =        "A Block-based Network File System",
+  booktitle =    australia98,
+  pages =        "133--144",
+  year =         "1998",
+  address =      perth,
+  month =        feb,
+  publisher =    "Springer",
+}
+
 @InProceedings{moreton,
   author =       "Tim D. Moreton and Ian A. Pratt and Timothy L.
                  Harris",
@@ -217,6 +383,37 @@
   year =         "2002",
   address =      london,
   publisher =    "Springer-Verlag",
+}
+
+@InProceedings{mummert,
+  author =       "Lily B. Mummert and Maria R. Ebling and M.
+                 Satyanarayanan",
+  title =        "Exploiting Weak Connectivity for Mobile File Access",
+  booktitle =    sosp95,
+  pages =        "143--155",
+  year =         "1995",
+  address =      coppermountain,
+  month =        dec,
+}
+
+@InProceedings{muthitacharoen,
+  author =       "Athicha Muthitacharoen and Benjie Chen and David
+                 Mazieres",
+  title =        "A Low-bandwidth Network File System",
+  booktitle =    sosp01,
+  pages =        "174--187",
+  year =         "2001",
+  address =      lakelouis,
+  month =        oct,
+}
+
+@InProceedings{nightengale,
+  author =       "Edmund B. Nightingale and Peter Chen and Jason Flinn",
+  title =        "Speculative Execution in a Distributed File System",
+  booktitle =    sosp05,
+  year =         "2005",
+  address =      brighton,
+  month =        oct,
 }
 
 @InProceedings{ng,
@@ -232,14 +429,36 @@
 @InProceedings{pawlowski,
   author =       "Brian Pawlowski and Chet Juszczak and Peter Staubach",
   title =        "{NFS} Version 3: Design and Implementation",
-  booktitle =    usenix94,
+  booktitle =    usenixsummer94,
   pages =        "137--152",
   year =         "1994",
   address =      boston,
   month =        jun,
 }
 
-@InProceedings{pike,
+@InProceedings{pfaff,
+  author =       "Ben Pfaff and Tal Garfinkel and Mendel Rosenblum",
+  title =        "Virtualization Aware File Systems: Getting Beyond the
+                 Limitations of Virtual Disks",
+  booktitle =    nsdi06,
+  pages =        "353--366",
+  year =         "2006",
+  address =      sanjose,
+  month =        may,
+}
+
+@InProceedings{pike90,
+  author =       "Rob Pike and Dave Presotto and Ken Thompson and Howard
+                 Trickey",
+  title =        "{Plan 9} from {Bell Labs}",
+  booktitle =    ukuug90,
+  pages =        "1--9",
+  year =         "1990",
+  address =      london,
+  month =        jul,
+}
+
+@InProceedings{pike92,
   author =       "Rob Pike and Dave Presotto and Ken Thompson and Howard
                  Trickey and Phil Winterbottom",
   title =        "The Use of Name Spaces in {Plan 9}",
@@ -396,11 +615,32 @@
   month =        jan,
 }
 
+@InProceedings{warfield,
+  author =       "Andrew Warfield and Russ Ross and Kier Fraser and
+                 Christian Limpach and Steven Hand",
+  title =        "Parallax: Managing Storage for a Million Machines",
+  booktitle =    hotos05,
+  year =         "2005",
+  address =      santafe,
+  month =        jun,
+}
+
+@InProceedings{whitaker,
+  author =       "Andrew Whitaker and Richard S. Cox and Steven D.
+                 Gribble",
+  title =        "Using Time Travel to Diagnose Computer Problems",
+  booktitle =    sigops04,
+  year =         "2004",
+  address =      leuven,
+  month =        sep,
+}
+
 @InProceedings{zhao,
   author =       "Ming Zhao and Jian Zhang and Renato Figueiredo",
   title =        "Distributed File System Support for Virtual Machines
                  in Grid Computing",
   booktitle =    hpdc04,
+  pages =        "202--211",
   year =         "2004",
   address =      honolulu,
   month =        jun,
