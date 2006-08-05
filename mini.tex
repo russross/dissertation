@@ -10,45 +10,46 @@
 \author{Russ Ross}
 \date{August 2006}
 
+
+
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
 Thesis: storage requirements of virtual machine clusters are not met by existing solutions; the balance of private and shared storage needs is best addressed by optimizing for uncontended access and reverting to a client-server model in the presence of contention
+
+\section{Motivation}
+Machine rooms full of virtual machines are an important platform for internet servers and computing farms. Residential and commercial broadband is too slow (especially with asymetric uplink) and too much hassle for real work. Colocation facilities dominate for internet services because the offer good connectivity, redundancy, cooling, and dedicated security and support staff cheaper than companies rolling their own.
+
+Lots of people think the future of desktop computing involves a lot more hosted services for companies and individuals both. Office software, email, blogging, and web sites are all hosted externally, usually by dedicated services. Logical extension of this trend is hosting computing power for general use such as game servers. Mobile computing folks call for mobile profiles---smaller devices with mobile homes for syncing up. Also, specialized service hosting, custom web sites, and backup for private users.
+
+Internet services themselves will increasingly become consumers of internet services. Amazon offers object servers, eBay has an API, etc. Mobile agents have been predicted, but there has been no good infrastructure for them.
+
+With VMMs like Xen, VMWare, VirtualPC, Usermode Linux (or whatever it's called), etc., it's possible to divide big beefy machines into cheaper, smaller pieces. Live migration and law of averages means it makes sense to host these in clusters for providing services. XenoServers can reside anywhere, but they'll probably live in groups to share resources and amortize costs.
+
+Businesses with heavy computing demands favor clusters as well. Redundancy and load averaging make this the most practical way for dedicated server rooms, and even collections of desktop PCs in a business will probably exist in groups on common LANs.
+
+Machine rooms now and hosted services in the future will see cyclic demand. Business hours will dictate load for many services, with machines relatively idle after hours. VMs help make use of these wasted cycles by allowing finer-grained control over the services deployed on these machines.
+
+Really, most things work better this way. Some kind of consolidation makes everything more efficient, and it usually follows a two-tier structure. Gnutella, Skype, and other P2P services use supernodes, airlines and logistics companies use hubs, internet services have colo facilities, the design of cities and suburbs, online communities, etc. Any time you distribute to the entire world, you do it through communities of some kind.
+
+Centralized systems are usually the most pleasant and efficient to use (Napster vs. everything that followed it, Google vs. web site search box) but scale and reliability, security, etc., require distribution. The best solution is usually to centralize as much as possible and distribute where necessary, perhaps hierarchicaly. This is how email works, world wide web, jabber, etc. This reigns in the scale and makes it more managable, too. Infinite scalability is rarely required.
+
+Currently, storage solutions aren't well suited to this environment. The things we need in VM clusters are:
+
 \begin{itemize}
 \item lots of images: 1,000s of nodes and 10s of VMs per node
 \item migration: no such thing as local storage
 \item deployment: image forks are essential to make lightweight service deployment practical
 \item commodity disks: VMs on commodity hardware are driving this area, using the big cheap (and unreliable) disks is a no brainer
-\item topology: admin domain as aggregation point for persistent caching and buffering
-\item service model: lightweight private images mixed with synchronous shared images
-\item security: admin domain lets us trust servers, private images means we should give as much control to clients as possible
-\item snapshots: rollback for debugging and forensics
-\item scalability: burden for private images should fall completely on the local node, shared images should be limited only by (actual) contention
+\item topology: admin domain as aggregation point for persistent caching and buffering---we can trust the machine even if we don't trust the services running on it
+\item service model: lightweight private images mixed with synchronous shared images---lots of services that occasionally cooperate
+\item security: admin domain lets us trust servers, private images means we should give as much control to clients as possible---we should give them open access to their file systems in a sane way
+\item snapshots: rollback for debugging and forensics as well as backup
+\item scalability: burden for private images should fall completely on the local node, shared images should only involve the participants and ideally should be limited only by (actual) contention
 \end{itemize}
 
-\subsection{Virtual machines}
-\subsection{Motivation}
-\subsubsection{Things that a VM cluster calls for}
-\begin{itemize}
-\item virtual machine clusters---admin domain as aggregator and secure manager
-\item mobile VMs
-\item stock base images with customization---rapid deployment of services
-\item commodity disks
-\item snapshots and forks
-\end{itemize}
-
-\subsubsection{Desirable properties that the envoy model achieves}
-\begin{itemize}
-\item distribute only when there's a reason; favor centralization when practical
-\item perfectly consistent persistent caching
-\item local impact---heavy users bear most of the load, non-users none of it
-\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
-\item in steady state, coordination based on actual contention, not potential contention
-\item simple security model that maps well to familiar Unix semantics
-\item private images act like local images, shared images scale gracefully
-\end{itemize}
 
 
 \section{Background}
@@ -71,6 +72,26 @@ Thesis: storage requirements of virtual machine clusters are not met by existing
 
 
 \section{Design}
+\subsection{Goals of Envoy}
+\subsubsection{Things that a VM cluster calls for}
+\begin{itemize}
+\item virtual machine clusters---admin domain as aggregator and secure manager
+\item mobile VMs
+\item stock base images with customization---rapid deployment of services
+\item commodity disks
+\item snapshots and forks
+\end{itemize}
+
+\subsubsection{Desirable properties that the envoy model achieves}
+\begin{itemize}
+\item distribute only when there's a reason; favor centralization when practical
+\item perfectly consistent persistent caching
+\item local impact---heavy users bear most of the load, non-users none of it
+\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
+\item in steady state, coordination based on actual contention, not potential contention
+\item simple security model that maps well to familiar Unix semantics
+\item private images act like local images, shared images scale gracefully
+\end{itemize}
 
 \subsection{User interface tour}
 \subsection{High-level architecture overview}
@@ -117,6 +138,7 @@ Big diagram from Design with modifications.
 \begin{itemize}
 \item Service deployment
 \item Quantifying sharing (FC upgrade)
+\item How does this work out for XenoServers, company machine room, etc.
 \end{itemize}
 
 
