@@ -13,6 +13,8 @@
 @String{cluster00 = "Proceedings of the IEEE International Conference on
                  Cluster Computing 2000"}
 
+@String{cotacm = "Communications of the ACM"}
+
 @String{fast02 = "Proceedings of the 1st USENIX Conference on File and
                  Storage Technologies (FAST~'02)"}
 
@@ -34,7 +36,10 @@
 @String{hpdc04 = "Proceedings of the 13th IEEE International Symposium
                  on High-Performance Distributed Computing"}
 
-@String{networking02 = "Revised Papers from the NETWORKING 2002
+@String{icdcs02 = "Proceedings of 22nd IEEE International Conference on
+                 Distributed Computing Systems (ICDCS~2002)"}
+
+@String{networking02 = "Revised Papers from the NETWORKING~2002
                  Workshops on Web Engineering and Peer-to-Peer
                  Computing"}
 
@@ -55,48 +60,57 @@
                  Measurements and Modeling of Computer Systems
                  (SIGMETRICS~'00)"}
 
-@String{sigops92 = "Proceedings of the 5th {ACM SIGOPS} European
+@String{sigops92 = "Proceedings of the 5th ACM~SIGOPS European
                  Workshop"}
 
-@String{sigops02 = "Proceedings of the 10th {ACM SIGOPS} European
+@String{sigops02 = "Proceedings of the 10th ACM~SIGOPS European
                  Workshop"}
 
-@String{sigops04 = "Proceedings of the 11th {ACM SIGOPS} European
+@String{sigops04 = "Proceedings of the 11th ACM~SIGOPS European
                  Workshop"}
 
-@String{sosp91 = "Proceedings of the 13th {ACM} Symposium on Operating
+@String{softeng = "IEEE Transactions on Software Engineering"}
+
+@String{sosp91 = "Proceedings of the 13th ACM Symposium on Operating
                  Systems Principles (SOSP~'91)"}
 
-@String{sosp93 = "Proceedings of the 14th {ACM} Symposium on Operating
+@String{sosp93 = "Proceedings of the 14th ACM Symposium on Operating
                  Systems Principles (SOSP~'93)"}
 
-@String{sosp95 = "Proceedings of the 15th {ACM} Symposium on Operating
+@String{sosp95 = "Proceedings of the 15th ACM Symposium on Operating
                  Systems Principles (SOSP~'95)"}
 
-@String{sosp97 = "Proceedings of the 16th {ACM} Symposium on Operating
+@String{sosp97 = "Proceedings of the 16th ACM Symposium on Operating
                  Systems Principles (SOSP~'97)"}
 
-@String{sosp99 = "Proceedings of the 17th {ACM} Symposium on Operating
+@String{sosp99 = "Proceedings of the 17th ACM Symposium on Operating
                  Systems Principles (SOSP~'99)"}
 
-@String{sosp01 = "Proceedings of the 18th {ACM} Symposium on Operating
+@String{sosp01 = "Proceedings of the 18th ACM Symposium on Operating
                  Systems Principles (SOSP~'01)"}
 
-@String{sosp03 = "Proceedings of the 19th {ACM} Symposium on Operating
+@String{sosp03 = "Proceedings of the 19th ACM Symposium on Operating
                  Systems Principles (SOSP~'03)"}
 
-@String{sosp05 = "Proceedings of the 20th {ACM} Symposium on Operating
+@String{sosp05 = "Proceedings of the 20th ACM Symposium on Operating
                  Systems Principles (SOSP~'05)"}
+
+@String{srds01 = "Proceedings of the 20th Symposium on Reliable
+                 Distributed Systems (SRDS~2001)"}
 
 @String{srds02 = "Proceedings of the 21st Symposium on Reliable
                  Distributed Systems (SRDS~2002)"}
 
-@String{ukuug90 = "Proceedings of the Summer {UKUUG} Conference"}
+@String{tc =     "IEEE Transactions on Computers"}
 
-@String{usenixsummer94 = "Proceedings of the {USENIX} Summer 1994
+@String{tocs =   "ACM Transactions on Computer Systems (TOCS)"}
+
+@String{ukuug90 = "Proceedings of the Summer UKUUG Conference"}
+
+@String{usenixsummer94 = "Proceedings of the USENIX Summer 1994
                  Technical Conference"}
 
-@String{usenixwinter94 = "Proceedings of the {USENIX} Winter 1994
+@String{usenixwinter94 = "Proceedings of the USENIX Winter 1994
                  Technical Conference"}
 
 @String{workos93 = "Proceedings of the Fourth Workshop on Workstation
@@ -133,9 +147,13 @@
 
 @String{napa =   "Napa, California"}
 
+@String{neworleans = "New Orleans, Louisiana"}
+
 @String{osaka =  "Osaka, Japan"}
 
 @String{pacificgrove = "Pacific Grove, California"}
+
+@String{paloalto = "Palo Alto, California"}
 
 @String{perth =  "Perth, Australia"}
 
@@ -154,6 +172,8 @@
 @String{santafe = "Santa Fe, New Mexico"}
 
 @String{seattle = "Seattle, Washington"}
+
+@String{vienna = "Vienna, Austria"}
 
 % Papers
 @InProceedings{abd-el-malek,
@@ -183,6 +203,17 @@
   month =        dec,
 }
 
+@InProceedings{baker,
+  author =       "Mary G. Baker and John H. Hartman and Michael D.
+                 Kupfer and Ken W. Shirriff and John K. Ousterhout",
+  title =        "Measurements of a Distributed File System",
+  booktitle =    sosp91,
+  pages =        "198--212",
+  year =         "1991",
+  address =      pacificgrove,
+  month =        oct,
+}
+
 @InProceedings{barham,
   author =       "Paul Barham and Boris Dragovic and Keir Fraser and
                  Steven Hand and Tim Harris and Alex Ho and Rolf
@@ -195,6 +226,29 @@
   month =        oct,
 }
 
+@Article{birrell82,
+  author =       "Andrew D. Birrell and Roy Levin and Michael D.
+                 Schroeder and Roger M. Needham",
+  title =        "Grapevine: An Exercise in Distributed Computing",
+  journal =      cotacm,
+  year =         "1982",
+  volume =       "25",
+  number =       "4",
+  pages =        "260--274",
+  month =        apr,
+}
+
+@TechReport{birrell93,
+  author =       "Andrew D. Birrell and Andy Hisgen and Chuck Jerian and
+                 Timothy Mann and Garret Swart",
+  title =        "The {Echo} Distributed File System",
+  institution =  "Digital Equipment Corp.\ Systems Research Center",
+  year =         "1993",
+  number =       "111",
+  address =      paloalto,
+  month =        sep,
+}
+
 @InProceedings{bolosky,
   author =       "William J. Bolosky and John R. Douceur and David Ely
                  and Marvin Theimer",
@@ -205,6 +259,18 @@
   year =         "2000",
   address =      santaclara,
   month =        jun,
+}
+
+@Article{brown,
+  author =       "Mark R. Brown and Karen N. Kolling and Edward A.
+                 Taft",
+  title =        "The {Alpine} File System",
+  journal =      tocs,
+  year =         "1985",
+  volume =       "3",
+  number =       "4",
+  pages =        "261--293",
+  month =        nov,
 }
 
 @PhdThesis{burns,
@@ -233,6 +299,28 @@
   year =         "2005",
   address =      boston,
   month =        may,
+}
+
+@InProceedings{douceur01,
+  author =       "John R. Douceur and Roger Wattenhofer",
+  title =        "Optimizing File Availability in a Secure Serverless
+                 Distributed File System",
+  booktitle =    srds01,
+  pages =        "4--13",
+  year =         "2001",
+  address =      neworleans,
+  month =        oct,
+}
+
+@InProceedings{douceur02,
+  author =       "John R. Douceur and Atul Adya and William J. Bolosky
+                 and Dan Simon and Marvin Theimer",
+  title =        "Reclaiming Space from Duplicate Files in a Serverless
+                 Distributed File System",
+  booktitle =    icdcs02,
+  year =         "2002",
+  address =      vienna,
+  month =        jul,
 }
 
 @InProceedings{fox,
@@ -295,7 +383,7 @@
   author =       "David K. Gifford and Roger M. Needham and Michael D.
                  Schroeder",
   title =        "The {Cedar} file system",
-  journal =      "Communications of the {ACM}",
+  journal =      cotacm,
   year =         "1988",
   volume =       "31",
   number =       "3",
@@ -321,6 +409,19 @@
   year =         "1994",
   address =      sanfran,
   month =        jan,
+}
+
+@Article{howard,
+  author =       "John H. Howard and Michael L. Kazar and Sherri G.
+                 Menees and David A. Nichols and M. Satyanarayanan and
+                 Robert N. Sidebotham and Michael J. West",
+  title =        "Scale and Performance in a Distributed File System",
+  journal =      tocs,
+  year =         "1988",
+  volume =       "6",
+  number =       "1",
+  pages =        "51--81",
+  month =        feb,
 }
 
 @InProceedings{khalidi,
@@ -361,6 +462,19 @@
   year =         "1996",
   address =      cambridge,
   month =        oct,
+}
+
+@Article{mann,
+  author =       "Timothy Mann and Andrew Birrell and Andy Hisgen and
+                 Charles Jerian and Garret Swart",
+  title =        "A Coherent Distributed File Cache with Directory
+                 Write-behind",
+  journal =      tocs,
+  year =         "1994",
+  volume =       "12",
+  number =       "2",
+  pages =        "123--164",
+  month =        may,
 }
 
 @InProceedings{mcgregor,
@@ -405,6 +519,29 @@
   year =         "2001",
   address =      lakelouis,
   month =        oct,
+}
+
+@Article{nelson,
+  author =       "Michael N. Nelson and Brent B. Welch and John K.
+                 Ousterhout",
+  title =        "Caching in the {Sprite} Network File System",
+  journal =      tocs,
+  year =         "1988",
+  volume =       "6",
+  number =       "1",
+  pages =        "134--154",
+  month =        feb,
+}
+
+@Article{neuman,
+  author =       "B. Clifford Neuman",
+  title =        "The {Prospero} File System: {A} Global File System
+                 Based on the Virtual System Model",
+  journal =      "Computing Systems",
+  year =         "1992",
+  volume =       "5",
+  number =       "4",
+  pages =        "407--432",
 }
 
 @InProceedings{nightengale,
@@ -522,17 +659,6 @@
   month =        oct,
 }
 
-@InProceedings{sapuntzakis,
-  author =       "Constantine P. Sapuntzakis and Ramesh Chandra and Ben
-                 Pfaff and Jim Chow and Monica S. Lam and Mendel
-                 Rosenblum",
-  title =        "Optimizing the Migration of Virtual Computers",
-  booktitle =    osdi02,
-  year =         "2002",
-  address =      boston,
-  month =        dec,
-}
-
 @InProceedings{santry,
   author =       "Douglas S. Santry and Michael J. Feeley and Norman C.
                  Hutchinson and Alistair C. Veitch and Ross W. Carton
@@ -544,6 +670,31 @@
   year =         "1999",
   address =      charleston,
   month =        dec,
+}
+
+@InProceedings{sapuntzakis,
+  author =       "Constantine P. Sapuntzakis and Ramesh Chandra and Ben
+                 Pfaff and Jim Chow and Monica S. Lam and Mendel
+                 Rosenblum",
+  title =        "Optimizing the Migration of Virtual Computers",
+  booktitle =    osdi02,
+  year =         "2002",
+  address =      boston,
+  month =        dec,
+}
+
+@Article{satyanarayanan,
+  author =       "M. Satyanarayanan and James J. Kistler and Puneet
+                 Kumar and Maria E. Okasaki and Ellen H. Siegel and
+                 David C. Steere",
+  title =        "Coda: {A} Highly Available File System for a
+                 Distributed Workstation Environment",
+  journal =      tc,
+  year =         "1990",
+  volume =       "39",
+  number =       "4",
+  pages =        "447--459",
+  month =        apr,
 }
 
 @InProceedings{sobti,
@@ -579,6 +730,18 @@
   year =         "1997",
   address =      saintmalo,
   month =        oct,
+}
+
+@Article{triantafillou,
+  author =       "Peter Triantafillou and Carl Neilson",
+  title =        "Achieving Strong Consistency in a Distributed File
+                 System",
+  journal =      softeng,
+  year =         "1997",
+  volume =       "23",
+  number =       "1",
+  pages =        "35--55",
+  month =        jan,
 }
 
 @InProceedings{vilayannur,
