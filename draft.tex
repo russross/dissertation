@@ -1,8 +1,11 @@
-\documentclass[a4paper,twoside,openright,12pt]{report}
+\documentclass[a4paper,twoside,openright,10pt]{report}
+\usepackage{sabon}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{graphicx}
+\usepackage{geometry}
+\geometry{tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
 \usepackage{setspace}
-\onehalfspace
+%\onehalfspace
 
 % set up floats
 \renewcommand{\topfraction}{.8}
@@ -20,14 +23,15 @@
 %\widowpenalty=9999
 %\interfootnotelinepenalty=9999
 
+\newcommand{\envoy}{Envoy}
 
 \begin{document}
 
 %%%%%%%%%%%%% Titles %%%%%%%%%%%%%%%%%%%%%%%%
 
-\include{titles}
-\cleardoublepage
-\pagenumbering{arabic}
+%\include{titles}
+%\cleardoublepage
+%\pagenumbering{arabic}
 
 %%%%%%%%%%%%% The Meat %%%%%%%%%%%%%%%%%%%%%%
 
@@ -35,26 +39,23 @@
 %\suppressnotes
 
 %\include{01-introduction}
-%\include{02-background}
-%\include{03-cownfs}
-%\include{04-envoy}
+%\include{02-motivation}
+%\include{03-background}
+\include{04-design}
+%\include{04-implementation}
 %\include{05-evaluation}
 %\include{06-conclusion}
-
-
-%%%%%%%%%%%%% Apendicies/Bib %%%%%%%%%%%%%%%%%%%
-
-%\appendix
-%\include{appendix}
-%
-%\addcontentsline{toc}{chapter}{References}
-%\bibliography{refs}
-%\bibliographystyle{calistyle}
 
 %
 % Temporarily at the end (so page numbers are sensible)
 % 
 %\include{toc}
 %\tableofcontents
+
+\nocite{*}
+\renewcommand{\bibname}{References}
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliographystyle{alpha}
+\bibliography{references}
 
 \end{document}

@@ -1,0 +1,44 @@
+\chapter{The \envoy Model}
+
+This chapter examines the storage needs of service clusters and how they can be accomodated. Service clusters place specific demands on the storage system to efficiently support the deployment and management of untrusted services, but they also present helpful properties that can simplify the job. In addition to detailing these constraints, this chapter describes \envoy, a file system designed for this environment.
+
+\section{Distribution}
+
+VM migration \cite{clark} is essential for load balancing and uninterrupted service in the presence of hardware servicing.
+
+To support migration, a file system cannot be tied to a single physical machine. Any given file system image must be as mobile as the service that relies on it.
+
+Three basic architectures are available. A centralized server model is the simplest and satisfies the mobility requirement, but it 
+
+
+\subsection{Goals of Envoy}
+\subsubsection{Things that a VM cluster calls for}
+\begin{itemize}
+\item virtual machine clusters---admin domain as aggregator and secure manager
+\item mobile VMs
+\item stock base images with customization---rapid deployment of services
+\item commodity disks
+\item snapshots and forks
+\end{itemize}
+
+\subsubsection{Desirable properties that the envoy model achieves}
+\begin{itemize}
+\item distribute only when there's a reason; favor centralization when practical
+\item perfectly consistent persistent caching
+\item local impact---heavy users bear most of the load, non-users none of it
+\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
+\item in steady state, coordination based on actual contention, not potential contention
+\item simple security model that maps well to familiar Unix semantics
+\item private images act like local images, shared images scale gracefully
+\end{itemize}
+
+\subsection{User interface tour}
+\subsection{High-level architecture overview}
+Big diagram.
+\subsection{Storage layer}
+\subsection{Envoy layer}
+\subsection{Lease migration}
+\subsection{Forks and snapshots}
+\subsection{Security}
+\subsection{Recovery}
+\subsection{Deleting snapshots}
