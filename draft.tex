@@ -1,11 +1,14 @@
-\documentclass[a4paper,twoside,openright,10pt]{report}
+\documentclass[a4paper,twoside,10pt]{report} % openright
 \usepackage{sabon}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{graphicx}
 \usepackage{geometry}
-\geometry{tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
+\usepackage{xspace}
 \usepackage{setspace}
+
+\geometry{tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
 %\onehalfspace
+%\parskip 10pt
 
 % set up floats
 \renewcommand{\topfraction}{.8}
@@ -13,7 +16,6 @@
 \renewcommand{\textfraction}{.2}
 \renewcommand{\floatpagefraction}{.8}
 
-\parskip 10pt
 \newcommand{\note}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
 
 % ignore Overfull \vbox messages
@@ -23,7 +25,7 @@
 %\widowpenalty=9999
 %\interfootnotelinepenalty=9999
 
-\newcommand{\envoy}{Envoy}
+\newcommand{\envoy}{Envoy\xspace}
 
 \begin{document}
 
@@ -39,7 +41,7 @@
 %\suppressnotes
 
 %\include{01-introduction}
-%\include{02-motivation}
+\include{02-motivation}
 %\include{03-background}
 \include{04-design}
 %\include{04-implementation}
