@@ -4,15 +4,15 @@ This chapter examines the storage needs of service clusters and how they can be 
 
 \section{Distribution}
 
-VM migration \cite{clark} is essential for load balancing and uninterrupted service in the presence of hardware servicing.
-
-To support migration, a file system cannot be tied to a single physical machine. Any given file system image must be as mobile as the service that relies on it.
-
 Three basic architectures are available. A centralized server model is the simplest and satisfies the mobility requirement, but it doesn't scale well and suffers from a single point of failure. This model has been extended quite successfully using RAIDs and SANs on the back end to increase performance and robustness, and by caching on the client end to reduce load, but it is still limited. Ultimately, all decisions are moderated by a single host which must communicate directly with all clients, so at larger scale the network bandwidth becomes a problem as well.
 
 At the other extreme, coordinations is pushed completely to the clients. This is essentially the centralized model turned upside down. Instead of many clients talking to a single server, a single client must communicate with many servers. Instead of one congestion point, every client becomes overwhelmed with bookkeeping. In practice, some structure can be introduced so that the system isn't a full $n$-way clique---the host for each object of storage may become the mediator for access to that object, for example---but making every participant a symmetric peer is mostly useful for privacy or other non-technical concerns.
 
 A more practical approach is to emulate a centralized architecture as much as possible, since this provides the simplest model with the least administrative overhead, and carve up the problem enough to achieve the desired scaling properties. The two extremes offer the greatest conceptual purity, but the practical benefits are to be had somewhere between them. Most P2P services now introduce some kind of a hierarchy that designates some hosts as ``superpeers'' or ``supernodes'' that act as aggregation points for a manageable set of participants. These distinguished hosts only need to communicate directly with other similarly endowed hosts, potentially reducing the visible size of the network by orders of magnitude. The world is small enough and computers big enough that a few orders of magnitude is enough reduction to make many distributed problems tractable.
+
+Another way of viewing this problem is to consider how many manually administered systems are often implemented today. NFS \cite{callaghan} is still one of the most widely-used systems, and a workstation environment may include a series of NFS servers to provide storage for a larger number of client workstations. Each server will be backed by a RAID \cite{patterson} system for improved performance and reliability, and the administrators may divide the file system namespace in order to balance average demand over the different servers. While most file access in uncontended, having a single server that serves all interested clients makes coherence easy (ignoring the effects of caching).
+
+An interesting thought exercise is to consider the same set of workstations locking into a long-term steady-state behavior, and then asking the systems administrator to hand configure the system based on those usage patterns. One reasonable possibility would be to locate files or branches of the namespace tree used exclusively by a single workstation on that workstation. When two or more users require the same file or set of files, it could be managed by the workstation that uses it the most and exported via NFS (or a similar client-server file system protocol) to the other participants. Since contention is relatively rare, this would reduce network traffic for the storage system to a low level for as long as the hypothetical steady-state continues. One of the goals of the \envoy design is to capture this approximate topology.
 
 In service clusters, physical hosts are divided into roughly 10s of services, which may be transient, untrusted, and unreliable. This increases the number of participants requiring access to the storage system by the same factor and exposes difficult security problems. One of the principle benefits of isolating services in individual virtual machines is in reducing the impact of services that fail, either benignly or maliciously, and trusting the administration of the file system to the services negates this benefit.
 
@@ -25,6 +25,18 @@ The environment includes a trusted management domain on each server, however, wh
 By extension, this principle leads to a topology that is shaped according to runtime conflicts. When there is no reason to suspect contention, machines will prefer to assume complete control over the storage in active use by their client services. If two machines must explicitly coordinate their access to storage, they are treading on overlapping or neighboring storage and implicitly declaring that a conflict is likely to occur.
 
 Previous studies of file system traffic have repeatedly concluded that runtime contention is rare, so \envoy is designed to assume that exclusive access dominates and react to conflicts as they occur rather than optimizing for the occasions when access overlaps.
+
+\section{Supporting services}
+
+VM migration \cite{clark} is essential for load balancing and uninterrupted service in the presence of hardware servicing.
+
+To support migration, a file system cannot be tied to a single physical machine. Any given file system image must be as mobile as the service that relies on it.
+
+One of the attractive features of running individual services in virtual machines is the flexibility of management this model offers. Services can be decoupled, instances can be created and destroyed easily in response to need, and a new service can be deployed without dedicating a new machine to it, removing and old service to make room, or studying the potential interactions that would occur if a shared server was the only option. To this end, lightweight operations are required to instantiate and clone services.
+
+The unit of management is an entire operating system on a virtual machine. Installing an operating system for each service instance would be prohibitively slow, labour intensive, and wasteful of space. A typical installation of Linux using Fedora Core~3 takes about 50 terabytes of space, and an automated installation is unlikely to give the right set of installed packages and running daemons, so some customization will be necessary.
+
+Instead of trying to automate installations, \envoy offers lightweight operations to fork a file system 
 
 \section{Outline of the other stuff}
 \subsection{Goals of Envoy}

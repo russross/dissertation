@@ -60,6 +60,9 @@
                  Measurements and Modeling of Computer Systems
                  (SIGMETRICS~'00)"}
 
+@String{sigmod88 = "Proceedings of the 1988 ACM SIGMOD International
+                 Conference on Management of Data"}
+
 @String{sigops92 = "Proceedings of the 5th ACM~SIGOPS European
                  Workshop"}
 
@@ -70,6 +73,12 @@
                  Workshop"}
 
 @String{softeng = "IEEE Transactions on Software Engineering"}
+
+@String{sosp87 = "Proceedings of the 11th ACM Symposium on Operating
+                 Systems Principles (SOSP~'87)"}
+
+@String{sosp89 = "Proceedings of the 12th ACM Symposium on Operating
+                 Systems Principles (SOSP~'89)"}
 
 @String{sosp91 = "Proceedings of the 13th ACM Symposium on Operating
                  Systems Principles (SOSP~'91)"}
@@ -119,8 +128,13 @@
 @String{workos93 = "Proceedings of the Fourth Workshop on Workstation
                  Operating Systems"}
 
+@String{worlds04 = "Proceedings of the First Workshop on Real, Large
+                 Distributed Systems (WORLDS~'04)"}
+
 % Cities
 @String{asheville = "Asheville, North Carolina"}
+
+@String{austin = "Austin, Texas"}
 
 @String{boltonlanding = "Bolton Landing, New York"}
 
@@ -134,6 +148,8 @@
 
 @String{chemnitz = "Chemnitz, Germany"}
 
+@String{chicago = "Chicago, Illinois"}
+
 @String{coppermountain = "Copper Mountain Resort, Colorado"}
 
 @String{honolulu = "Honolulu, Hawaii"}
@@ -143,6 +159,8 @@
 @String{leuven = "Leuven, Belgium"}
 
 @String{lihue =  "Lihue, Hawaii"}
+
+@String{litchfieldpark = "Litchfield Park, Arizona"}
 
 @String{london = "London, United Kingdom"}
 
@@ -395,6 +413,39 @@
   pages =        "288--298",
 }
 
+@InProceedings{gray,
+  author =       "Cary G. Gray and David R. Cheriton",
+  title =        "Leases: An Efficient Fault-tolerant Mechanism for
+                 Distributed File Cache Consistency",
+  booktitle =    sosp89,
+  pages =        "202--210",
+  year =         "1989",
+  address =      litchfieldpark,
+  month =        dec,
+}
+
+@InProceedings{hagmann,
+  author =       "Robert Hagmann",
+  title =        "Reimplementing the {C}edar File System Using Logging
+                 and Group Commit",
+  booktitle =    sosp87,
+  pages =        "155--162",
+  year =         "1987",
+  address =      austin,
+  month =        nov,
+}
+
+@InProceedings{hand,
+  author =       "Steven Hand and Andrew Warfield and Keir Fraser and
+                 Evangelos Kotsovinos and Dan Magenheimer",
+  title =        "Are Virtual Machine Monitors Microkernels Done
+                 Right?",
+  booktitle =    hotos05,
+  year =         "2005",
+  address =      santafe,
+  month =        jun,
+}
+
 @InProceedings{hartman,
   author =       "John H. Hartman and John K. Ousterhout",
   title =        "The {Z}ebra Striped Network File System",
@@ -457,6 +508,18 @@
   year =         "1991",
   address =      pacificgrove,
   month =        oct,
+}
+
+@InProceedings{kotsovinos,
+  author =       "Evangelos Kotsovinos and Tim Moreton and Ian Pratt and
+                 Russ Ross and Keir Fraser and Steven Hand and Tim
+                 Harris",
+  title =        "Global-scale Service Deployment in the {XenoServer}
+                 Platform",
+  booktitle =    worlds04,
+  year =         "2005",
+  address =      sanfran,
+  month =        dec,
 }
 
 @InProceedings{lee,
@@ -566,6 +629,18 @@
   year =         "2002",
   address =      monterey,
   month =        jan,
+}
+
+@InProceedings{patterson,
+  author =       "David A. Patterson and Garth Gibson and Randy H.
+                 Katz",
+  title =        "A Case for Redundant Arrays of Inexpensive Disks
+                 ({RAID})",
+  booktitle =    sigmod88,
+  pages =        "109--116",
+  year =         "1988",
+  address =      chicago,
+  month =        jun,
 }
 
 @InProceedings{pawlowski,
@@ -795,7 +870,7 @@
 }
 
 @InProceedings{warfield,
-  author =       "Andrew Warfield and Russ Ross and Kier Fraser and
+  author =       "Andrew Warfield and Russ Ross and Keir Fraser and
                  Christian Limpach and Steven Hand",
   title =        "Parallax: Managing Storage for a Million Machines",
   booktitle =    hotos05,
