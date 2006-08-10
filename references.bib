@@ -1,4 +1,10 @@
 % Conference titles
+@String{afips65 = "Proceedings of AFIPS Fall Joint Computer Conference"}
+
+@String{asplos91 = "Proceedings of the 4th International Conference on
+                 Architectural Support for Programming Languages and
+                 Operating Systems (ASPLOS~IV)"}
+
 @String{asplos96 = "Proceedings of the 7th International Conference on
                  Architectural Support for Programming Languages and
                  Operating Systems (ASPLOS~VII)"}
@@ -10,10 +16,13 @@
 @String{australia98 = "Proceedings of the 21st Australian Computer
                  Science Conference"}
 
+@String{cacm =   "Communications of the ACM"}
+
 @String{cluster00 = "Proceedings of the IEEE International Conference on
                  Cluster Computing 2000"}
 
-@String{cacm =   "Communications of the ACM"}
+@String{compcon95 = "Proceedings of the 40th IEEE Computer Society
+                 International Conference"}
 
 @String{fast02 = "Proceedings of the 1st USENIX Conference on File and
                  Storage Technologies (FAST~'02)"}
@@ -27,6 +36,9 @@
 @String{fast05 = "Proceedings of the 4th USENIX Conference on File and
                  Storage Technologies (FAST~'05)"}
 
+@String{freenix05 = "Proceedings of the USENIX 2005 Annual Technical
+                 Conference, FREENIX Track"}
+
 @String{hotos03 = "Proceedings of the 9th USENIX Workshop on Hot Topics
                  in Operating Systems (HotOS~IX)"}
 
@@ -39,6 +51,14 @@
 @String{icdcs02 = "Proceedings of 22nd IEEE International Conference on
                  Distributed Computing Systems (ICDCS~2002)"}
 
+@String{ieeemicro = "IEEE Micro"}
+
+@String{lisa97 = "Proceedings of the 11th Systems Administration
+                 Conference (LISA~'97)"}
+
+@String{mobicomp94 = "Proceedings of the IEEE Workshop on Mobile
+                 Computing Systems and Applications"}
+
 @String{networking02 = "Revised Papers from the NETWORKING~2002
                  Workshops on Web Engineering and Peer-to-Peer
                  Computing"}
@@ -49,12 +69,26 @@
 @String{nsdi06 = "Proceedings of the 3rd Symposium on Networked Systems
                  Design and Implementation (NSDI~'06)"}
 
+@String{osdi94 = "Proceedings of the 1st Symposium on Operating Systems
+                 Design and Implementation (OSDI~'94)"}
+
 @String{osdi02 = "Proceedings of the 5th Symposium on Operating Systems
                  Design and Implementation (OSDI~'02)"}
+
+@String{repdata90 = "Proceedings of the First Workshop on the Management
+                 of Replicated Data"}
+
+@String{sigmetrics94 = "Proceedings of the International Conference on
+                 Measurements and Modeling of Computer Systems
+                 (SIGMETRICS~'94)"}
 
 @String{sigmetrics97 = "Proceedings of the International Conference on
                  Measurements and Modeling of Computer Systems
                  (SIGMETRICS~'97)"}
+
+@String{sigmetrics98 = "Proceedings of the International Conference on
+                 Measurements and Modeling of Computer Systems
+                 (SIGMETRICS~'98)"}
 
 @String{sigmetrics00 = "Proceedings of the International Conference on
                  Measurements and Modeling of Computer Systems
@@ -73,6 +107,12 @@
                  Workshop"}
 
 @String{softeng = "IEEE Transactions on Software Engineering"}
+
+@String{sosp81 = "Proceedings of the 8th ACM Symposium on Operating
+                 Systems Principles (SOSP~'81)"}
+
+@String{sosp83 = "Proceedings of the 9th ACM Symposium on Operating
+                 Systems Principles (SOSP~'83)"}
 
 @String{sosp87 = "Proceedings of the 11th ACM Symposium on Operating
                  Systems Principles (SOSP~'87)"}
@@ -125,6 +165,9 @@
 @String{usenixwinter94 = "Proceedings of the USENIX Winter 1994
                  Technical Conference"}
 
+@String{vldb81 = "Proceedings of the Seventh International Conference of
+                 Very Large Data Bases"}
+
 @String{workos93 = "Proceedings of the Fourth Workshop on Workstation
                  Operating Systems"}
 
@@ -132,6 +175,8 @@
                  Distributed Systems (WORLDS~'04)"}
 
 % Cities
+@String{anaheim = "Anaheim, California"}
+
 @String{asheville = "Asheville, North Carolina"}
 
 @String{austin = "Austin, Texas"}
@@ -140,9 +185,13 @@
 
 @String{boston = "Boston, Massachusetts"}
 
+@String{brettonwoods = "Bretton Woods, New Hampshire"}
+
 @String{brighton = "Brighton, United Kingdom"}
 
 @String{cambridge = "Cambridge, Massachusetts"}
+
+@String{cannes = "Cannes, France"}
 
 @String{charleston = "Charleston, South Carolina"}
 
@@ -154,6 +203,8 @@
 
 @String{honolulu = "Honolulu, Hawaii"}
 
+@String{houston = "Houston, Texas"}
+
 @String{lakelouis = "Chateau Lake Louise, Banff, Canada"}
 
 @String{leuven = "Leuven, Belgium"}
@@ -164,9 +215,13 @@
 
 @String{london = "London, United Kingdom"}
 
+@String{madison = "Madison, Wisconsin"}
+
 @String{monterey = "Monterey, California"}
 
 @String{napa =   "Napa, California"}
+
+@String{nashville = "Nashville, Tennessee"}
 
 @String{neworleans = "New Orleans, Louisiana"}
 
@@ -194,6 +249,8 @@
 
 @String{santafe = "Santa Fe, New Mexico"}
 
+@String{santacruz = "Santa Cruz, California"}
+
 @String{seattle = "Seattle, Washington"}
 
 @String{vienna = "Vienna, Austria"}
@@ -214,7 +271,19 @@
   month =        dec,
 }
 
-@InProceedings{anderson,
+@Article{anderson95a,
+  author =       "Thomas E. Anderson and David E. Culler and David A.
+                 Patterson",
+  title =        "A Case for {NOW} (Networks of Workstations)",
+  journal =      ieeemicro,
+  year =         "1995",
+  volume =       "15",
+  number =       "1",
+  pages =        "54--64",
+  month =        feb,
+}
+
+@InProceedings{anderson95b,
   author =       "Thomas E. Anderson and Michael Dahlin and Jeanna M.
                  Neefe and David A. Patterson and Drew S. Roselli and
                  Randolph Y. Wang",
@@ -226,7 +295,18 @@
   month =        dec,
 }
 
-@InProceedings{baker,
+@InProceedings{anderson97,
+  author =       "Eric Anderson and Dave Patterson",
+  title =        "Extensible, Scalable Monitoring for Clusters of
+                 Computers",
+  booktitle =    lisa97,
+  pages =        "9--16",
+  year =         "1997",
+  address =      sandiego,
+  month =        oct,
+}
+
+@InProceedings{baker91,
   author =       "Mary G. Baker and John H. Hartman and Michael D.
                  Kupfer and Ken W. Shirriff and John K. Ousterhout",
   title =        "Measurements of a Distributed File System",
@@ -235,6 +315,13 @@
   year =         "1991",
   address =      pacificgrove,
   month =        oct,
+}
+
+@PhdThesis{baker94,
+  author =       "Mary Louise Gray Baker",
+  title =        "Fast Crash Recovery in Distributed File Systems",
+  school =       "University of California at Berkeley",
+  year =         "1994",
 }
 
 @InProceedings{barham,
@@ -247,6 +334,16 @@
   year =         "2003",
   address =      boltonlanding,
   month =        oct,
+}
+
+@InProceedings{bartlett,
+  author =       "Joel F. Bartlett",
+  title =        "A {NonStop} Kernel",
+  booktitle =    sosp81,
+  pages =        "22--29",
+  year =         "1981",
+  address =      pacificgrove,
+  month =        dec,
 }
 
 @Article{birrell82,
@@ -270,6 +367,14 @@
   number =       "111",
   address =      paloalto,
   month =        sep,
+}
+
+@PhdThesis{blaze,
+  author =       "Matthew A. Blaze",
+  title =        "Caching in Large-scale Distributed File Systems",
+  school =       "Princeton University",
+  year =         "1993",
+  month =        jan,
 }
 
 @InProceedings{bolosky,
@@ -312,6 +417,17 @@
   year =         "1995",
 }
 
+@InProceedings{chaiken,
+  author =       "David Chaiken and John Kubiatowicz and Anant Agarwal",
+  title =        "Limit{LESS} Directories: {A} Scalable Cache Coherence
+                 Scheme",
+  booktitle =    asplos91,
+  pages =        "224--234",
+  year =         "1991",
+  address =      santaclara,
+  month =        apr,
+}
+
 @InProceedings{clark,
   author =       "Christopher Clark and Keir Fraser and Steven Hand and
                  Jacob Gorm Hansen and Eric Jul and Christian Limpach
@@ -322,6 +438,52 @@
   year =         "2005",
   address =      boston,
   month =        may,
+}
+
+@InProceedings{corbato,
+  author =       "F. J. Corbató and V. A. Vyssotsky",
+  title =        "Introduction and Overview of the Multics System",
+  booktitle =    afips65,
+  pages =        "185--196",
+  year =         "1965",
+  volume =       "27",
+  month =        jun,
+}
+
+@InProceedings{dahlin94a,
+  author =       "Michael Dahlin and Clifford Mather and Randolf Wang
+                 and Thomas E. Anderson and David A. Patterson",
+  title =        "A Quantitative Analysis of Cache Policies for Scalable
+                 Network File Systems",
+  booktitle =    sigmetrics94,
+  pages =        "150--160",
+  year =         "1994",
+  address =      nashville,
+  month =        may,
+}
+
+@InProceedings{dahlin94b,
+  author =       "Michael Dahlin and Thomas Anderson and David Patterson
+                 and Randolph Wang",
+  title =        "Cooperative Caching: Using Remote Client Memory to
+                 Improve File System Performance",
+  booktitle =    osdi94,
+  pages =        "267--280",
+  year =         "1994",
+  address =      monterey,
+  month =        nov,
+}
+
+@InProceedings{demers,
+  author =       "Alan Demers and Karin Petersen and Mike Spreitzer and
+                 Douglas Terry and Marvin Theimer and Brent Welch",
+  title =        "The {B}ayou Architecture: Support for Data Sharing
+                 Among Mobile Users",
+  booktitle =    mobicomp94,
+  pages =        "2--7",
+  year =         "1994",
+  address =      santacruz,
+  month =        dec,
 }
 
 @InProceedings{douceur01,
@@ -413,7 +575,17 @@
   pages =        "288--298",
 }
 
-@InProceedings{gray,
+@InProceedings{gray81,
+  author =       "Jim N. Gray",
+  title =        "The Transaction Concept: Virtues and Limitations",
+  booktitle =    vldb81,
+  pages =        "144--154",
+  year =         "1981",
+  address =      cannes,
+  month =        sep,
+}
+
+@InProceedings{gray89,
   author =       "Cary G. Gray and David R. Cheriton",
   title =        "Leases: An Efficient Fault-tolerant Mechanism for
                  Distributed File Cache Consistency",
@@ -422,6 +594,18 @@
   year =         "1989",
   address =      litchfieldpark,
   month =        dec,
+}
+
+@InProceedings{gribble,
+  author =       "Steven D. Gribble and Gurmeet Singh Manku and Drew S.
+                 Roselli and Eric A. Brewer and Timothy J. Gibson and
+                 Ethan L. Miller",
+  title =        "Self-similarity in File Systems",
+  booktitle =    sigmetrics98,
+  pages =        "141--150",
+  year =         "1998",
+  address =      madison,
+  month =        jun,
 }
 
 @InProceedings{hagmann,
@@ -456,6 +640,17 @@
   month =        dec,
 }
 
+@InProceedings{hensbergen,
+  author =       "Eric Van Hensbergen and Ron Minnich",
+  title =        "Grave Robbers from Outer Space: Using {9P2000} Under
+                 {L}inux",
+  booktitle =    freenix05,
+  pages =        "83--94",
+  year =         "2005",
+  address =      anaheim,
+  month =        apr,
+}
+
 @InProceedings{hitz,
   author =       "Dave Hitz and James Lau and Michael Malcolm",
   title =        "File System Design for an {NFS} File Server
@@ -478,6 +673,18 @@
   number =       "1",
   pages =        "51--81",
   month =        feb,
+}
+
+@InProceedings{keleher,
+  author =       "Pete Keleher and Sandhya Dwarkadas and Alan Cox and
+                 Willy Zwaenepoel",
+  title =        "Treadmarks: Distributed Shared Memory on Standard
+                 Workstations and Operating Systems",
+  booktitle =    usenixwinter94,
+  pages =        "115--131",
+  year =         "1994",
+  address =      sanfran,
+  month =        jan,
 }
 
 @InProceedings{khalidi,
@@ -522,13 +729,33 @@
   month =        dec,
 }
 
-@InProceedings{lee,
+@InProceedings{lee95,
+  author =       "Edward K. Lee",
+  title =        "Highly-available, Scalable Network Storage",
+  booktitle =    compcon95,
+  year =         "1995",
+  month =        mar,
+}
+
+@InProceedings{lee96,
   author =       "Edward K. Lee and Chandramohan A. Thekkath",
   title =        "Petal: Distributed Virtual Disks",
   booktitle =    asplos96,
   pages =        "84--92",
   year =         "1996",
   address =      cambridge,
+  month =        oct,
+}
+
+@InProceedings{liskov,
+  author =       "Barbara Liskov and Sanjay Ghemawat and Robert Gruber
+                 and Paul Johnson and Liuba Shrira and Michael
+                 Williams",
+  title =        "Replication in the {H}arp File System",
+  booktitle =    sosp91,
+  pages =        "226--238",
+  year =         "1991",
+  address =      pacificgrove,
   month =        oct,
 }
 
@@ -686,6 +913,17 @@
   month =        sep,
 }
 
+@InProceedings{popek,
+  author =       "Gerald J. Popek and Richard G. Guy and Thomas W. Page
+                 Jr. and John S. Heidemann",
+  title =        "Replication in {F}icus Distributed File Systems",
+  booktitle =    repdata90,
+  pages =        "5--10",
+  year =         "1990",
+  address =      houston,
+  month =        nov,
+}
+
 @InProceedings{quinlan,
   author =       "Sean Quinlan and Sean Dorward",
   title =        "Venti: {A} New Approach to Archival Storage",
@@ -788,6 +1026,18 @@
   month =        apr,
 }
 
+@Article{shoch,
+  author =       "John F. Shoch and Jon A. Hupp",
+  title =        "The ``Worm'' Programs---Early Experience with a
+                 Distributed Computation",
+  journal =      cacm,
+  year =         "1982",
+  volume =       "25",
+  number =       "3",
+  pages =        "172--180",
+  month =        mar,
+}
+
 @InProceedings{sobti,
   author =       "Sumeet Sobti and Nitin Garg and Fengzhou Zheng and
                  Junwen Lai and Yilei Shao and Chi Zhang and Elisha
@@ -847,6 +1097,17 @@
   month =        dec,
 }
 
+@InProceedings{walker,
+  author =       "Bruce Walker and Gerald Popek and Robert English and
+                 Charles Kline and Greg Thiel",
+  title =        "The {LOCUS} Distributed File System",
+  booktitle =    sosp93,
+  pages =        "49--70",
+  year =         "1983",
+  address =      brettonwoods,
+  month =        oct,
+}
+
 @InProceedings{wang93,
   author =       "Randolph Y. Wang and Thomas E. Anderson",
   title =        "{xFS}: {A} Wide Area Mass Storage File System",
@@ -887,6 +1148,17 @@
   year =         "2004",
   address =      leuven,
   month =        sep,
+}
+
+@InProceedings{wilkes,
+  author =       "John Wilkes and Richard Golding and Carl Staelin and
+                 Tim Sullivan",
+  title =        "The {HP} {AutoRAID} Hierarchical Storage System",
+  booktitle =    sosp95,
+  pages =        "96--108",
+  year =         "1995",
+  address =      coppermountain,
+  month =        dec,
 }
 
 @InProceedings{zhao,

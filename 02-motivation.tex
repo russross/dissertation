@@ -26,12 +26,28 @@ Services running on a single server all fail together if the server fails. Corre
 
 Scalability is a significant benefit of clusters over centralized servers. Hardware can be added incrementally according to need, which eliminates the need for an accurate forecast of the lifetime demands of the system. In addition, clusters of machines can achieve much greater overall scale than even the largest single machines. Scalability over time and absolute scalability are also features of non-clustered distributed systems, but those lack the high-speed interconnects possible in managed environments (note that I consider a cluster to be defined more by the coherent administrative environment and high-speed networking than by physical proximity; machines in a single cluster could be located in different buildings or at different sites if the other conditions are met).
 
-The use of commidity hardware also allows rapid machine acquisition and cheap prices. Incremental scaling means that newly added hardware can always take advantage of the best price/performance ratios and benefit from the constant downward pressure on prices in a competitive market \cite{fox}. Commodity disks are relatively unreliable, but they are also large and cheap and offer a good source for storage capacity \cite{patterson,warfield} that comes standard with most machines.
+The use of commodity hardware also allows rapid machine acquisition and cheap prices. Incremental scaling means that newly added hardware can always take advantage of the best price/performance ratios and benefit from the constant downward pressure on prices in a competitive market \cite{fox}. Commodity disks are relatively unreliable, but they are also large and cheap and offer a good source for storage capacity \cite{patterson,warfield} that comes standard with most machines.
 
 The independence of nodes in a cluster offers redundancy that can be exploited for both reliability and availability. This is necessary not only to exceed the expectations of a single system, but to match it as well. Having many parts that can fail independently offers a much higher probability that at least one will fail than that any single component will fail, and a cluster that does not tolerate some component failures will quickly become unusable \cite{birrell93}.
 
+Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
+
 \section{Services}
 
-Hardware virtualization as a partitioning tool is an old idea, but it has largely been confined to specialized hardware until more recently. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
+One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
 
-Virtualizing an entire commodity machine makes it possible to use a standard operating system and standard tools as a unit of management. \cite{hand}
+Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
+
+\section{Service clusters}
+
+Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
+
+Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
+
+Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
+
+
+
+\section{Utility computing}
+
+\section{XenoServers}
