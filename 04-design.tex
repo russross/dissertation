@@ -66,11 +66,11 @@ This section presents the administrative interface to \envoy, which is designed 
 
 All services share a single cluster-wide namespace tree with a common root. Mounting the root of the entire tree requires special priviledges, normally reserved for the administrative tools managing the file system. The top levels of the hierachy respond normally to standard file operations, with a few notable exceptions described here.
 
-A few file names are given special significance and their use is restricted. The name ``current'' is reserved for use as the root of a client file system, positive integers are reserved as the read-only roots of snapshots (in ascending order) of the tree rooted at ``current'' in the same directory, and a symbolic link names ``snapshot'' is created and protected by the system to link to the most recently-created snapshot in the same directory. In addition, a normal file named ``password'' can exist to store credentials for clients accessing descendents of the containing directory.
+A few file names are given special significance and their use is restricted. The name \current is reserved for use as the root of a client file system, positive integers are reserved as the read-only roots of snapshots (in ascending order) of the tree rooted at \current in the same directory, and a symbolic link names \snapshot is created and protected by the system to link to the most recently-created snapshot in the same directory. In addition, a normal file named \password can exist to store credentials for clients accessing descendents of the containing directory.
 
-The namespace is conceptually divided between the administrative levels and the client levels. The client levels include anything that is a descendent of a directory named ``current'' or one of its snapshots (named as positive integers). Any path that does not pass through one of these points is considered part of the administrative namespace and is subject to the restrictions and special semantics described in this section.
+The namespace is conceptually divided between the administrative levels and the client levels. The client levels include anything that is a descendent of a directory named \current or one of its snapshots (named as positive integers). Any path that does not pass through one of these points is considered part of the administrative namespace and is subject to the restrictions and special semantics described in this section.
 
-To create a new file system root, a user or management tool creates any desired layers of files and directories within the administrative area, ending with a directory called ``current''. Services can then mount ``current'' or any of its descendent directories. A client mount request specifies the desired root pathname along with the username attempting the mount and any credentials required to validate the request. The server checks these credentials against any files called ``password'' that it encounters in administrative directories passed through before arriving at ``current'', with those further down the hierarchy overriding those encountered earlier.
+To create a new file system root, a user or management tool creates any desired layers of files and directories within the administrative area, ending with a directory called \current. Services can then mount \current or any of its descendent directories. A client mount request specifies the desired root pathname along with the username attempting the mount and any credentials required to validate the request. The server checks these credentials against any files called \password that it encounters in administrative directories passed through before arriving at \current, with those further down the hierarchy overriding those encountered earlier.
 
 In addition to end-user mounts, this system of password files applies to the administrative file areas as well. If given suitable credentials, a service can attach to the namespace in an administrative directory to create and manage its own file system trees and credential files, creating a hierachy for management roles as well as file storage. Controlling access to any directory requires credentials to mount its parent, along with standard file permissions within the parent directory to manipulate the credential file. \envoy does not map user and group names to numeric IDs, so any clients that can agree on usernames and credentials can share access to a file system.
 
@@ -78,12 +78,28 @@ In addition to marking the transition from administrative to client directories,
 
 Snapshots are always given positive integers as names (and cannot be renamed), but this is not always convenient for use. It may be useful to name a particular snapshot with a more meaningful name using a symbolic link. Symbolic links are normally considered opaque by the server and cannot be used in any mount or directory-change requests, so to make accessing named snapshots more convenient the server silently dereferences symbolic links that refer to snapshots in the same directory.
 
-Snapshots also serve another special purpose: they can be used as the root for a file system fork operation. Just as the \current directory diverges from its most recent snapshot using copy-on-write semantics, new \current roots in other administrative directories can use an existing snapshot as a starting point. A request to create a symbolic link called ``current'' that refers to the fully-qualified pathname of a snapshot (again, links to a snapshot within the same directory are dereferenced, but others are not) is treated as a fork operation using the given snapshot as the starting point for a new root file system. The newly forked file system is subject to the same rules as those created with \texttt{mkdir}, and respects the credentials local to its creation site, not those of the snapshot from which it diverges. For this reason, fork operations require sufficient credentials at both locations.
+Snapshots also serve another special purpose: they can be used as the root for a file system fork operation. Just as the \current directory diverges from its most recent snapshot using copy-on-write semantics, new \current roots in other administrative directories can use an existing snapshot as a starting point. A request to create a symbolic link called \current that refers to the fully-qualified pathname of a snapshot (again, links to a snapshot within the same directory are dereferenced, but others are not) is treated as a fork operation using the given snapshot as the starting point for a new root file system. The newly forked file system is subject to the same rules as those created with \texttt{mkdir}, and respects the credentials local to its creation site, not those of the snapshot from which it diverges. For this reason, fork operations require sufficient credentials at both locations.
 
-\subsection{High-level architecture overview}
-Big diagram.
+\section{Architecture}
+
+The file system is comprised of two primary service layers. Storage is managed by the lower level, which allows a small set of basic file operations on objects that are referenced by a unique identifier. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+
+On top of the storage service is the \envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for clients to access.
+
+In the remainder of this section I detail the functionality and requirements of these systems and consider the tradeoffs of various design decisions.
+
 \subsection{Storage layer}
+
+The abstractions to provide redundancy and data distribution are encapsulated in the storage layer. The storage layer provides a simple interface supporting a few basic operations on objects that are referenced by unique identifiers. Objects can be created, deleted, and cloned, byte ranges within objects can be read from and written to, and the attributes of objects can be queried and modified.
+
+Object managers 
+
+
 \subsection{Envoy layer}
+\subsubsection{Caching}
+
+\section{Operations}
+\subsection{File operations and state management}
 \subsection{Lease migration}
 \subsection{Forks and snapshots}
 \subsection{Security}
