@@ -10,11 +10,34 @@ All of these examples benefit from the simple and rapid deployment and managemen
 
 In this chapter I argue that the combination of virtual machine managers and clusters of commodity hardware offers a potent platform for service deployment, which I call \textit{service clusters}. I further argue that existing storage systems are not well suited for this environment and how it is used, so a new set of requirements and a storage system to match them are called for.
 
-\section{Why clusters}
+\section{Commodity computing}
+
+\subsection{The GRID}
+\subsubsection{Volunteer projects}
+\subsubsection{Commercial and research projects}
+\subsubsection{Planetlab}
+
+\subsection{Commodity clusters}
+\subsubsection{Google}
+\subsubsection{Beowolf clusters}
+\subsubsection{Supercomputer 500 list}
+
+\subsection{Web services}
+\subsubsection{Thin clients}
+\subsubsection{Mobile clients}
+\subsubsection{Services as commodities}
+email, payroll, tax prep
+
+\subsection{Flexible commodity computing}
+\subsubsection{Morgan Stanley}
+\subsubsection{XenoServers}
+\subsubsection{Standard platforms}
+
+\section{Clusters as a commodity computing platform}
 
 Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but in flexibility achieved in return makes the tradeoff profitible.
 
-\subsection{Benefits of centralized systems}
+\subsection{When one is better than many}
 
 Centralized administration and high-speed communication (via shared memory and IPC) are two advantages of traditional servers. Clusters typically put components in a single location with high-speed local networking and a secure physical location. The machines are all owned and administered by a single organization and can have whatever cooling systems and redundant power supplies are appropriate for the application. Systems designed to prevent or avoid any centralized control usually do so for privacy or legal reasons, neither of which is compelling in the service cluster environment. Indeed, some degree of central administration is an essential feature of service clusters. The owner of the cluster needs to control access and admission to the service pool as well as monitor services that are running to ensure that they do not exceed their alloted resources. Given physical proximity and central control, central administration adds convenience without introducing unnecessary penalties in flexibility.
 
@@ -22,7 +45,7 @@ To further emulate the desirable characteristics of centralized servers, cluster
 
 Services running on a single server all fail together if the server fails. Correlated failure is generally considered a problem in distributed systems, but it can also simplify the requirements of failure recovery at least in the common case. When a single server fails, the file system is generally restored to a consistent state before its services are restarted and allowed to recover. If the file system fails while the service continues, this is often considered a similarly catastrophic failure of the system, no better than the two parts failing together. In a virtual machine environmenet, the distributed file system manager can be located on the same physical machine as the service that depends on it, restoring this hardware correlation between the two components. Note that the virtual machine monitor already represents a single point of failure for an entire physical machine; adding the file system manager as a second critical software component that cannot be recovered without a restart of the node only enlarges the set of critical tools, it does not create it. The failure of a client service does not enjoy the same priviledged status.
 
-\subsection{Benefits of many machines}
+\subsection{When many is better than one}
 
 Scalability is a significant benefit of clusters over centralized servers. Hardware can be added incrementally according to need, which eliminates the need for an accurate forecast of the lifetime demands of the system. In addition, clusters of machines can achieve much greater overall scale than even the largest single machines. Scalability over time and absolute scalability are also features of non-clustered distributed systems, but those lack the high-speed interconnects possible in managed environments (note that I consider a cluster to be defined more by the coherent administrative environment and high-speed networking than by physical proximity; machines in a single cluster could be located in different buildings or at different sites if the other conditions are met).
 
@@ -36,18 +59,22 @@ Clusters have mainly been confined to solving ``embarrassingly parallel''\footno
 
 One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
 
+\subsection{Services as a management unit}
+
+\subsection{Hosting services}
+
+\subsection{Virtual machines}
+
 Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
 
 \section{Service clusters}
 
 Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
 
+\subsection{Commodity everything}
+
+\subsection{Heterogeneous workloads}
+
 Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
 
 Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
-
-
-
-\section{Utility computing}
-
-\section{XenoServers}

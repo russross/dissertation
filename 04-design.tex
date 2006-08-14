@@ -92,7 +92,11 @@ In the remainder of this section I detail the functionality and requirements of 
 
 The abstractions to provide redundancy and data distribution are encapsulated in the storage layer. The storage layer provides a simple interface supporting a few basic operations on objects that are referenced by unique identifiers. Objects can be created, deleted, and cloned, byte ranges within objects can be read from and written to, and the attributes of objects can be queried and modified.
 
-Object managers 
+Object managements services have grown in popularity in recent years. They offer a simple mapping from files and directories to the underlying mechanism that makes the overall system easier to comprehend and design, as well as implement, debug, and maintain.
+
+This seperation is also a convenient way to divide lower-level storage concerns such as reliability and availability from higher-level file system responsibilities, including consistency, security, cache policy, and conflict resolution.
+
+
 
 
 \subsection{Envoy layer}

@@ -1,1 +1,9 @@
-% summary
+\chapter*{Summary}
+
+Standards in the computer industry have made basic components and entire architectures into commodities, and now software and services are following. By an accident of timing, these two trends are interlinked. Commodity hardware is being used increasingly for the heavy lifting formerly reserved for specialized platforms through the advent of GRID computing and clusters of cheap hardware as used by Google and other companies. Improved web interfaces, widespread internet access, and cheap servers make it practical for many software services to be hosted by specialized providers instead of being managed directly by users and corporate IT departments.
+
+Modern updates to virtualization technology make it practical to subdivide these commodity servers and manage groups of heterogeneous services using commodity operating systems and tools. Computation as a commodity is soon to follow, and some progress has already been made in making this a reality.
+
+In this dissertation, I argue for the adoption of \emph{service clusters}---clusters of commodity machines managed by a single administrator, but running services in virtual machines for arbitrary, untrusted clients---as the basic building block for an economy of \emph{flexible commodity computation}. I then outline the requirements such a platform imposes on its storage system and argue that they are necessary for service clusters to be practical, but not found in existing systems.
+
+Next I introduce the \envoy file system, a distributed file system for service clusters. In addition to meeting the needs of service clusters, \envoy introduces a novel file distribution scheme that organizes metadata management according to runtime usage patterns; in effect, the file system is partitioned to give control of each part to the client that uses it the most, and that client in turn acts as a server with caching for other clients that require concurrent access. This allows it to provide scalability that is limited by only by actual contention, and a perfectly consistent cache distributed across the cluster.

@@ -1,4 +1,4 @@
-\documentclass[a4paper,twoside,10pt]{report} % openright
+\documentclass[a4paper,twoside,12pt]{report} % openright
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{sabon}
@@ -10,8 +10,8 @@
 \usepackage{url}
 
 \geometry{tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
-%\onehalfspace
-%\parskip 10pt
+\onehalfspace
+\parskip 10pt
 
 % set up floats
 \renewcommand{\topfraction}{.8}
@@ -31,12 +31,14 @@
 \newcommand{\envoy}{Envoy\xspace}
 \newcommand{\current}{\texttt{current}\xspace}
 \newcommand{\snapshot}{\texttt{snapshot}\xspace}
+\newcommand{\password}{\texttt{password}\xspace}
+\newcommand{\vs}{vs.\xspace}
 
 \begin{document}
 
 %%%%%%%%%%%%% Titles %%%%%%%%%%%%%%%%%%%%%%%%
 
-%\include{titles}
+\include{titles}
 %\cleardoublepage
 %\pagenumbering{arabic}
 
@@ -45,19 +47,19 @@
 %\input{annotation.sty}
 %\suppressnotes
 
-%\include{01-introduction}
-\include{02-motivation}
-\include{03-background}
+\include{01-introduction}
+\include{02-background}
+\include{03-motivation}
 \include{04-design}
-%\include{04-implementation}
-%\include{05-evaluation}
-%\include{06-conclusion}
+\include{05-implementation}
+\include{06-evaluation}
+\include{07-conclusion}
 
 %
 % Temporarily at the end (so page numbers are sensible)
 % 
 %\include{toc}
-%\tableofcontents
+\tableofcontents
 
 %\nocite{*}
 \renewcommand{\bibname}{References}
