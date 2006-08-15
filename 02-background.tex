@@ -4,7 +4,8 @@ Storage systems have been studied and documented extensively in the systems lite
 
 In this chapter I survey the most important and widely known storage systems, with an emphasis on those that are relevent to service clusters and similar in design to \envoy. I describe some of the major design tradeoffs that emerge and identify the characteristics of service clusters that make existing systems unsuitable or less than ideal for this emerging environment as I justify the need for another storage system.
 
-\section{Workstation environments}
+\section{File systems}
+
 \subsection{Early systems}
 \subsubsection{Multics}
 \cite{corbato}
@@ -61,16 +62,14 @@ xFS\cite{wang93,anderson95b,wang98}
 \subsubsection{Venti}
 \cite{quinlan}
 
-\section{Wide-area distributed file systems}
+\subsection{Wide-area file systems}
 Prospero \cite{neuman}
 
 Oceanstore and Pond \cite{rhea}
 
-\subsection{Hierarchical systems}
-
 \subsubsection{Echo}
 
-The Echo distributed file system \cite{birrell93} was designed to provide a single, global namespace that was accessible anywhere and perfectly coherent. It uses write-behind caching for files and directories with ordering constraints to preserve consistency even in the presence of crashes \cite{mann}, and employs a token-passing scheme to manage cache coherency. The top levels of the namespace are hosted on the DNS, with a link to a specific server. From there, servers host branches of the tree with further links to additional servers. Replication is done at the server level with primary and secondary servers that are synchronized. It died when the OS that hosted it wasn't ported to newer hardware.
+The Echo distributed file system \cite{birrell93} was designed to provide a single, global namespace that was accessible anywhere and perfectly coherent. It uses write-behind caching for files and directories with ordering constraints to preserve consistency even in the presence of crashes \cite{mann}, and employs a token-passing scheme to manage cache coherency. The top levels of the namespace are hosted on the DNS, with a link to a specific server. From there, servers host branches of the tree with further links to additional servers. Replication is done at the server level with primary and secondary servers that are synchronized. It died when the OS that hosted it wasn't ported to newer hardware (another reason to use commodity systems).
 
 \subsection{Peer-to-peer file systems}
 \subsubsection{Pasta}
@@ -82,8 +81,8 @@ The Echo distributed file system \cite{birrell93} was designed to provide a sing
 \subsection{Mobile computing support}
 \cite{kim}\cite{mummert}\cite{sobti}
 
-\section{Clusters}
-\subsection{File systems}
+\subsection{Clusters}
+
 \subsubsection{Petal}
 \cite{lee95,lee96}
 \subsubsection{Frangipani}
@@ -94,8 +93,6 @@ The Echo distributed file system \cite{birrell93} was designed to provide a sing
 \cite{ghemawat}
 \subsubsection{Lustre}
 \cite{lustre}
-
-\subsection{Virtual disks}
 \subsubsection{Parallax}
 \cite{warfield}
 \subsubsection{FAB}
@@ -108,7 +105,16 @@ Network-attached secure disks (NASD) \cite{gibson}
 
 Network-attached storage (NetAPP) \cite{hitz}
 
-\section{Distributed environments}
+\section{Commodity computing}
+
+\subsection{The GRID}
+\cite{zhao}
+
+\subsection{Embarassingly parallel}
+
+\subsection{Service platforms}
+
+Jini
 
 \subsection{Network of workstations}
 Networks of workstations (NOW)\cite{anderson95a}
@@ -124,18 +130,20 @@ Partition cloning \cite{rauch}
 
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
 
-\section{GRID computing}
-\cite{zhao}
-
 \section{Virtualization}
 
 \subsection{Virtual machine monitors}
+\subsubsection{IBM System/370}
+\subsubsection{Disco}
+\subsubsection{Denali}
 \subsubsection{Xen}
 \cite{barham}
 Live migration \cite{clark} \cite{sapuntzakis}
 \subsubsection{Terra}
 \cite{garfinkel}
 \subsubsection{VMWare}
+\subsubsection{vMatrix}
+\subsubsection{IBM Managed Hosting}
 
 \subsection{XenoServers}
 \cite{kotsovinos}
