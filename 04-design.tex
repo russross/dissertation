@@ -1,55 +1,21 @@
-\chapter{The \envoy file system}
+\chapter{Design of the Envoy File System}
 
-This chapter examines the storage needs of service clusters and how they can be accommodated. Service clusters place specific demands on the storage system to efficiently support the deployment and management of untrusted services, but they also present helpful properties that can simplify the job. In addition to detailing these constraints, this chapter describes \envoy, a file system designed for this environment.
+This chapter examines the storage needs of service clusters and how they can be accommodated. Service clusters place specific demands on the storage system to efficiently support the deployment and management of untrusted services, but they also present helpful properties that can simplify the job. In addition to detailing these constraints, this chapter describes Envoy, a file system designed for this environment.
 
-\section{Distribution}
+\section{Design goals and principles}
 
-Three basic architectures are available. A centralized server model is the simplest and satisfies the mobility requirement, but it doesn't scale well and suffers from a single point of failure. This model has been extended quite successfully using RAIDs and SANs on the back end to increase performance and robustness, and by caching on the client end to reduce load, but it is still limited. Ultimately, all decisions are moderated by a single host which must communicate directly with all clients, so at larger scale the network bandwidth becomes a problem as well.
-
-At the other extreme, coordinations is pushed completely to the clients. This is essentially the centralized model turned upside down. Instead of many clients talking to a single server, a single client must communicate with many servers. Instead of one congestion point, every client becomes overwhelmed with bookkeeping. In practice, some structure can be introduced so that the system isn't a full $n$-way clique---the host for each object of storage may become the mediator for access to that object, for example---but making every participant a symmetric peer is mostly useful for privacy or other non-technical concerns.
-
-A more practical approach is to emulate a centralized architecture as much as possible, since this provides the simplest model with the least administrative overhead, and carve up the problem enough to achieve the desired scaling properties. The two extremes offer the greatest conceptual purity, but the practical benefits are to be had somewhere between them. Most P2P services now introduce some kind of a hierarchy that designates some hosts as ``superpeers'' or ``supernodes'' that act as aggregation points for a manageable set of participants. These distinguished hosts only need to communicate directly with other similarly endowed hosts, potentially reducing the visible size of the network by orders of magnitude. The world is small enough and computers big enough that a few orders of magnitude is enough reduction to make many distributed problems tractable.
-
-Another way of viewing this problem is to consider how many manually administered systems are often implemented today. NFS \cite{callaghan} is still one of the most widely-used systems, and a workstation environment may include a series of NFS servers to provide storage for a larger number of client workstations. Each server will be backed by a RAID \cite{patterson} system for improved performance and reliability, and the administrators may divide the file system namespace in order to balance average demand over the different servers. While most file access in uncontended, having a single server that serves all interested clients makes coherence easy (ignoring the effects of caching).
-
-An interesting thought exercise is to consider the same set of workstations locking into a long-term steady-state behavior, and then asking the systems administrator to hand configure the system based on those usage patterns. One reasonable possibility would be to locate files or branches of the namespace tree used exclusively by a single workstation on that workstation. When two or more users require the same file or set of files, it could be managed by the workstation that uses it the most and exported via NFS (or a similar client-server file system protocol) to the other participants. Since contention is relatively rare, this would reduce network traffic for the storage system to a low level for as long as the hypothetical steady-state continues. One of the goals of the \envoy design is to capture this approximate topology.
-
-In service clusters, physical hosts are divided into roughly 10s of services, which may be transient, untrusted, and unreliable. This increases the number of participants requiring access to the storage system by the same factor and exposes difficult security problems. One of the principle benefits of isolating services in individual virtual machines is in reducing the impact of services that fail, either benignly or maliciously, and trusting the administration of the file system to the services negates this benefit.
-
-The environment includes a trusted management domain on each server, however, which introduces a natural aggregation point and a way to sidestep many of those problems.
-
-\section{Local impact}
-
-\envoy is designed according to the principle of \textit{local impact}, meaning that the resources consumed directly or indirectly by a service should be as close to that service as possible. If not in the same VM, then on the same machine, or on another machine that has some specific reason to yield its resources to a remote service.
-
-By extension, this principle leads to a topology that is shaped according to runtime conflicts. When there is no reason to suspect contention, machines will prefer to assume complete control over the storage in active use by their client services. If two machines must explicitly coordinate their access to storage, they are treading on overlapping or neighboring storage and implicitly declaring that a conflict is likely to occur.
-
-Previous studies of file system traffic have repeatedly concluded that runtime contention is rare, so \envoy is designed to assume that exclusive access dominates and react to conflicts as they occur rather than optimizing for the occasions when access overlaps.
-
-\section{Supporting services}
-
-VM migration \cite{clark} is essential for load balancing and uninterrupted service in the presence of hardware servicing.
-
-To support migration, a file system cannot be tied to a single physical machine. Any given file system image must be as mobile as the service that relies on it.
-
-One of the attractive features of running individual services in virtual machines is the flexibility of management this model offers. Services can be decoupled, instances can be created and destroyed easily in response to need, and a new service can be deployed without dedicating a new machine to it, removing and old service to make room, or studying the potential interactions that would occur if a shared server was the only option. To this end, lightweight operations are required to instantiate and clone services.
-
-The unit of management is an entire operating system on a virtual machine. Installing an operating system for each service instance would be prohibitively slow, labour intensive, and wasteful of space. A typical installation of Linux using Fedora Core~3 takes about 50 terabytes of space, and an automated installation is unlikely to give the right set of installed packages and running daemons, so some customization will be necessary.
-
-Instead of trying to automate installations, \envoy offers lightweight operations to fork a file system 
-
-\section{Outline of the other stuff}
-\subsection{Goals of Envoy}
-\subsubsection{Things that a VM cluster calls for}
+\subsection{Things that a service cluster calls for}
 \begin{itemize}
-\item virtual machine clusters---admin domain as aggregator and secure manager
-\item mobile VMs
-\item stock base images with customization---rapid deployment of services
-\item commodity disks
-\item snapshots and forks
+\item exploit admin domain for simple security and fault model
+\item expect lots of redundancy in disk images; aggregate cache
+\item support mobile VMs
+\item support rapid deployment of services with lightweight file system forks
+\item use cheap commodity disks
+\item snapshots
+\item isolate services from each other, but allow cooperative groups
 \end{itemize}
 
-\subsubsection{Desirable properties that the envoy model achieves}
+\subsection{Desirable properties that the envoy model achieves}
 \begin{itemize}
 \item distribute only when there's a reason; favor centralization when practical
 \item perfectly consistent persistent caching
@@ -60,9 +26,15 @@ Instead of trying to automate installations, \envoy offers lightweight operation
 \item private images act like local images, shared images scale gracefully
 \end{itemize}
 
-\section{Use and administration}
+\section{Using Envoy}
 
-This section presents the administrative interface to \envoy, which is designed as a series of special file operations and conventions.
+\subsection{Basic environment and assumptions}
+
+It's a cluster, dom0 is trusted, it's all managed together, expect users to start from standard installs
+
+\subsection{Use and administration}
+
+This section presents the administrative interface to Envoy, which is designed as a series of special file operations and conventions.
 
 All services share a single cluster-wide namespace tree with a common root. Mounting the root of the entire tree requires special priviledges, normally reserved for the administrative tools managing the file system. The top levels of the hierachy respond normally to standard file operations, with a few notable exceptions described here.
 
@@ -72,7 +44,7 @@ The namespace is conceptually divided between the administrative levels and the 
 
 To create a new file system root, a user or management tool creates any desired layers of files and directories within the administrative area, ending with a directory called \current. Services can then mount \current or any of its descendent directories. A client mount request specifies the desired root pathname along with the username attempting the mount and any credentials required to validate the request. The server checks these credentials against any files called \password that it encounters in administrative directories passed through before arriving at \current, with those further down the hierarchy overriding those encountered earlier.
 
-In addition to end-user mounts, this system of password files applies to the administrative file areas as well. If given suitable credentials, a service can attach to the namespace in an administrative directory to create and manage its own file system trees and credential files, creating a hierachy for management roles as well as file storage. Controlling access to any directory requires credentials to mount its parent, along with standard file permissions within the parent directory to manipulate the credential file. \envoy does not map user and group names to numeric IDs, so any clients that can agree on usernames and credentials can share access to a file system.
+In addition to end-user mounts, this system of password files applies to the administrative file areas as well. If given suitable credentials, a service can attach to the namespace in an administrative directory to create and manage its own file system trees and credential files, creating a hierachy for management roles as well as file storage. Controlling access to any directory requires credentials to mount its parent, along with standard file permissions within the parent directory to manipulate the credential file. Envoy does not map user and group names to numeric IDs, so any clients that can agree on usernames and credentials can share access to a file system.
 
 In addition to marking the transition from administrative to client directories, a directory named \current can have its snapshot taken. When the server receives a request to create a symbolic link with a positive integer as its name and \current as its target, it checks to make sure that the integer is correct for the next snapshot (either \texttt{1} or the number linked to by \snapshot plus one). If so, it takes a snapshot of \current, makes it accessible using the requested name (accessible as a directory, not a symbolic link), and creates or updates \snapshot to link to the newly created snapshot. Any request with the wrong target or the wrong number is rejected.
 
@@ -82,11 +54,17 @@ Snapshots also serve another special purpose: they can be used as the root for a
 
 \section{Architecture}
 
-The file system is comprised of two primary service layers. Storage is managed by the lower level, which allows a small set of basic file operations on objects that are referenced by a unique identifier. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. This VM manages partitioning the local disk between the shared storage pool and the persistent cache as well as providing a standard interface to the file system.
 
-On top of the storage service is the \envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for clients to access.
+The file system management processes join a cluster-wide service that is comprised of two primary layers. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+
+On top of the storage service is the Envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for services to access.
 
 In the remainder of this section I detail the functionality and requirements of these systems and consider the tradeoffs of various design decisions.
+
+\subsection{Distribution}
+
+Envoy is designed to run in a trusted environment with direct access to the local disk.
 
 \subsection{Storage layer}
 
@@ -96,16 +74,19 @@ Object managements services have grown in popularity in recent years. They offer
 
 This seperation is also a convenient way to divide lower-level storage concerns such as reliability and availability from higher-level file system responsibilities, including consistency, security, cache policy, and conflict resolution.
 
-
-
-
 \subsection{Envoy layer}
-\subsubsection{Caching}
+\subsubsection{Data layout}
+
+\subsection{Caching}
+\subsubsection{Data paths for typical requests}
 
 \section{Operations}
 \subsection{File operations and state management}
-\subsection{Lease migration}
 \subsection{Forks and snapshots}
+\subsection{Lease migration}
 \subsection{Security}
-\subsection{Recovery}
 \subsection{Deleting snapshots}
+
+\section{Recovery}
+
+\section{Summary}

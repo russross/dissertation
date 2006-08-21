@@ -2,7 +2,52 @@
 
 Storage systems have been studied and documented extensively in the systems literature. One could argue that everything worth doing has been done, or alternatively one could assert that the continuing research is evidence that everyone has failed so far, with the truth probably residing somewhere between these two extremes. Storage is an essential component of most systems, though, and the requirements placed on them are almost as various as the solutions that have been proposed.
 
-In this chapter I survey the most important and widely known storage systems, with an emphasis on those that are relevent to service clusters and similar in design to \envoy. I describe some of the major design tradeoffs that emerge and identify the characteristics of service clusters that make existing systems unsuitable or less than ideal for this emerging environment as I justify the need for another storage system.
+In this chapter I survey the most important and widely known storage systems, with an emphasis on those that are relevent to service clusters and similar in design to Envoy. I describe some of the major design tradeoffs that emerge and identify the characteristics of service clusters that make existing systems unsuitable or less than ideal for this emerging environment as I justify the need for another storage system.
+
+\section{Commodity computing}
+
+\subsection{The GRID}
+\cite{zhao}
+
+\subsection{Embarassingly parallel}
+
+\subsection{Service platforms}
+
+Jini
+
+\subsection{Network of workstations}
+Networks of workstations (NOW)\cite{anderson95a}
+
+\subsection{Clusters}
+CARD for cluster monitoring\cite{anderson97}
+
+Fast crash recovery \vs redundancy\cite{baker94}
+
+Partition cloning \cite{rauch}
+
+\subsubsection{TranSend}
+
+TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
+
+\section{Virtualization}
+
+\subsection{Virtual machine monitors}
+\subsubsection{IBM System/370}
+\subsubsection{Disco}
+\subsubsection{Denali}
+\subsubsection{Xen}
+\cite{barham}
+Live migration \cite{clark} \cite{sapuntzakis}
+\subsubsection{Terra}
+\cite{garfinkel}
+\subsubsection{VMWare}
+\subsubsection{vMatrix}
+\subsubsection{IBM Managed Hosting}
+
+\subsection{XenoServers}
+\cite{kotsovinos}
+
+Ventana \cite{pfaff}
 
 \section{File systems}
 
@@ -105,47 +150,4 @@ Network-attached secure disks (NASD) \cite{gibson}
 
 Network-attached storage (NetAPP) \cite{hitz}
 
-\section{Commodity computing}
-
-\subsection{The GRID}
-\cite{zhao}
-
-\subsection{Embarassingly parallel}
-
-\subsection{Service platforms}
-
-Jini
-
-\subsection{Network of workstations}
-Networks of workstations (NOW)\cite{anderson95a}
-
-\subsection{Clusters}
-CARD for cluster monitoring\cite{anderson97}
-
-Fast crash recovery \vs redundancy\cite{baker94}
-
-Partition cloning \cite{rauch}
-
-\subsubsection{TranSend}
-
-TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
-
-\section{Virtualization}
-
-\subsection{Virtual machine monitors}
-\subsubsection{IBM System/370}
-\subsubsection{Disco}
-\subsubsection{Denali}
-\subsubsection{Xen}
-\cite{barham}
-Live migration \cite{clark} \cite{sapuntzakis}
-\subsubsection{Terra}
-\cite{garfinkel}
-\subsubsection{VMWare}
-\subsubsection{vMatrix}
-\subsubsection{IBM Managed Hosting}
-
-\subsection{XenoServers}
-\cite{kotsovinos}
-
-Ventana \cite{pfaff}
+\section{Summary}

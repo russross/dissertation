@@ -1,0 +1,27 @@
+\chapter{Evaluation}
+
+\section{Baseline performance}
+\begin{itemize}
+\item standard benchmarks \vs userspace 9p
+\item same domain \vs different domain \vs different machine
+\item read/write \vs metadata heavy
+\item persistent cache: cold, warm, hot, disabled
+\end{itemize}
+
+\section{Fancy features}
+\subsection{Snapshots}
+\subsection{Lease migration}
+\subsection{2-way contention: owner \vs remote host performance}
+Performance gains from rebalancing (besides load balancing).
+
+\section{Scaling}
+\subsection{Degredation of a single host with many clients}
+Shared image, and also private images on one machine
+\subsection{Independence of private images}
+\subsection{Loading the storage layer}
+
+\section{Case studies}
+\subsection{Service deployment}
+\subsection{Quantifying sharing (FC3 upgrade, install services, \etc)}
+
+\section{Summary}
