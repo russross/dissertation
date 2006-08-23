@@ -11,6 +11,10 @@ All of these examples benefit from the simple and rapid deployment and managemen
 In this chapter I argue that the combination of virtual machine managers and clusters of commodity hardware offers a potent platform for service deployment, which I call \textit{service clusters}. I further argue that existing storage systems are not well suited for this environment and how it is used, so a new set of requirements and a storage system to match them are called for.
 
 \section{The flexible commodity computation problem}
+Case studies.
+\subsection{XenoServers}
+\subsection{Morgan Stanley}
+\subsection{Mobile agents}
 
 \section{Commodity computing}
 
@@ -21,7 +25,7 @@ In this chapter I argue that the combination of virtual machine managers and clu
 
 \subsection{Commodity clusters}
 \subsubsection{Google}
-\subsubsection{Beowolf clusters}
+\subsubsection{Beowulf clusters}
 \subsubsection{Supercomputer 500 list}
 
 \subsection{Web services}
@@ -30,14 +34,9 @@ In this chapter I argue that the combination of virtual machine managers and clu
 \subsubsection{Hosted services}
 email, payroll, tax prep
 
-\subsection{Flexible commodity computing}
-\subsubsection{Morgan Stanley}
-\subsubsection{XenoServers}
-\subsubsection{Standard platforms}
-
 \subsection{Clusters as a commodity computing platform}
 
-Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but in flexibility achieved in return makes the tradeoff profitible.
+Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but the flexibility achieved in return makes the tradeoff profitible.
 
 \subsection{When one is better than many}
 
@@ -57,21 +56,20 @@ The independence of nodes in a cluster offers redundancy that can be exploited f
 
 Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
 
-\section{Virtual machines for services}
 
-One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
+\section{Service clusters}
+
+Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
 
 \subsection{Services as a management unit}
+
+One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
 
 \subsection{Hosting services}
 
 \subsection{Virtual machines}
 
 Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
-
-\section{Service clusters}
-
-Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
 
 \subsection{Commodity everything}
 

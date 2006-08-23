@@ -30,6 +30,7 @@ This chapter examines the storage needs of service clusters and how they can be 
 
 \subsection{Basic environment and assumptions}
 
+
 It's a cluster, dom0 is trusted, it's all managed together, expect users to start from standard installs
 
 \subsection{Use and administration}
@@ -54,11 +55,25 @@ Snapshots also serve another special purpose: they can be used as the root for a
 
 \section{Architecture}
 
-Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. This VM manages partitioning the local disk between the shared storage pool and the persistent cache as well as providing a standard interface to the file system.
+Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a constribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. Figure~\ref{fig:single-machine} illustrates a typical machine.
 
-The file system management processes join a cluster-wide service that is comprised of two primary layers. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+\begin{figure}[tp]
+\centering
+\includegraphics{figures/single-machine}
+\caption{Each physical machine has a single administrative VM that hosts the Envoy services. This VM exports a network file system protocol to other service VMs running on the same machine.}
+\label{fig:single-machine}
+\end{figure}
+
+The file system management processes join a cluster-wide service that is comprised of two primary layers, as illustrated in Figure~\ref{fig:layers}. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
 
 On top of the storage service is the Envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for services to access.
+
+\begin{figure}[tp]
+\centering
+\includegraphics{figures/layers}
+\caption{The Envoy services coordinate access to provide a single, coherent view of the distributed file system. It relies on the storage service, which provides a repository of objects referenced by unique identifiers.}
+\label{fig:layers}
+\end{figure}
 
 In the remainder of this section I detail the functionality and requirements of these systems and consider the tradeoffs of various design decisions.
 
