@@ -79,7 +79,35 @@ In the remainder of this section I detail the functionality and requirements of 
 
 \subsection{Distribution}
 
-Envoy is designed to run in a trusted environment with direct access to the local disk.
+Figure~\ref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings and, despite alternatives developed over the years, is still the dominant storage model in practical use.
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=100mm]{figures/client-server}
+\caption{A popular storage solution for groups of clients involves a series of dedicated servers. Content on the servers is carefully managed to distributed storage demand and transaction load between the servers.}
+\label{fig:client-server}
+\end{figure}
+
+The client-server model has obvious flaws when applied to clusters with many transient clients. Data placement decisions must balance space requirements and expected access rates in order to avoid overloading a particular server. Rebalancing---a disruptive and time consuming job---may be necessary in response to added clients, added servers, added disks, variations in client workload, and accumulation of data over time.
+
+With the service cluster model, the problem is made even worse. To make efficient use of increasingly powerful hardware, each physical machine may host many services, each of which requires a boot image as well as access to the data relevant to its intended task. Single-purpose services may also be short lived or vary by time of data, making manual balancing impractical.
+
+The client-server model has not endured as long as it has simply for lack of alternatives, however. It has many strengths that can inform the design of a more distributed architecture. With a single server managing shared data, concurrent access can be managed simply through explicit leases and cache invalidation, centralized caching with synchronous access, or through a lock manager. Whatever the mechanism for resolving conflicts, a centralized server is ideally suited to detecting and responding to concurrent requests because it is the point on the access graph at which all requests converge. The consistency of data that has reached the server is as good as its backing store.
+
+The simplicity of a server is also a virtue. A failstop model for reliability can generally be assumed, backups are relatively straightforward, the server is typically dedicated to a single task or is shared with other trusted services, and the semantics are simple to define in terms of client behavior%
+\footnote{NFS versions 2 and 3 have notoriously complicated consistency semantics, but this is almost entirely due to client policies. NFS server semantics are straightforward.}.
+
+The chief faults of a centralized system are the introduction of a single point of failure and the inability to scale beyond the network and disk bandwidth that can be hosted by a single server. While these limits are unacceptable at large scales, they are quite reasonable for small groups of clients.
+
+For clients that are sharing data, it is difficult to improve on a centralized server. For sufficiently overlapping data sets, any consistent model will degrade to something resembling a server during periods of contention because all interested clients will have to synchronize their access to the contended bits. A single arbitrator will ultimately oversee each bit of data, whether it is a traditional server, a lease-holding client, or a quorum of cooperating peers.
+
+Sharing cache space is also a benefit of consolidated control of shared data. As the performance gap between disk access and memory access continues to grow, efficient use available cache space becomes increasingly important. Once again, a single centralized cache fails the scalability requirement, but a shared cache for a smaller set of clients with overlapping data needs provides attractive properties. Accessing a cache across a high-speed network is faster than accessing a local disk \cite{dahlin94b}, so in a cluster setting, organizing the aggregate cache around shared access patterns is more valuable than organizing it to localize access. Stated another way, the combined effective cache size of the entire cluster is greater when redundant entries are consolidated through sharing.
+
+1) overwhelming bandwidth isn't a problem
+2) recovery time only affects a few clients
+3) actual contention can't do better than a single point anyway
+
+What we really want is a dedicated guy running around setting up little servers near the interested clients and rearranging them as traffic stabalizes. A healthy dose of laziness may even be an asset---keep it simple and avoid thrashing.
 
 \subsection{Storage layer}
 
@@ -88,6 +116,8 @@ The abstractions to provide redundancy and data distribution are encapsulated in
 Object managements services have grown in popularity in recent years. They offer a simple mapping from files and directories to the underlying mechanism that makes the overall system easier to comprehend and design, as well as implement, debug, and maintain.
 
 This seperation is also a convenient way to divide lower-level storage concerns such as reliability and availability from higher-level file system responsibilities, including consistency, security, cache policy, and conflict resolution.
+
+
 
 \subsection{Envoy layer}
 \subsubsection{Data layout}
