@@ -111,15 +111,18 @@ What we really want is a dedicated guy running around setting up little servers 
 
 \subsection{Storage layer}
 
+The objective of the storage layer is to provide a simple, stateless interface for accessing objects. Redundancy to enhance availability and reliability and distribution to balance load is also handled by this part of the system.
+
 The abstractions to provide redundancy and data distribution are encapsulated in the storage layer. The storage layer provides a simple interface supporting a few basic operations on objects that are referenced by unique identifiers. Objects can be created, deleted, and cloned, byte ranges within objects can be read from and written to, and the attributes of objects can be queried and modified.
 
 Object managements services have grown in popularity in recent years. They offer a simple mapping from files and directories to the underlying mechanism that makes the overall system easier to comprehend and design, as well as implement, debug, and maintain.
 
 This seperation is also a convenient way to divide lower-level storage concerns such as reliability and availability from higher-level file system responsibilities, including consistency, security, cache policy, and conflict resolution.
 
-
-
 \subsection{Envoy layer}
+
+The Envoy layer is responsible for forming a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system.
+
 \subsubsection{Data layout}
 
 \subsection{Caching}
@@ -131,6 +134,8 @@ This seperation is also a convenient way to divide lower-level storage concerns 
 \subsection{Lease migration}
 \subsection{Security}
 \subsection{Deleting snapshots}
+
+\section{Dynamic lease management}
 
 \section{Recovery}
 
