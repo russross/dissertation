@@ -31,6 +31,7 @@ This chapter examines the storage needs of service clusters and how they can be 
 \subsection{Basic environment and assumptions}
 
 
+
 It's a cluster, dom0 is trusted, it's all managed together, expect users to start from standard installs
 
 \subsection{Use and administration}
@@ -111,18 +112,21 @@ The overall distributed architecture of Envoy is modeled after human-administere
 
 \subsection{Storage layer}
 
-The objective of the storage layer is to provide a simple, stateless interface for accessing objects. Redundancy to enhance availability and reliability and distribution to balance load is also handled by this part of the system.
+The objective of the storage layer is to provide a simple, stateless interface for accessing objects. Redundancy to enhance availability and reliability and distribution to balance load is also handled by this part of the system. The storage layer is implemented in two parts, called the top and bottom halves.
 
-The abstractions to provide redundancy and data distribution are encapsulated in the storage layer. The storage layer provides a simple interface supporting a few basic operations on objects that are referenced by unique identifiers. Objects can be created, deleted, and cloned, byte ranges within objects can be read from and written to, and the attributes of objects can be queried and modified.
+The bottom half is implemented in the storage daemon hosted on each physical server. While the storage daemon instances form a collective pool of storage, they do not communicate directly with each other. At the local level, each storage manager is unaware of any global state, and responds blindly to incoming requests from the Envoy layer. Instances do not attempt to balance load, resolve conflicting requests, or create redundancy, nor do they monitor which object IDs they considered valid. Instead, they provide a thin, simple storage service for numbered objects with attributes.
 
-Object managements services have grown in popularity in recent years. They offer a simple mapping from files and directories to the underlying mechanism that makes the overall system easier to comprehend and design, as well as implement, debug, and maintain.
+To make these servers more useful, the top half of the storage layer is implemented in the Envoy daemon. It is responsible for mapping an object ID to the set of storage server instances that host the referent object. Combined with the persistent cache, the storage layer top half provides a simple procedural interface to the storage layer, where objects are named by unique IDs. The top half is responsible for creating and locating replicas, detecting and masking/recovering from failures, allocating new object IDs when needed, and reading and writing data and attributes.
 
-This seperation is also a convenient way to divide lower-level storage concerns such as reliability and availability from higher-level file system responsibilities, including consistency, security, cache policy, and conflict resolution.
+Numerous strategies are available for distributing objects across the cluster. While I discuss some of them here, I only do so with the intent of demonstrating that an independent storage layer is viable and reasonable; many other object storage systems of varying levels of sophistication could be substituted for one I describe and other work has addresses object storage in more detail than I attempt here. The emphasis of this dissertation is on the Envoy layer as implemented on top of the object layer.
 
 \subsection{Envoy layer}
 
-The Envoy layer is responsible for forming a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system.
+The Envoy layer forms a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system.
 
+A single instance of the Envoy service runs on each physical machine. The global name hierarchy is divided amoung participating instances in the cluster. When a given instance takes responsibility for some part of the namespace, it is said to \emph{own} a \emph{territory} covering the relevent subtree of the hierarchy. All operations within local territories are served locally and may be cached locally both in memory and in the persistent cache, which is reserved exclusively for territories local to the machine.
+
+This partitioning of the global namespace and the resulting federation of constituent parts is what gives Envoy its name. When clients request operations that stray from the local territories, the requests are handed off to the Envoy on the appropriate machine. It follows that each instance must know not only the boundaries of its own territories, but how to find the Envoy for neighboring territories, i.e., those that can be reached by a single directory traversal (up or down) from a local territory.
 
 
 \subsubsection{Data layout}

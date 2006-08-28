@@ -3,6 +3,16 @@
 \section{Scope and design coverage}
 \section{Mapping to the 9p protocol}
 \section{Storage service}
+
+Storage instances are stateless and unaware of higher-level semantics with two exceptions:
+
+\begin{enumerate}
+\item Each storage instance can respond to a reservation request, which returns a range of object IDs that have not been used or allocated on that particular instance.
+\item The \emph{clone} operation, which copies an object from one given ID to another, will expect objects whose attributes indicate that they are directories to follow a particular format (described in Section~\ref{directory-format}) and will set the copy-on-write flags within each block as it copies the object.
+\end{enumerate}
+
+Neither of these functions is essential for implementation in the storage layer. The first could easily be performed by a different service (such as an elected instance of the Envoy service) and the second is merely a performance optimization. Both are convenient to implement in the storage layer, however, so they are there in the prototype.
+
 \section{Envoy service}
 \section{Synchronization}
 \section{Caching}
