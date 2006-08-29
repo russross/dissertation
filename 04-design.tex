@@ -122,16 +122,34 @@ Numerous strategies are available for distributing objects across the cluster. W
 
 \subsection{Envoy layer}
 
-The Envoy layer forms a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system.
+The Envoy layer forms a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system. The entire cluster shares a global, hierachical namespace, but clients typically mount a subtree from the hierarchy and treat it as a complete file system.
+
+\subsubsection{Territories}
 
 A single instance of the Envoy service runs on each physical machine. The global name hierarchy is divided amoung participating instances in the cluster. When a given instance takes responsibility for some part of the namespace, it is said to \emph{own} a \emph{territory} covering the relevent subtree of the hierarchy. All operations within local territories are served locally and may be cached locally both in memory and in the persistent cache, which is reserved exclusively for territories local to the machine.
 
 This partitioning of the global namespace and the resulting federation of constituent parts is what gives Envoy its name. When clients request operations that stray from the local territories, the requests are handed off to the Envoy on the appropriate machine. It follows that each instance must know not only the boundaries of its own territories, but how to find the Envoy for neighboring territories, i.e., those that can be reached by a single directory traversal (up or down) from a local territory.
 
+The Envoy service is stateful, and tracks not only its territories and neighbors, but the state of all files and directories in use by its client services. When a client navigates beyond the boundaries of a local territory, requests are forwarded directly to the owning Envoy. If further navigation moves beyond the neighbor's territories, the neighbor does not forward it to the new Envoy, but instead bounces the request back to the originator with the address of the Envoy that can answer the request.
 
-\subsubsection{Data layout}
+Under this system, two Envoys maintain a direct relationship with each other only when they are immediate neighbors in territory ownership, or when one is serving requests for a client of the other. It follows that if territories are alloted such that the owner of a territory is also its most active user, traffic on an Envoy instance will generally be dominated by its local clients.
+
+Often, the best that can be achieved in a steady-state system is to have the owner of a territory be the Envoy driving a plurality of traffic, not a majority. Sometimes this is an inevitible consequence of overlapping client demands, but often some further gerrymandering of the territory boundaries can restore a majority to the local territory. Since the needs of the clients and the needs of the Envoys are generally aligned, a practice that in polotics usually serves those in power at the expense of those they represent serves both equally well in file systems.
+
+\subsubsection{Files}
+
+Files and directories can be mapped easily to objects as provided by the storage layer. Files are stored as objects with a set of attributes, and directories as files with special semantics and a different interface. Certain special files are stored as normal files with special contents, accessible through the interfaces appropriate to the file types.
+
+Unix file systems are organized around \emph{inodes}, which encapsulate the contents of a file with its attributes, but not with its name. Envoy employs a similar structure, with file contents and attributes seperate from the name hierarchy. Objects also have numeric identifiers like inodes, but it is worth noting that these identifiers can change during the lifetime of a file, so an object ID is not suitable for identifying a file.
+
+Directories are files containing listings of other files. In Envoy, directories are managed at the block level, with each block containing some number of entries. An entry consists of a file name, the object ID that links to its contents and attributes, and a flag indicating the file's copy-on-write status. When this flag is set, the object is considered read-only, and will be cloned before any changes are committed to the file's contents or attributes. This process is completely opaque to clients.
+
+Special files, such as device nodes and symbolic links, are stored as regular files whose contents follow a defined format. For symbolic links, the file contents are the target of the link, for devices they are an ASCII string identifying the major and minor device numbers, etc. 
 
 \subsection{Caching}
+
+
+
 \subsubsection{Data paths for typical requests}
 
 \section{Operations}
