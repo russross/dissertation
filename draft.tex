@@ -4,13 +4,20 @@
 \usepackage{newcent}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{graphicx}
-\usepackage{geometry}
+\usepackage[margin=1.5in]{geometry}
 \usepackage{xspace}
 \usepackage{setspace}
 \usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{prettyref}
 
-\geometry{tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
-\onehalfspace
+\newrefformat{cha}{Chapter~\ref{#1}}
+\newrefformat{sec}{Section~\ref{#1}}
+\newrefformat{tab}{Table~\ref{#1}}
+\newrefformat{fig}{Figure~\ref{#1}}
+
+% Page setup
+%\onehalfspace
 \parskip 10pt
 
 % set up floats

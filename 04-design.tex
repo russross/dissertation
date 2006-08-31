@@ -56,7 +56,7 @@ Snapshots also serve another special purpose: they can be used as the root for a
 
 \section{Architecture}
 
-Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a constribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. Figure~\ref{fig:single-machine} illustrates a typical machine.
+Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a constribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. \prettyref{fig:single-machine} illustrates a typical machine.
 
 \begin{figure}[tp]
 \centering
@@ -65,7 +65,7 @@ Services access Envoy using a client-server network file system interface. Each 
 \label{fig:single-machine}
 \end{figure}
 
-The file system management processes join a cluster-wide service that is comprised of two primary layers, as illustrated in Figure~\ref{fig:layers}. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+The file system management processes join a cluster-wide service that is comprised of two primary layers, as illustrated in \prettyref{fig:layers}. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
 
 On top of the storage service is the Envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for services to access.
 
@@ -80,7 +80,7 @@ In the remainder of this section I detail the functionality and requirements of 
 
 \subsection{Distribution}
 
-Figure~\ref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings and, despite alternatives developed over the years, is still the dominant storage model in practical use.
+\prettyref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings and, despite alternatives developed over the years, is still the dominant storage model in practical use.
 
 \begin{figure}[tp]
 \centering
@@ -136,7 +136,7 @@ Under this system, two Envoys maintain a direct relationship with each other onl
 
 Often, the best that can be achieved in a steady-state system is to have the owner of a territory be the Envoy driving a plurality of traffic, not a majority. Sometimes this is an inevitible consequence of overlapping client demands, but often some further gerrymandering of the territory boundaries can restore a majority to the local territory. Since the needs of the clients and the needs of the Envoys are generally aligned, a practice that in polotics usually serves those in power at the expense of those they represent serves both equally well in file systems.
 
-\subsubsection{Files}
+\subsubsection{Files}\label{sec:directory-format}
 
 Files and directories can be mapped easily to objects as provided by the storage layer. Files are stored as objects with a set of attributes, and directories as files with special semantics and a different interface. Certain special files are stored as normal files with special contents, accessible through the interfaces appropriate to the file types.
 
@@ -165,6 +165,39 @@ The second design feature has a more complex impact on the aggregate cache capac
 Cache utilization is most effective when clients on a single machine use file system images forked from a common root, and the more complete the root image the more likely it is that services will rely on common rather than custom-installed files. This fits nicely with the stated goals of flexible commodity computation, where both the host and the client gain from using the most popular commodity tools. The host by reducing client footprint and increasing capacity, and the client by reducing deployment costs and maximizing performance through increased cache hits.
 
 \subsection{Data paths for typical requests}
+
+To summarize the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \prettyref{fig:hops}. The best case (retrieval from in-memory cache on the same machine) is designed to be the most common, with extra steps being required in progressively less-common operations until the worst case, where a request travels from a client to the local Envoy service, is forwarded to a remote Envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
+
+\begin{figure}[tp]
+\centering
+\includegraphics{figures/hops}
+\caption{File system requests proceed from service VMs to the local Envoy service. A request from a local territory may be filled by the local in-memory cache, the local disk cache, or by a single network hop to a storage server. A request for a foreign territory adds a single network hop in each case, as the local Envoy acts as the client to a remote Envoy.}
+\label{fig:hops}
+\end{figure}
+
+\subsubsection{Read operations}
+
+The best case is a request for hot data in a local territory. In this case, data can be served from the in-memory cache of the local Envoy server. With a fully optimized implementation using Xen or a similar VM environment, this data transfer can occur with a single data copy from the cache to a data page, and that page can then be swapped directly to the client VM via page table manipulation. Since the client's OS does not keep a cached copy, that page can likewise be passed on directly to the client application. While my prototype is not this optimized, the design permits a very lightweight operation involving a single data copy and some metadata manipulation.
+
+Warm data from a local territory follows a similar path, prefaced by retrieving the requested data from the local persistent cache (on disk) into the in-memory cache. With large, cheap commodity disks, the persistent cache can easily hold several operating system images and typical application suites. Typical Linux installations occupy no more than a few gigabytes, and even that includes many supporting files that are rarely used and may never be referenced in common service deployments. If services have forked from standard base images as proposed, it is realistic to assume that the entire operating system and standard applications will be available in the local cache hierarchy for a service being deployed on an active node.
+
+When the local cache fails to deliver, the Envoy service must retrieve requested data from the storage layer. The top half of the storage layer provides a complete object server catalog, so a request can proceed in a single network hop to the node in the storage layer bottom half that hosts the needed object. For simplicity, the persistent cache holds only complete objects, so an entire object must be transfered before the Envoy service can begin fulfilling requests from the local cache. If the object is replicated, the Envoy stripes the transfer across the servers, e.g., if there are three replicas, it streams the first third of the file from the first server, the middle from the second server, and so forth.
+
+Operations in territories outside local control add an extra network hop between the local and remote Envoys for all operations. The data also bypasses the local cache, so locality of reference does nothing to remove this network penalty. It does offer another optimization opportunity (the data, once received from the network, can be passed to the client application without any further copying) but this is minor compensation for a guaranteed latency penalty.
+
+Fortunately, this penalty need not be too great nor too common. The remote Envoy handles the request just as it would one from client local to it, including caching, so referential locality does improve performance from the cold-cache worst case. The target environment is service clusters, too, with high-speed local area networking and unmetered inter-node traffic. Finally, because of the way territories are decided, in a steady state system foreign Envoy requests generally imply some degree of sharing. While relatively uncommon in itself, genuine sharing requires \emph{some} form of synchronous network communication to guarantee consistency, so Envoy's goal of reducing synchronous inter-node to cases of either sharing or infrequent access seems a reasonable one.
+
+\subsubsection{Write operations}
+
+Write operations are less common than reads, but much of the complexity in file system design comes from supporting them. While a good cache satisfies many read requests from memory quickly and with no correctness concerns (provided coherency is maintained in the case of distributed systems), write operations cached in memory raise concerns about durability. If the server acknowledges the write operation as being complete but has only committed it to an in-memory cache, then there is a window of vulnerability before the data is stored to disk and all metadata updated wherein a system crash could lose data that the client expects to be resilient to crashes. In an isolated client, this may be acceptable as the client will simply be forced to restart from the state that was committed to disk and will generally only lose a boundable amount of work. It is particularly problematic for distributed systems and others with external side-effects, however, where other participants may cue subsequent actions on the premise that a write has been successfully and durably committed to disk. The problem is further exacerbated in a commodity hardware environment where failures are routine.
+
+At the other extreme, one can commit all writes to disk before completing the transaction. This makes it clear to the client when a write operation has been consumated, and it is free to either wait for the acknowledgement or proceed asynchronously with explicit knowledge of the risk it is assuming. While this is a simple and appealing model, it ignores two important realities. The first is that the default action for most commodity operating systems is to cache writes and acknowledge them immediately while delaying the disk write. Changing the expected performance characteristics of a basic operation like writing to disk would not provide a commodity-friendly environment as it would severely affect the perforamnce of many standard tools in a negative way. The second is that most files created are short-lived temporary files that are soon deleted \cite{ousterhout}, so synchronously writing them to disk introduces not only unnecessary latency but also unnecessary disk contention.
+
+Several intermediate possibilities exist. Instead of having write requests proceed directly to the storage layer, the local persistent cache could be used as a staging area, with write requests being committed locally and then forwarded to the storage layer after some delay. This would do little to improve performance, however, as synchronous disk access is slower than synchronous network access, so this would not eliminate the slowest link in the event chain. Specialized hardware with involatile memory could also act as a staging area, giving good write performance while retaining durability. The latter approach violates our goal of using widely-available commodity hardware, however, and neither approach is resilient to hardware faults that result in the entire node failing.
+
+Another approach is to only guarantee synchronous durability when explicitly requested by the client, using the equivalent of the Unix \texttt{fsync()} system call. This matches the semantics of local file systems, and thus what most software is written to assume. It is not without faults, however, as the popularity of high-level scripting languages and middleware frameworks (especially for network services, exactly the types of clients service clusters are designed to support) means the connection between application actions and disk operations is often obscured. Requiring low-level controls to get correct behavior is often an acceptable compromise, but it is rarely ideal.
+
+The solution Envoy employs is based on exploiting the cluster environment. While commodity hardware is expected to fail occasionally, simultaneous failure of multiple machines is still relatively rare, provided that the nodes are sufficiently isolated from each other in terms of power and cooling. Since service clusters are intended for professional hosting environments, it is reasonable to assume that hardware faults occur in isolation. With that assumption, durability is less about committing data to disk and more about rudundancy. A write request is considered final when it is in the memory of all of the storage servers that will eventually commit it to disk. If the Envoy server fails, the storage servers are unaffected. If one or more of the storage servers fails before committing the data to disk, the recovery mechanism must restore consistency using the most up-to-date of the replicas. Having storage servers potentially out of sync due to a failed asynchronous write in this scenario is fundamentally no different from having one fail while trying to satisfy a synchronous request. In both cases, the inherent asynchrony of the network means that only the degree of the problem changes.
 
 \section{Operations}
 
