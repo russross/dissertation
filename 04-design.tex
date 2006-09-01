@@ -201,7 +201,22 @@ The solution Envoy employs is based on exploiting the cluster environment. While
 
 \section{Operations}
 
+Having examined the high-level architecture of the Envoy file system, I next turn to a more detailed discussion of how specific operations are served. This includes basic file operations and navigation between Envoy instances, the copy-on-write mechanism behind the fork and snapshot operations, coordination of state during territory boundary realignment, security considerations, and the procedure for deleting file system images.
+
 \subsection{File operations and state management}
+
+Synchronization at the object level is governed by an important invariant: an object in the system may be referred to by exactly one name in the hierarchical namespace, or it must be read-only. The storage layer makes no attempt to detect or enforce the read-only case, so it is left to the Envoy layer to ensure that this invariant is preserved. To make this straightforward, objects can transition from being writable to read-only, but they can never go back. Note that this refers only to objects in the storage layer, not to the access control of file system objects.
+
+The same invariant makes cache management simple: the Envoy that owns a given territory can cache it without any invalidation concerns, and read-only objects can be safely cached at any number of Envoy nodes without fear of interference.
+
+. Trace and explain CoW flags
+. Read operations--easy!
+. Walk, including caching and race condition detection
+. Write operations--trace clones
+. Rename, in all its glory, + walk invalidation on chmod or chown
+. Delete
+. Hard link and its complications (dead object in storage layer?)
+
 \subsection{Forks and snapshots}
 \subsection{Lease migration}
 \subsection{Security}
