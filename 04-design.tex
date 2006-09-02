@@ -48,7 +48,7 @@ To create a new file system root, a user or management tool creates any desired 
 
 In addition to end-user mounts, this system of password files applies to the administrative file areas as well. If given suitable credentials, a service can attach to the namespace in an administrative directory to create and manage its own file system trees and credential files, creating a hierachy for management roles as well as file storage. Controlling access to any directory requires credentials to mount its parent, along with standard file permissions within the parent directory to manipulate the credential file. Envoy does not map user and group names to numeric IDs, so any clients that can agree on usernames and credentials can share access to a file system.
 
-In addition to marking the transition from administrative to client directories, a directory named \current can have its snapshot taken. When the server receives a request to create a symbolic link with a positive integer as its name and \current as its target, it checks to make sure that the integer is correct for the next snapshot (either \texttt{1} or the number linked to by \snapshot plus one). If so, it takes a snapshot of \current, makes it accessible using the requested name (accessible as a directory, not a symbolic link), and creates or updates \snapshot to link to the newly created snapshot. Any request with the wrong target or the wrong number is rejected.
+The \current directory---in addition to marking the transition from administrative to client directories--- can have its snapshot taken. When the server receives a request to create a symbolic link with a positive integer as its name and \current as its target, it checks to make sure that the integer is correct for the next snapshot (either \texttt{1} or the number linked to by \snapshot plus one). If so, it takes a snapshot of \current, makes it accessible using the requested name (accessible as a directory, not a symbolic link), and creates or updates \snapshot to link to the newly created snapshot. Any request with the wrong target or the wrong number is rejected.
 
 Snapshots are always given positive integers as names (and cannot be renamed), but this is not always convenient for use. It may be useful to name a particular snapshot with a more meaningful name using a symbolic link. Symbolic links are normally considered opaque by the server and cannot be used in any mount or directory-change requests, so to make accessing named snapshots more convenient the server silently dereferences symbolic links that refer to snapshots in the same directory.
 
@@ -148,7 +148,7 @@ Special files, such as device nodes and symbolic links, are stored as regular fi
 
 \subsection{Caching}
 
-The cache design in a distributed file system must balance the needs for performance, consistency, and durability.
+The cache design in a distributed file system must balance the needs for performance, consistency, and durability. While maintaining a coherent view of the file system that is tolerant to software and hardware faults, a cache should reduce latency, increase throughput, and increase overall capacity by reducing the network and disk congestion required by a given amount of activity and freeing input/output channels to absorb additional load.
 
 Enhancing performance is the primary reason for employing a cache in the first place. The growing gap in performance between main memory and disk makes effective cache management critical, as a random disk access is five or six orders of magnitude slower than a similar memory access. Much work has been done exploring different cache replacement strategies, with significant gains to be had when future traffic can be predicted. Unfortunately, the service cluster environment does not provide any insight into the expected access patterns of its constituent services, as one of the purposes of the environment is to support arbitrary services.
 
@@ -158,9 +158,9 @@ While Google's implementation revolved around an inherently parallel task, it ca
 
 Envoy is designed to compromise between the competing goals of maximizing local cache hit rates and maximizing the aggregate cache capacity of the cluster. Two design features are particularly relevent to addressing these goals. The first is that all client requests are served synchronously by the Envoy service without the aid of a local cache. Instead they rely entirely on the shared cache hosted by the Envoy service in its private virtual machine. The local Envoy directly services all requests---local and remote---for territories it owns, so the entire cluster caches at most a single copy of a given file.
 
-This could potentially strain the Envoy that owns a particularly popular file, as it funnels all traffic for that file to a single node. For light to moderate sharing, this is not an issue, and in practice the Envoy will be accessing the file mainly from its cache and can handle significant traffic. For the extreme instances of sharing, I argue that services should use explicit network-facing protocols instead of relying on the file system as a \emph{de facto} distributed shared memory system.
+This could potentially strain the Envoy that owns a particularly popular file, as it funnels all traffic for that file to a single node. For light to moderate sharing, this is not an issue, and in practice the Envoy will be accessing the file mainly from its cache and can handle significant traffic. For extreme instances of sharing, I argue that services should use explicit network-facing protocols instead of relying on the file system as a \emph{de facto} distributed shared memory system.
 
-The second design feature has a more complex impact on the aggregate cache capacity. Territorial boundaries are drawn along boundaries in the namespace hierarchy, but because of the copy-on-write mechanism in snapshots and file system forking, multiple names may refer to the same underlying storage layer object. This only happens when the object (but not necessary the file) is read-only, so cache consistency needn't be managed, but it does mean that multiple Envoys may cache the same underlying object. While this mechanism introduces redundancy in the cluster-wide cache, it also has the potential to consolidate cache entries within a single Envoy instance. If multiple services are using different files backed by the same object, they will occupy the same place in the persistent cache as well as the in-memory cache.
+The second design feature has a more complex impact on the aggregate cache capacity. Territorial boundaries are drawn along boundaries in the namespace hierarchy, but because of the copy-on-write mechanism in snapshots and file system forking, multiple names may refer to the same underlying storage layer object. This only happens when the object (but not necessary the file) is read-only, so cache consistency needn't be considered, but it does mean that multiple Envoys may cache the same underlying object. While this mechanism introduces redundancy in the cluster-wide cache, it also has the potential to consolidate cache entries within a single Envoy instance. If multiple services are using different files backed by the same object, they will occupy the same place in the persistent cache as well as the in-memory cache.
 
 Cache utilization is most effective when clients on a single machine use file system images forked from a common root, and the more complete the root image the more likely it is that services will rely on common rather than custom-installed files. This fits nicely with the stated goals of flexible commodity computation, where both the host and the client gain from using the most popular commodity tools. The host by reducing client footprint and increasing capacity, and the client by reducing deployment costs and maximizing performance through increased cache hits.
 
@@ -203,21 +203,34 @@ The solution Envoy employs is based on exploiting the cluster environment. While
 
 Having examined the high-level architecture of the Envoy file system, I next turn to a more detailed discussion of how specific operations are served. This includes basic file operations and navigation between Envoy instances, the copy-on-write mechanism behind the fork and snapshot operations, coordination of state during territory boundary realignment, security considerations, and the procedure for deleting file system images.
 
-\subsection{File operations and state management}
+\subsection{Freezing and thawing}
 
 Synchronization at the object level is governed by an important invariant: an object in the system may be referred to by exactly one name in the hierarchical namespace, or it must be read-only. The storage layer makes no attempt to detect or enforce the read-only case, so it is left to the Envoy layer to ensure that this invariant is preserved. To make this straightforward, objects can transition from being writable to read-only, but they can never go back. Note that this refers only to objects in the storage layer, not to the access control of file system objects.
 
-The same invariant makes cache management simple: the Envoy that owns a given territory can cache it without any invalidation concerns, and read-only objects can be safely cached at any number of Envoy nodes without fear of interference.
+The same invariant makes cache management simple: the Envoy that owns a given territory can cache it without any invalidation concerns, and read-only objects can be safely cached at any number of Envoy nodes without fear of interference. Objects in the cache become invalid only when a territory boundary changes. Objects that are part of ceded territory are not explicitly flushed from the cache; keeping them active helps in two cases: a read-only object may still be referenced by another name in a local territory, and the cache entry (in-memory or on-disk) may still be useful if a file backed by that object is later returned to local control. In the latter case the object must be verified to match the version in the storage layer, but this can be done with a lightweight metadata comparison.
 
-. Trace and explain CoW flags
-. Read operations--easy!
-. Walk, including caching and race condition detection
-. Write operations--trace clones
-. Rename, in all its glory, + walk invalidation on chmod or chown
-. Delete
-. Hard link and its complications (dead object in storage layer?)
+The single mutable/multiple immutable dichotomy in the storage layer is tracked in the Envoy layer through the copy-on-write flag in directory entries. The immutable property is not directly assigned to objects, but instead is imbued by the link from directory to file object. Furthermore, when the immutable object is itself a directory, the property is applied recursively to all of its children, overriding the individual copy-on-write flag in the link to each child. To be regarded as mutable, an object must be reachable by a path from the root of the global namespace to the directory entry linking to the object without traversing any copy-on-write flags that are set.
+
+One immediate consequence of this is that taking a read-only snapshot of a directory and its descendents requires only setting the copy-on-write flag in the link to it, an operation known as \emph{freezing}. Once a directory or file is frozen, the storage layer objects that back the branch rooted at that point are considered immutable. To simplify bookkeeping, this operation is only performed from the root of client images when a snapshot operation is requested. The benefits gained from this restriction and an exception to it are discussed in \prettyref{sec:hard-links}.
+
+The complementary operation is called \emph{thawing}. While the freeze operation works at the root of a subtree and affects it in its entirety, thawing aims to leave as small a footprint as possible; it is always performed with the goal of modifying a particular file. To thaw a file, the owning Envoy starts walking up the line of its ancestors until it finds one that is already thawed. As the root of the namespace cannot be frozen (one can consider it as having a single, implicit link from the Envoy service itself, but there is no mechanism provided to set the copy-on-write flag on this implicit link), this search is guaranteed to succeed. From there the Envoy walks back to the target file, \emph{cloning} intermediate directories as it goes. In addition to making a copy of the directory as its name implies, cloning sets the copy-on-write flag of every directory entry in the copy, effectively transferring the copy-on-write property from the single link leading into the directory to all the links leading out of the directory. The implicit property that each child inherited becomes explicit after being passed down a generation. After thawing each directory for mutability, the parent is updated to reflect both the new object ID and the cleared flag. Eventually the intended target itself (be it file or directory) is cloned, its immediate parent link updated, and the file is fully thawed.
+
+\subsection{File and directory operations}
+
+\begin{itemize}
+\item Read operations--easy!  + atime
+\item readdir
+\item Walk, including caching and race condition detection
+\item Write operations--thaw + mtime synchronization
+\item Rename, in all its glory, + walk invalidation on chmod or chown
+\item Delete
+\item Hard link and its complications (dead object in storage layer? special log file/hidden directory catalog?)\label{sec:hard-links}
+\end{itemize}
 
 \subsection{Forks and snapshots}
+
+A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \current or one of its numbered snapshots. Snapshots are always immutable
+
 \subsection{Lease migration}
 \subsection{Security}
 \subsection{Deleting snapshots}
