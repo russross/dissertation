@@ -1,32 +1,36 @@
 \documentclass[a4paper,twoside,openright,12pt]{report}
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage{url}
+
+% font and encoding setup
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{newcent}
-\usepackage[font=small,labelfont=bf]{caption}
-\usepackage{graphicx}
-\usepackage[margin=1.5in]{geometry}
-\usepackage{xspace}
-\usepackage{setspace}
-\usepackage{url}
-\usepackage{fancyhdr}
-\usepackage{prettyref}
 
+% references
+\usepackage{prettyref}
 \newrefformat{cha}{Chapter~\ref{#1}}
 \newrefformat{sec}{Section~\ref{#1}}
 \newrefformat{tab}{Table~\ref{#1}}
 \newrefformat{fig}{Figure~\ref{#1}}
 
-% Page setup
+% page setup
+\usepackage[margin=1.5in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
 \onehalfspace
 \parskip 10pt
 
 % set up floats
+\usepackage[font=small,labelfont=bf]{caption}
 \renewcommand{\topfraction}{.8}
 \renewcommand{\bottomfraction}{.8}
 \renewcommand{\textfraction}{.2}
 \renewcommand{\floatpagefraction}{.8}
 
 \newcommand{\note}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
+%\suppressnotes
 
 % ignore Overfull \vbox messages
 \vfuzz 2pt
@@ -43,16 +47,13 @@
 
 \begin{document}
 
-%%%%%%%%%%%%% Titles %%%%%%%%%%%%%%%%%%%%%%%%
+% front matter
 
 \include{titles}
 \cleardoublepage
 \pagenumbering{arabic}
 
-%%%%%%%%%%%%% The Meat %%%%%%%%%%%%%%%%%%%%%%
-
-%\input{annotation.sty}
-%\suppressnotes
+% main text
 
 \include{01-introduction}
 \include{02-background}
@@ -62,13 +63,8 @@
 \include{06-evaluation}
 \include{07-conclusion}
 
-%
-% Temporarily at the end (so page numbers are sensible)
-% 
-%\include{toc}
-%\tableofcontents
+% bibliography
 
-%\nocite{*}
 \renewcommand{\bibname}{References}
 \addcontentsline{toc}{chapter}{\bibname}
 \bibliographystyle{plain}

@@ -175,7 +175,7 @@ To summarize the architecture of Envoy, consider the data paths followed by typi
 \label{fig:hops}
 \end{figure}
 
-\subsubsection{Read operations}
+\subsubsection{Read operations}\label{sec:data-paths-read}
 
 The best case is a request for hot data in a local territory. In this case, data can be served from the in-memory cache of the local Envoy server. With a fully optimized implementation using Xen or a similar VM environment, this data transfer can occur with a single data copy from the cache to a data page, and that page can then be swapped directly to the client VM via page table manipulation. Since the client's OS does not keep a cached copy, that page can likewise be passed on directly to the client application. While my prototype is not this optimized, the design permits a very lightweight operation involving a single data copy and some metadata manipulation.
 
@@ -215,17 +215,39 @@ One immediate consequence of this is that taking a read-only snapshot of a direc
 
 The complementary operation is called \emph{thawing}. While the freeze operation works at the root of a subtree and affects it in its entirety, thawing aims to leave as small a footprint as possible; it is always performed with the goal of modifying a particular file. To thaw a file, the owning Envoy starts walking up the line of its ancestors until it finds one that is already thawed. As the root of the namespace cannot be frozen (one can consider it as having a single, implicit link from the Envoy service itself, but there is no mechanism provided to set the copy-on-write flag on this implicit link), this search is guaranteed to succeed. From there the Envoy walks back to the target file, \emph{cloning} intermediate directories as it goes. In addition to making a copy of the directory as its name implies, cloning sets the copy-on-write flag of every directory entry in the copy, effectively transferring the copy-on-write property from the single link leading into the directory to all the links leading out of the directory. The implicit property that each child inherited becomes explicit after being passed down a generation. After thawing each directory for mutability, the parent is updated to reflect both the new object ID and the cleared flag. Eventually the intended target itself (be it file or directory) is cloned, its immediate parent link updated, and the file is fully thawed.
 
+Thawing resembles the procedure for modifying a value in a tree in a functional language. In addition to changing the value itself, the path from that item to the root of the tree must be copied if the item is to be reachable from the root. In the thawing operation, it is only the root of the immutable subtree in which the item resides that must be copied. While the analagous procedure in a functional language copies everything exactly except for the path being changed, the thaw operation must clear the copy-on-write flag as it goes, and thus must push it down from parent link to sibling links at each level in order to preserve the immutable status of the unaffected branches.
+
 \subsection{File and directory operations}
 
-\begin{itemize}
-\item Read operations--easy!  + atime
-\item readdir
-\item Walk, including caching and race condition detection
-\item Write operations--thaw + mtime synchronization
-\item Rename, in all its glory, + walk invalidation on chmod or chown
-\item Delete
-\item Hard link and its complications (dead object in storage layer? special log file/hidden directory catalog?)\label{sec:hard-links}
-\end{itemize}
+Most basic file and directory operations have a straightforward implementation. The need to cross territory boundaries makes some more complex, however, as they must coordinate with remote Envoys to complete.
+
+\subsubsection{Basic read operations}
+
+The most straightforward operations are \texttt{read} and \texttt{stat}, which read the data and metadata of files, respectively. These requests can be filled using the data paths described in \prettyref{sec:data-paths-read}. The only complication involved is handling the \texttt{atime} attributed, which tracks the last time the data from a file was accessed by a \texttt{read} or \texttt{write} operation. Read operations always proceed through a single Envoy, so this attribute can be tracked accurately: the Envoy can send a message with the timestamp (to ensure that it is consistently applied to all replicas, even if all clocks are not in sync or network latencies between the different storage servers vary) to all replicas in the storage layer which can then update the attribute.
+
+The intended meaning of the \texttt{atime} attribute becomes obscured when applied to frozen files, however. Since attributes are part of the object, akin to \texttt{inodes} in traditional Unix file systems, changing the attribute will affect all files that are backed by that same object. Those instances may be in read-only snapshots of the same file system image, or in common files available in an unrelated file system image. In the former case, the read-only property of the snapshot is broken, and in the latter case the isolation of the two images is compromized. Updating the \texttt{atime} attribute would give an unrelated client using the same prepackaged file system image the ability to losely track file accesses, which could represent a security risk.
+
+Accurately tracking the \texttt{atime} attribute is problematic with frozen files, and if it is only updated on some files (which may change over time as successive snapshots are taken), it is too unreliable to be useful. It also generates network and disk traffic for every read, even those that can be satisfied from the cache. For these reason, the \texttt{atime} attribute is present in Envoy for compatibility, but it effectively mirrors the modified time attribute.
+
+\subsubsection{Reading from directories}
+
+Reading from directories introduces two complications. The first---that successive \texttt{readdir} requests require state that must be transmitted from the client each time or transferred to another Envoy when territories are realigned---is just an implementation issue. The second---that a directory may span multiple territories---requires the cooperation of all affected Envoys. The list of contents for a single directory is considered an atomic unit when drawing territory boundaries, but the files and directories named may be remote. If the client-server protocol used to export the file system to a service only requests names, then the implementation footprint resembles that of file reads. If, as with NFS version~3 and 9p, the response includes attributes as well, additional requests must be forwarded to the respective Envoys for all files that are across a boundary in order to ensure consistent results. These requests are sent directly by the owning Envoy, so if the client is remote, \texttt{readdir} may require the cooperation of three or more Envoys to complete a single request. When gathering file attributes, the Envoy that owns the directory sends requests directly to the file owners, resulting in a star topology with the directory owner as the central node. An additional link from the client's Envoy is necessary if the directory is remotely owned.
+
+Multi-step directory navigation can also create a star pattern of requests, but they always center around the client's local Envoy. Navigating down a series of directories may involve crossing a territory boundary at each step in the extreme case. Because an Envoy confines itself to knowledge of its local territories and their immediate boundaries, it cannot always predict the endpoint Envoy for a navigation. Even if it could, intermediate steps must always be taken to allow permission checking at each level. When a remote territory must be consulted, the client's Envoy forwards all remaining steps in the navigation to the remote owner, which proceeds as far as it can with the navigation. It may return one of three results: if the result is successfully completed, the two Envoys store any state necessary to handle future requests; if the result is a failure, an appropriate error code is returned; if the navigation reaches another territory boundary, the partial result comes back along with a pointer to the Envoy that must be consulted to continue the navigation. The client's Envoy then repeats the procedure with the remaining navigation steps.
+
+Because these operations are all asynchronous, and because the navigated directories may be owned by remote Envoys that are not even neighbors to the client's Envoy, directory navigations may encounter transient failures. Between the time that one remote Envoy returns instructions for forwarding the remainder of a request, the target territory may migrate to a new owner and the request will fail. Because the Envoy that sent the forwarding instructions was an immediate neighbor of the target, its information must have been correct at the time, and careful coordination can ensure that by the time the target bounces the request back with a failure notice, the referrer knows of the change to its immediate neighborhood. The solution is simply to restart the request from the beginning, which will also correct the client's Envoy for the cases of a directory being deleted or renamed.
+
+Generally, having territory boundaries closely aligned with demand benefits everyone, but if multi-step directory navigations are frequent, their performance will be hurt by frequent boundaries. Caching navigation results can be done safely with a few precautions. First note that a navigation that succeeds one time and fails another implies one of three things: one of the steps was deleted or renamed, permissions changed somewhere, or a different user requested the navigation. Envoy caches navigation results keyed by the path traversed and the user that requested it. With the assumption that directory renames and permission changes are uncommon (particularly across boundaries determined by locality of reference---I expect these changes to be most common in a region being actively modified by a single player, not in higher-level directories whose descendents are in active use by different clients), Envoys broadcast notification of such changes down the hierarchy when they occur, invalidating cached navigation results.
+
+Attributes at the endpoint of the navigation are always confirmed directly with the owner, as are all of the final steps that occurred on territory owned by that same Envoy. With a hot cache, multi-step directory navigations are satisfied from the cache of the client's Envoy and a single step to the Envoy hosting the target of the navigation.
+
+\subsubsection{Basic write operations}
+thaw + mtime
+\subsubsection{Deleting files}
+\subsubsection{Renaming files}
+walk invalidations
+\subsubsection{Hard links}\label{sec:hard-links}
+dead object in storage layer? special log file/hidden directory catalog?
 
 \subsection{Forks and snapshots}
 
