@@ -26,6 +26,8 @@ This chapter examines the storage needs of service clusters and how they can be 
 \item private images act like local images, shared images scale gracefully
 \end{itemize}
 
+Lease migrations work to optimize traffic patterns in the long term, but migrations are just that: an optimization. They only help when there is heavy traffic or a long-term pattern, where caching can come into play. Frequent changes thrash the cache and disrupt normal operations. Migrations require coordination between envoys and may require halting normal file system traffic. We want infrequent lease changes that give good long-term behavior rather than frequent changes that try to chase short-term trends. Since latency is short in a cluster, we don't lose all that much by going to a remote envoy for requests: this is a lot like conventional NFS servers now which seem to do just fine. One consequence of this is that lease migration operations can be straightforward and obvious without heavy optimization, while still not hurting the overall system too much (Amdhal's law).
+
 \section{Using Envoy}
 
 \subsection{Basic environment and assumptions}
@@ -198,6 +200,18 @@ Several intermediate possibilities exist. Instead of having write requests proce
 Another approach is to only guarantee synchronous durability when explicitly requested by the client, using the equivalent of the Unix \texttt{fsync()} system call. This matches the semantics of local file systems, and thus what most software is written to assume. It is not without faults, however, as the popularity of high-level scripting languages and middleware frameworks (especially for network services, exactly the types of clients service clusters are designed to support) means the connection between application actions and disk operations is often obscured. Requiring low-level controls to get correct behavior is often an acceptable compromise, but it is rarely ideal.
 
 The solution Envoy employs is based on exploiting the cluster environment. While commodity hardware is expected to fail occasionally, simultaneous failure of multiple machines is still relatively rare, provided that the nodes are sufficiently isolated from each other in terms of power and cooling. Since service clusters are intended for professional hosting environments, it is reasonable to assume that hardware faults occur in isolation. With that assumption, durability is less about committing data to disk and more about rudundancy. A write request is considered final when it is in the memory of all of the storage servers that will eventually commit it to disk. If the envoy server fails, the storage servers are unaffected. If one or more of the storage servers fails before committing the data to disk, the recovery mechanism must restore consistency using the most up-to-date of the replicas. Having storage servers potentially out of sync due to a failed asynchronous write in this scenario is fundamentally no different from having one fail while trying to satisfy a synchronous request. In both cases, the inherent asynchrony of the network means that only the degree of the problem changes.
+
+\section{File system images}
+
+\subsection{Security}
+
+\subsection{Forks and snapshots}
+
+A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \current or one of its numbered snapshots. Snapshots are always immutable
+
+\subsection{Deleting snapshots}
+
+Reference counting would require the clone operation to contact other storage servers. A bunch of traffic for the envoy, or the storage server would have to know the storage server topology. Too much complexity for an occasional, batch job.
 
 \section{Dynamic territory management}
 

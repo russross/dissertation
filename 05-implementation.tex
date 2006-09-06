@@ -3,6 +3,7 @@
 \section{Scope and design coverage}
 
 \section{Mapping to the 9p protocol}
+\section{Synchronization}
 
 \section{Storage service}
 
@@ -35,11 +36,11 @@ The complementary operation is called \emph{thawing}. While the freeze operation
 
 Thawing resembles the procedure for modifying a value in a tree in a functional language. In addition to changing the value itself, the path from that item to the root of the tree must be copied if the item is to be reachable from the root. In the thawing operation, it is only the root of the immutable subtree in which the item resides that must be copied. While the analagous procedure in a functional language copies everything exactly except for the path being changed, the thaw operation must clear the copy-on-write flag as it goes, and thus must push it down from parent link to sibling links at each level in order to preserve the immutable status of the unaffected branches.
 
-\subsection{File and directory operations}
+\subsection{Read operations}
 
 Most basic file and directory operations have a straightforward implementation. The need to cross territory boundaries makes some more complex, however, as they must coordinate with remote envoys to complete.
 
-\subsubsection{Basic read operations}
+\subsubsection{Reading files and attributes}
 
 The most straightforward operations are \texttt{read} and \texttt{stat}, which read the data and metadata of files, respectively. These requests can be filled using the data paths described in \prettyref{sec:data-paths-read}. The only complication involved is handling the \texttt{atime} attributed, which tracks the last time the data from a file was accessed by a \texttt{read} or \texttt{write} operation. Read operations always proceed through a single envoy, so this attribute can be tracked accurately: the envoy can send a message with the timestamp (to ensure that it is consistently applied to all replicas, even if all clocks are not in sync or network latencies between the different storage servers vary) to all replicas in the storage layer which can then update the attribute.
 
@@ -59,7 +60,9 @@ Generally, having territory boundaries closely aligned with demand benefits ever
 
 Attributes at the endpoint of the navigation are always confirmed directly with the owner, as are all of the final steps that occurred on territory owned by that same envoy. With a hot cache, multi-step directory navigations are satisfied from the cache of the client's envoy and a single step to the envoy hosting the target of the navigation.
 
-\subsubsection{Basic write operations}
+\subsection{Write operations}
+
+\subsubsection{Writing data and attributes}
 
 Like the corresponding read operations, writes to files and changes to file metadata are largely a matter of directing the request to the appropriate envoy. The first change to a file since a snapshot or fork will first require the file to be thawed, but subsequent changes can be made directly to the local cache entries and propogated to all replicas in the storage layer. As discussed in \prettyref{sec:data-paths-write}, changes are considered complete when they have been received by all storage servers, but not necessarily commited to stable storage.
 
@@ -94,18 +97,39 @@ Renames of directories present another difficulty that cannot be safely ignored.
 In addition to updating territory and file handle names, these tree-traversing rename messages flush the walk cache described in \prettyref{sec:walk-cache}.  While a more fine-grained invalidation could be implemented, in practice an occasional flush has very little affect on performance, and it offers a mechanism for solving another problem. As a special case, this message can be used to rename a directory to the same name, forcing a recursive flush of the walk cache but not changing anything else. This is useful when directory ownership or attributes change, and walk operation results that have been cached may no longer be valid. Since this is expected to be rare, it forces a broadcast down the name hierarchy when it happens, rather than forcing checks whenever the walk cache is consulted.
 
 \subsubsection{Hard links}\label{sec:hard-links}
-dead object in storage layer? special log file/hidden directory catalog?
 
-\subsection{Forks and snapshots}
+Unix file systems allow multiple names to refer to the same file. While symbolic links merely contain the name of their target, hard links allow multiple links from directories to resolve to the same \texttt{inode}. File operations are coordinated internally with reference to the \texttt{inode}, not the file path, so handling concurrent access is no different than if the clients all opened the same file through the same name. Because \texttt{inode} numbers are only meaningful in the context of a file system, hard links are not permitted across file system mount points. This mechanism is widely used both for aliasing, where two names are given to the same file, and as a way of moving a file without copying it, where the original name is unlinked after the alias has been created. 9p does not support hard links, but the Linux extensions to it do.
 
-A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \current or one of its numbered snapshots. Snapshots are always immutable
+While Envoy's structure of names and object IDs resembles the Unix system of file paths and \texttt{inodes}, it does not behave quite the same way. Access coordination in Envoy is done with reference to file names, not storage layer object IDs. When the latter are shared, the objects are assumed to be read-only and can be cached freely on different nodes with no attempt to synchronize access. Different references to the same object ID, even within the same file system image, may be split into different territories and owned by different envoy instances.
 
-\subsection{Lease migration}
-\subsection{Security}
-\subsection{Deleting snapshots}
+For this reason, Envoy offers only partial support for hard links; a file must be frozen before additional names can be linked to it. If futures changes are made to the file through any of its references, the changed versions will be thawed independently and will diverge.
+
+The implementation of the hard link operation is also unique in that the client's envoy intercepts the request before passing it on to the owning envoy if the link is being created in a foreign territory. The Linux extensions to 9p implement hard links by walking to the target of the link, then creating the new link as a file with a special extended attribute containing the file handle of the referent. The file handle state is only available to the client's envoy, so it uses the handle to freeze the target file (if necessary) and rewrites the request to include the object ID instead of the file handle. The envoy (remote or local) can then link the new name to the object.
+
+\subsection{Modifying territory ownership}
+
+Misaligned boundaries do not prevent correct behavior, nor do they introduce a heavy performance penalty. The algorithms to trigger changes are designed to promote good long-term layout choices based on steady-state traffic patterns. Cache effects penalize excessive changes, while the low network latency in a cluster environment reduces the cost of relying on a remote envoy even when local ownership would be preferable. In centralized server systems, all file access is routed across a high-speed LAN to a server with many clients. In Envoy, this pattern is also quite servicable, even when it is not ideal, and Envoy is designed to favor gradual, long-term changes over a quick response in short-term traffic patterns.
+
+Realigning territories requires careful coordination between multiple envoys. In addition to agreeing on new boundaries, state related to active file handles has to be migrated and updated. This includes both the territory owner's state and that of the envoys representing clients, which need to be directed to the new owner. Inflight operations---those that have been initiated by a client but not completed---must also continue and succeed despite concurrent territory changes.
+
+The prototype is designed to make territory migration simple and clear. Performance for infrequent operations has little bearing on the overall performance of the system \cite{amdahl}, and I consider simplicity and an increased chance of correct behavior to be more important in a complex operation of a distributed system (especially a prototype) than optimal performance.
+
+Like other operations involving multiple envoy instances, territory migration is driven by the owner of the parent territory, as illustrated in \prettyref{fig:grant-topdown}. If an envoy wants to merge a territory with its parent, or transfer it to another specific envoy, it sends a \texttt{nominate} request to the parent, giving the root path of the territory and the envoy to which it should be transferred. If a territory owner wants to cede part of a territory to another envoy or annex a neighbor that is a child of a local territory, it begins the process unilateraly. In practice, annexing is only done in response to a nomination from the child, but the process is always driven in a strict top-down fashion.
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=100mm]{figures/grant-topdown}
+\caption{Territory migrations are always driven by the parent in the namespace tree, which can annex a neighboring territory, cede territory to another envoy, or coordinates the transfer of a territory from one neighbor to another. For a child to initiate a transfer, it must send a \texttt{nominate} request to the parent, which then carries out the transfer.}
+\label{fig:grant-topdown}
+\end{figure}
+
+\subsubsection{Transferring state}
+
+Transfers occur
+
+\subsubsection{Inflight operations}
 
 
-\section{Synchronization}
 \section{Caching}
 
 \section{Summary}
