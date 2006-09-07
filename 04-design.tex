@@ -122,6 +122,8 @@ To make these servers more useful, the top half of the storage layer is implemen
 
 Numerous strategies are available for distributing objects across the cluster. While I discuss some of them here, I only do so with the intent of demonstrating that an independent storage layer is viable and reasonable; many other object storage systems of varying levels of sophistication could be substituted for one I describe and other work has addresses object storage in more detail than I attempt here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
 
+\cite{stein05}
+
 \subsection{Envoy layer}
 
 The envoy layer forms a file system from the objects provided by the storage layer, coordinating and caching access to the file hierarchy, and exporting a client-server protocol to services that act as clients of the file system. The entire cluster shares a global, hierachical namespace, but clients typically mount a subtree from the hierarchy and treat it as a complete file system.
