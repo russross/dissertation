@@ -58,7 +58,7 @@ Snapshots also serve another special purpose: they can be used as the root for a
 
 \section{Architecture}
 
-Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a constribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. \prettyref{fig:single-machine} illustrates a typical machine.
+Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a constribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. \prettyref{fig:single-machine} illustrates a typical machine. By giving clients access to the system through a proxy on a trusted VM, they can use simple, well-understood client-server access protocols to join a more complicated system \cite{shapiro}. Byzantine failure from clients is less of a problem, because they have a limited interface to the system and hold no trusted data.
 
 \begin{figure}[tp]
 \centering
@@ -93,14 +93,14 @@ In the remainder of this section I detail the functionality and requirements of 
 
 The client-server model has obvious flaws when applied to clusters with many transient clients. Data placement decisions must balance space requirements and expected access rates in order to avoid overloading a particular server. Rebalancing---a disruptive and time consuming job---may be necessary in response to added clients, added servers, added disks, variations in client workload, and accumulation of data over time.
 
-With the service cluster model, the problem is made even worse. To make efficient use of increasingly powerful hardware, each physical machine may host many services, each of which requires a boot image as well as access to the data relevant to its intended task. Single-purpose services may also be short lived or vary by time of data, making manual balancing impractical.
+With the service cluster model, the problem is made even worse. To make efficient use of increasingly powerful hardware, each physical machine may host many services, each of which requires a boot image as well as access to the data relevant to its intended task. Dividing each machine means that there may be an order of magnitude more virtual machines than physical machines, putting excessive demands on a centralized storage infrastructure \cite{hospodor}. Single-purpose services may also be short lived or vary by time of data, making manual balancing impractical.
 
 The client-server model has not endured as long as it has simply for lack of alternatives, however. It has many strengths that can inform the design of a more distributed architecture. With a single server managing shared data, concurrent access can be managed simply through explicit leases and cache invalidation, centralized caching with synchronous access, or through a lock manager. Whatever the mechanism for resolving conflicts, a centralized server is ideally suited to detecting and responding to concurrent requests because it is the point on the access graph at which all requests converge. The consistency of data that has reached the server is as good as its backing store.
 
 The simplicity of a server is also a virtue. A failstop model for reliability can generally be assumed, backups are relatively straightforward, the server is typically dedicated to a single task or is shared with other trusted services, and the semantics are simple to define in terms of client behavior%
 \footnote{NFS versions 2 and 3 have notoriously complicated consistency semantics, but this is almost entirely due to client policies. NFS server semantics are straightforward.}.
 
-The chief faults of a centralized system are the introduction of a single point of failure and the inability to scale beyond the network and disk bandwidth that can be hosted by a single server. While these limits are unacceptable at large scales, they are quite reasonable for small groups of clients.
+The chief faults of a centralized system are the introduction of a single point of failure and the inability to scale beyond the network and disk bandwidth that can be hosted by a single server. While these limits are unacceptable at large scales, they are quite servicable for small groups of clients.
 
 For clients that are sharing data, it is difficult to improve on a centralized server. For sufficiently overlapping data sets, any consistent model will degrade to something resembling a server during periods of contention because all interested clients will have to synchronize their access to the contended bits. A single arbitrator will ultimately oversee each bit of data, whether it is a traditional server, a lease-holding client, or a quorum of cooperating peers.
 
@@ -114,6 +114,8 @@ The overall distributed architecture of Envoy is modeled after human-administere
 
 \subsection{Storage layer}
 
+Citations: \cite{stein05}, HP trace shows that with caching, most operations that go to disk are writes, and non-sequential operations \cite{ruemmler}, so access patterns are probably less important in the storaage layer than recovery concerns, which pimp for chained declustering and correlated failure \cite{lee96}. Object storage works well and is growing in popularity \cite{factor}. File layout doesn't matter as much behind the cache \cite{stein05}
+
 The objective of the storage layer is to provide a simple, stateless interface for accessing objects. Redundancy to enhance availability and reliability and distribution to balance load is also handled by this part of the system. The storage layer is implemented in two parts, called the top and bottom halves.
 
 The bottom half is implemented in the storage daemon hosted on each physical server. While the storage daemon instances form a collective pool of storage, they do not communicate directly with each other. At the local level, each storage manager is unaware of any global state, and responds blindly to incoming requests from the envoy layer. Instances do not attempt to balance load, resolve conflicting requests, or create redundancy, nor do they monitor which object IDs they considered valid. Instead, they provide a thin, simple storage service for numbered objects with attributes.
@@ -121,8 +123,6 @@ The bottom half is implemented in the storage daemon hosted on each physical ser
 To make these servers more useful, the top half of the storage layer is implemented in the envoy daemon. It is responsible for mapping an object ID to the set of storage server instances that host the referent object. Combined with the persistent cache, the storage layer top half provides a simple procedural interface to the storage layer, where objects are named by unique IDs. The top half is responsible for creating and locating replicas, detecting and masking/recovering from failures, allocating new object IDs when needed, and reading and writing data and attributes.
 
 Numerous strategies are available for distributing objects across the cluster. While I discuss some of them here, I only do so with the intent of demonstrating that an independent storage layer is viable and reasonable; many other object storage systems of varying levels of sophistication could be substituted for one I describe and other work has addresses object storage in more detail than I attempt here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
-
-\cite{stein05}
 
 \subsection{Envoy layer}
 
@@ -151,6 +151,8 @@ Directories are files containing listings of other files. In Envoy, directories 
 Special files, such as device nodes and symbolic links, are stored as regular files whose contents follow a defined format. For symbolic links, the file contents are the target of the link, for devices they are an ASCII string identifying the major and minor device numbers, etc.
 
 \subsection{Caching}
+
+Citations: Most files in a file system (90\%) are never accessed after being created and as few as 1\% are used daily \cite{gibson98b}, so even a small persistent cache can be effective, and sharing the active files from boot images and the like will probably see heavy overlap: after all, moving only 1,000--10,1000 objects takes 42--77\% of the load with it \cite{klosterman} (reconcile this with \cite{muntz}). Another workload comparison \cite{roselli}. DBMS work also explores the idea of considering the aggregate cache capacity of the client-server system \cite{franklin}. Self-similarity in file systems \cite{gribble}. Speculative execution has been used to mask the latency of distributed file systems \cite{nightengale}, allowing improved performance without sacrificing cache consistency, and approach that compliments ours. Other work on consistency \cite{triantafillou,vilayannur}.
 
 The cache design in a distributed file system must balance the needs for performance, consistency, and durability. While maintaining a coherent view of the file system that is tolerant to software and hardware faults, a cache should reduce latency, increase throughput, and increase overall capacity by reducing the network and disk congestion required by a given amount of activity and freeing input/output channels to absorb additional load.
 
@@ -193,6 +195,8 @@ Fortunately, this penalty need not be too great nor too common. The remote envoy
 
 \subsubsection{Write operations}\label{sec:data-paths-write}
 
+Citation: Transactions, strengths and weaknesses \cite{gray81}.
+
 Write operations are less common than reads, but much of the complexity in file system design comes from supporting them. While a good cache satisfies many read requests from memory quickly and with no correctness concerns (provided coherency is maintained in the case of distributed systems), write operations cached in memory raise concerns about durability. If the server acknowledges the write operation as being complete but has only committed it to an in-memory cache, then there is a window of vulnerability before the data is stored to disk and all metadata updated wherein a system crash could lose data that the client expects to be resilient to crashes. In an isolated client, this may be acceptable as the client will simply be forced to restart from the state that was committed to disk and will generally only lose a boundable amount of work. It is particularly problematic for distributed systems and others with external side-effects, however, where other participants may cue subsequent actions on the premise that a write has been successfully and durably committed to disk. The problem is further exacerbated in a commodity hardware environment where failures are routine.
 
 At the other extreme, one can commit all writes to disk before completing the transaction. This makes it clear to the client when a write operation has been consumated, and it is free to either wait for the acknowledgement or proceed asynchronously with explicit knowledge of the risk it is assuming. While this is a simple and appealing model, it ignores two important realities. The first is that the default action for most commodity operating systems is to cache writes and acknowledge them immediately while delaying the disk write. Changing the expected performance characteristics of a basic operation like writing to disk would not provide a commodity-friendly environment as it would severely affect the perforamnce of many standard tools in a negative way. The second is that most files created are short-lived temporary files that are soon deleted \cite{ousterhout}, so synchronously writing them to disk introduces not only unnecessary latency but also unnecessary disk contention.
@@ -213,7 +217,7 @@ A few additional rules simplify management. The root of the namespace is always 
 
 \subsection{Deleting snapshots}
 
-Reference counting would require the clone operation to contact other storage servers. A bunch of traffic for the envoy, or the storage server would have to know the storage server topology. Too much complexity for an occasional, batch job.
+Reference counting would require the clone operation to contact other storage servers. A bunch of traffic for the envoy, or the storage server would have to know the storage server topology. Too much complexity for an occasional, batch job. We can make a list of all the objects in use by a file system, and it won't be too big \cite{douceur99}, probably a few million files per image.
 
 \section{Dynamic territory management}
 

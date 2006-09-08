@@ -70,7 +70,7 @@ Ventana \cite{pfaff}
 \subsubsection{Cedar}
 \cite{gifford,hagmann}
 \subsubsection{NFS}
-\cite{pawlowski,callaghan}
+\cite{sandberg,pawlowski,callaghan}
 \subsubsection{NFSv4}
 \subsubsection{Sprite}
 \cite{baker91,nelson}
@@ -80,6 +80,8 @@ Ventana \cite{pfaff}
 \cite{kistler,satyanarayanan}
 \subsubsection{Alpine}
 \cite{brown}
+\subsubsection{LOCUS}
+\cite{walker}
 \subsubsection{Spring}
 \cite{khalidi}
 \subsubsection{Harp}
@@ -87,7 +89,7 @@ Ventana \cite{pfaff}
 \subsubsection{Plan 9}
 Plan 9 \cite{pike90} name spaces \cite{pike92} in Linux with v9fs \cite{hensbergen}
 \subsubsection{Caching}
-\cite{dahlin94a}\cite{chaiken}\cite{blaze}\cite{dahlin94b}\cite{keleher}\cite{muthitacharoen}
+\cite{dahlin94a}\cite{chaiken}\cite{blaze}\cite{dahlin94b}\cite{keleher}\cite{muthitacharoen}. 1\% of files are used daily, 90\% never used after creation \cite{gibson98b}.
 \subsubsection{Disk layout}
 Zebra \cite{hartman} is network RAID \cite{patterson}
 
@@ -100,7 +102,7 @@ Block-based sharing \cite{mcgregor}
 \subsubsection{xFS}
 xFS\cite{wang93,anderson95b,wang98}
 \subsubsection{Farsite}
-\cite{bolosky}
+\cite{bolosky,adya}
 
 \subsection{Archival systems}
 
@@ -110,11 +112,15 @@ xFS\cite{wang93,anderson95b,wang98}
 \subsection{Wide-area file systems}
 Prospero \cite{neuman}
 
-Oceanstore and Pond \cite{rhea}
+\subsubsection{Oceanstore}
+Oceanstore and Pond \cite{kubiatowicz,rhea}
 
 \subsubsection{Echo}
 
 The Echo distributed file system \cite{birrell93} was designed to provide a single, global namespace that was accessible anywhere and perfectly coherent. It uses write-behind caching for files and directories with ordering constraints to preserve consistency even in the presence of crashes \cite{mann}, and employs a token-passing scheme to manage cache coherency. The top levels of the namespace are hosted on the DNS, with a link to a specific server. From there, servers host branches of the tree with further links to additional servers. Replication is done at the server level with primary and secondary servers that are synchronized. It died when the OS that hosted it wasn't ported to newer hardware (another reason to use commodity systems).
+
+\subsubsection{Ficus}
+\cite{popek}
 
 \subsection{Peer-to-peer file systems}
 \subsubsection{Pasta}
@@ -123,10 +129,16 @@ The Echo distributed file system \cite{birrell93} was designed to provide a sing
 \cite{saito02}
 \cite{stein02}
 
+For file distribution, read-only file systems \cite{fu} and bittorrent, etc.
+
+To be reliable you need lots of replicas \cite{rabin}, probably too many \cite{blake}.
+
 \subsection{Mobile computing support}
 \cite{kim}\cite{mummert}\cite{sobti}
 
 \subsection{Clusters}
+
+Layered clustering in Cuckoo allows NFS servers to be combined into a cluster system \cite{klosterman}, spreading load, etc. Mirage uses a similar approach to aggregate multiple NFS servers into a single, virtual server \cite{baker02}.
 
 \subsubsection{Petal}
 \cite{lee95,lee96}
@@ -142,9 +154,13 @@ The Echo distributed file system \cite{birrell93} was designed to provide a sing
 \cite{warfield}
 \subsubsection{FAB}
 \cite{frolund,saito04,ji}
+\subsubsection{Self-* Storage}
+\cite{ganger}
+\subsubsection{Ceph}
+\cite{weil}
 
 \subsection{Storage area networks}
-\cite{burns}
+\cite{burns}. Bandwidth can become a problem as scale grows \cite{hospodor}, requiring careful architecture choices.
 
 Network-attached secure disks (NASD) \cite{gibson97,gibson98a}
 

@@ -24,6 +24,8 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 \subsection{Morgan Stanley}
 \subsection{Mobile agents}
 
+\cite{demers}
+
 \section{Commodity computing}
 
 \subsection{The GRID}
@@ -80,6 +82,10 @@ Hardware virtualization is one of the more potent tools available for achieving 
 
 \subsection{Commodity everything}
 
+Including something as intangible as computation. Storage outsourcing makes sense \cite{ng}.
+
+Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+
 \subsection{Heterogeneous workloads}
 
 Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
@@ -123,5 +129,7 @@ One of the attractive features of running individual services in virtual machine
 The unit of management is an entire operating system on a virtual machine. Installing an operating system for each service instance would be prohibitively slow, labour intensive, and wasteful of space. A typical installation of Linux using Fedora Core~3 takes about 50 terabytes of space, and an automated installation is unlikely to give the right set of installed packages and running daemons, so some customization will be necessary.
 
 Instead of trying to automate installations, Envoy offers lightweight operations to fork a file system.
+
+Snapshots allow simple backup and recovery, and time travel for debugging and forensics \cite{whitaker}.
 
 \section{Summary}
