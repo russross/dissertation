@@ -209,13 +209,46 @@ The solution Envoy employs is based on exploiting the cluster environment. While
 
 \section{File system images}
 
+A single, hierarchical namespace unites all the participants in an Envoy cluster, but for management purposes there are two distinct levels. The administrative file tree starts at the root of the namespace and has as its leaves the file system \emph{images} that are normally accessed by clients. Imposing this additional structure in the tree codifies the intended usage pattern, which simplifies administration and allows for some simple but effective optimizations.
+
 \subsection{Security}
+
+Service clusters must accomodate a heterogeneous collection of clients, some of which may trust each other, but most of which will not. To support standard operating systems and tools, Envoy must support familiar semantics, including granting complete control over private images, while also accomodating shared images that grant limited access to various clients.
+\note{TODO}
+
+\subsubsection{Enforcement}
+
+Envoy is designed with a fail-stop failure model. This is relatively simple to deal with, but is unrealistic in many environments. Service clusters 
+
+Envoy services run in trusted virtual machines that are administered by the owner of the cluster. Messages from one envoy to another and to storage servers must be authenticated to ensure , either by  
+\note{TODO}
+\subsubsection{Policy}
+
+Access to images is controlled through \texttt{password} files in the administrative directories. At the time a client mounts an image, its credentials are checked against all password 
+
+\note{TODO}
 
 \subsection{Forks and snapshots}
 
 A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \current or one of its numbered snapshots. Snapshots are always immutable
 
 \subsection{Deleting snapshots}
+
+Storage space is cheap and plentiful, and systems such as Venti are designed to keep a complete history of all files ever created \cite{quinlan}. This may be appropriate for some workstation environments, where the increase in storage capacity can outpace typical data creation rates, but deleting files permanently is still a necessity for many other users. In service clusters, users are charged according to the resources they use, so they must have the flexibility to completely remove old files. Also, when clients leave a particular service cluster, the owner may wish to reclaim the space for future use, as there is little incentive to keeping it around on behalf of a client that is no longer paying. Also, concern for privacy and complience with data retention laws may require data to be completely removed.
+
+Backups in Envoy are done through snapshot operations, and anything created and deleted in the window between two successive snapshots is no longer accessible anywhere so it is deleted immediately (with an exception described in \prettyref{sec:hard-links}). This is easily detected through the copy-on-write mechanism, which identifies all files that were created since the most recent snapshot. All files with copy-on-write flags (either explicit in a directory link or implicit through an ancestor's link) are backed by objects referenced by one or more read-only snapshots, so envoys never delete these objects when their corresponding files are deleted.
+
+The problem comes when trying to delete old snapshots, as it can be difficult to determine which storage objects are used only by the files in a given snapshot.
+
+One obvious solution would be to implement reference counting in the storage layer. This has the advantages of simplicity, accuracy, and immediacy. The main disadvantage is that it puts the performance burden in the wrong place: every time a directory object is cloned (an frequent operation after a snapshot as the copy-on-write mechanism supports write requests) the reference count for all objects in that directory would need to be incremented. This would require clone operations to be implemented in the envoy layer which can locate all object replicas, or the bottom half of the storage layer (where clones are implemented) would need to be aware of the topology of the entire storage layer, a requirement currently confined to the top half. In either case, a lot of extra traffic would be generated to support an operation that is relatively infrequent and not timing critical.
+
+The copy-on-write mechanism in Envoy is similar to the one I implemented while working on Parallax \cite{warfield}, as is the problem of deleting snapshots. The problem was simpler in Parallax, however, which uses a copy-on-write radix tree to map logical blocks to physical blocks in a virtual block device. The virtual block numbers do not change between snapshots, so comparing the physical blocks mapped to by two successive snapshots reveals which blocks from the first were unlinked during the lifetime of the second.
+
+With Envoy and its hierarchical file tree, the problem becomes more complex. Comparing two successive snapshots is no longer straightforward, because files and directories can be renamed. The virtual block IDs that are static in Parallax are replaced by variable names in Envoy, making the process of comparing two snapshots more difficult. Supporting hard links make it even more difficult to define a one-to-one correspondence between object references in two successive snapshots.
+
+\note{The suspense is killing me!  Describe the actual scheme.}
+
+
 
 Reference counting would require the clone operation to contact other storage servers. A bunch of traffic for the envoy, or the storage server would have to know the storage server topology. Too much complexity for an occasional, batch job. We can make a list of all the objects in use by a file system, and it won't be too big \cite{douceur99}, probably a few million files per image.
 

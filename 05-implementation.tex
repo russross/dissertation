@@ -132,6 +132,8 @@ For this reason, Envoy offers only partial support for hard links; a file must b
 
 The implementation of the hard link operation is also unique in that the client's envoy intercepts the request before passing it on to the owning envoy if the link is being created in a foreign territory. The Linux extensions to 9p implement hard links by walking to the target of the link, then creating the new link as a file with a special extended attribute containing the file handle of the referent. The file handle state is only available to the client's envoy, so it uses the handle to freeze the target file (if necessary) and rewrites the request to include the object ID instead of the file handle. The envoy (remote or local) can then link the new name to the object.
 
+\note{Need to make sure at least one reference to a file survives so that the object can be deleted properly. We need to keep a list of those that were hard linked from a non-CoW state, and that list can be folded into the normal snapshot delete system.}
+
 \subsection{Modifying territory ownership}
 
 Could use leases \cite{gray89}.
