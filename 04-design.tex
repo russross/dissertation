@@ -2,31 +2,34 @@
 
 This chapter examines the storage needs of service clusters and how they can be accommodated. Service clusters place specific demands on the storage system to efficiently support the deployment and management of untrusted services, but they also present helpful properties that can simplify the job. In addition to detailing these constraints, this chapter describes Envoy, a file system designed for this environment.
 
-\section{Design goals and principles}
+\section{Design parameters for Envoy}
 
-\subsection{Things that a service cluster calls for}
+Service clusters are a flexible platform for implementing arbitrary services, and the storage system that supports them must similarly flexible. While the design must not impose unnecessary restrictions on what clients are allowed to do, it can draw on expectations about how they will behave to guide optimizations. The high-level goal of Envoy is to predict and optimize for the most common client demands, while degrading gracefully as they stray from expected patterns. In addition, some specific requirements are derived directly from the needs of the environment.
+
+\subsection{Running in a cluster}
+
+Service clusters are centrally managed clusters of physical machines, each of which hosts any number of client services on private VMs. One of the chief advantages of using clustering independent services is that resources can be alloted based on average requirements even though many individual clients will be decidedly non-average. As actual demands are observed, the manager can periodically migrate running services to new hosts and redistribute the load to even out the combined demands of services on a single machine. To facilitate transparent migration, the storage system must not tie images to a single machine. Even private images used only by a single service must be location independent within the cluster, or capable of moving without forcing a restart or excessive disruption.
+
+Incremental scaling is another important aspect of cluster environments. Using commodity hardware gives owners access to the best price to performance ratios, and building the cluster gradually in response to demand allows them to track the desired part of the curve as it evolves over time. The storage system must be capable of accepting new hosts without undue disruption to those already running. Note that unlike peer-to-peer systems \cite{blake} or networks of workstations \cite{anderson95a}, machines are under central control and are used for a single purpose, so machines coming and going is an exceptional event rather than the norm. Such events must be accomodated, but they need not be optimized for.
+
+Another issue related to scale is that crash recovery must be localized. Transparent failover is not necessary, and recovering gracefully from failures rather than completely masking them \cite{baker94} is acceptable in this environment (note that hardware may fail as well; services that require specific reliability guarantees must implement redundancy at a higher level). Clusters are expected to run in machine rooms with well-provisioned machines that are properly managed, so failures are not expected to be frequent, but they are clusters of commodity hardware and failures will occur regularly for large installations. Confining the effect of a crash to a small area minimizes the damage, and restricting the disruption to participants with overlapping interests (sharing files, cache, etc.) is even better.
+
+Besides imposing specific requirements, a cluster of commodity machines provides useful resources for designing a storage system. Commodity disks are big and cheap, and having them distributed throughout the cluster provides a natural source of distributed storage capacity. Machines may reserve some capacity for administrative use, for booting the machine, or for providing swap space for clients, but most is available for use by the storage system. These disks are not of premium quality, but can be expected to perform reasonably well. The disk can be no more available than the machine to which it is connected, so the storage system must provide redundancy across machines to tolerate failures. Since that cannot be avoided, combining disks into a RAID within a single node would only significantly increase the reliability of that node, not the system as a whole. Envoy assumes that disks are independent, and that the failure of a disk will disqualify the entire machine until it is fixed or replaced.
+
+Commodity software is even more important than commodity hardware in supporting flexible commodity computation. By being presented with a choice of standard platforms and being charged according to how much they deviate from those basic starting points, most clients will be expected to draw heavily from common file system images. This can be considered a basic property of service clusters and the storage system must be designed to exploit it. Independent virtual machines introduce another scalar factor in scalability demands that could otherwise lead to excessive capacity requirements \cite{warfield}. This is mostly a benefit for the file system, however, because it allows Envoy to overlap caching even with unrelated clients.
+
+\subsection{Supporting heterogeneous clients}
+
+
+
 \begin{itemize}
-\item exploit admin domain for simple security and fault model
-\item expect lots of redundancy in disk images; aggregate cache
-\item support mobile VMs
-\item support rapid deployment of services with lightweight file system forks
-\item use cheap commodity disks
-\item snapshots
-\item isolate services from each other, but allow cooperative groups
+\item Untrusted clients: exploit admin domain for simple security and fault model
+\item Arbitrary clients: need full control over their images
+\item Short-term clients: support rapid deployment of services with lightweight file system forks
+\item Long-term clients: snapshots for backup, debugging, forensics
+\item Small services: private images are common and should be cheap to make and fast to run
+\item Large services: cooperative groups should be able to share with coherent caching; local when private, scaling gracefully when there is contention
 \end{itemize}
-
-\subsection{Desirable properties that the envoy model achieves}
-\begin{itemize}
-\item distribute only when there's a reason; favor centralization when practical
-\item perfectly consistent persistent caching
-\item local impact---heavy users bear most of the load, non-users none of it
-\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
-\item in steady state, coordination based on actual contention, not potential contention
-\item simple security model that maps well to familiar Unix semantics
-\item private images act like local images, shared images scale gracefully
-\end{itemize}
-
-Lease migrations work to optimize traffic patterns in the long term, but migrations are just that: an optimization. They only help when there is heavy traffic or a long-term pattern, where caching can come into play. Frequent changes thrash the cache and disrupt normal operations. Migrations require coordination between envoys and may require halting normal file system traffic. We want infrequent lease changes that give good long-term behavior rather than frequent changes that try to chase short-term trends. Since latency is short in a cluster, we don't lose all that much by going to a remote envoy for requests: this is a lot like conventional NFS servers now which seem to do just fine. One consequence of this is that lease migration operations can be straightforward and obvious without heavy optimization, while still not hurting the overall system too much (Amdhal's law).
 
 \section{Using Envoy}
 
@@ -286,4 +289,19 @@ The interesting case is when sharing occurs within an image. The envoy tries to 
 
 \section{Recovery}
 
+
+
 \section{Summary}
+
+\subsection{Desirable properties that the envoy model achieves}
+\begin{itemize}
+\item distribute only when there's a reason; favor centralization when practical
+\item perfectly consistent persistent caching without constant refresh checks
+\item local impact---heavy users bear most of the load, non-users none of it
+\item serve from local machine cache when uncontended, NFS-like when shared: requests never require topology changes
+\item in steady state, coordination based on actual contention, not potential contention
+\item simple security model that maps well to familiar Unix semantics
+\item private images act like local images, shared images scale gracefully
+\end{itemize}
+
+Lease migrations work to optimize traffic patterns in the long term, but migrations are just that: an optimization. They only help when there is heavy traffic or a long-term pattern, where caching can come into play. Frequent changes thrash the cache and disrupt normal operations. Migrations require coordination between envoys and may require halting normal file system traffic. We want infrequent lease changes that give good long-term behavior rather than frequent changes that try to chase short-term trends. Since latency is short in a cluster, we don't lose all that much by going to a remote envoy for requests: this is a lot like conventional NFS servers now which seem to do just fine. One consequence of this is that lease migration operations can be straightforward and obvious without heavy optimization, while still not hurting the overall system too much (Amdhal's law).
