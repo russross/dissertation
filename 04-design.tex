@@ -28,7 +28,7 @@ Containing and restricting clients is only one side of the struggle in service c
 
 Clients also vary in their longevity. Short-lived tasks will only thrive as part of the commodity computation ecosystem if they are cheap enough and can be deployed quickly enough to be competitive with the end-user owned and managed equivalents. Services that are tied to human activity may need to accomodate a human's impatience and short attention span. Interactive services or those that respond to other external conditions may need to expand over multiple instances in response to changing conditions, only to shut down excessive instances when a spike in demand subsides. These scenarios require a lightweight deployment mechanism that can rapidly produce not only standard base images, but also forked copies of custom file system images produced by clients. Forking running virtual machines is beyond the scope of this work, but file system support for the process is essential and relevant.
 
-Long-lived clients have their own requirements, which must also be addressed in the storage system. Reliability can be considered a basic requirement of general-purpose storage systems, but additional support for backups and historical snapshots is also crucial especially for long-lived tasks. Runtime snapshots give a stable version of a changing file system image that can be backed up offline, used for reverting changes, examined for debugging purposes, or analyzed for forensic purposes after a service has been compromised. Only clients can determine the right tradeoff between the extra storage costs invoked by snapshots (which retain files that would otherwise be deleted) and the convenience of a detailed history, so Envoy must allow each client to dictate its own snapshot policy.
+Long-lived clients have their own requirements, which must also be addressed in the storage system. Reliability can be considered a basic requirement of general-purpose storage systems, but additional support for backups and historical snapshots is also crucial especially for long-lived tasks. Runtime snapshots give a stable version of a changing file system image that can be backed up offline, used for reverting changes, examined for debugging purposes, or analyzed for forensic purposes after a service has been compromised \cite{king}. Only clients can determine the right tradeoff between the extra storage costs invoked by snapshots (which retain files that would otherwise be deleted) and the convenience of a detailed history, so Envoy must allow each client to dictate its own snapshot policy.
 
 Envoy must be able to provide a private, bootable image for each service that launches. Platforms for embarassingly parallel problems and other homogenous service platforms can install basic software at each node and rely on a shared file system only for shared data. The profile of service clusters admits this possibility for starting the virtual machine manager and other administrative software, but individual services cannot be tied to a specific machine. Even the possibility of supplying a range of standard base images on each node and using a stacking file system to export virtual private images falls apart as clients fork highly-customized images, leading to inconsistency and excessive management complexity. A better solution is to require that the storage system be able to supply globally accessible images and location transparency, but do so in a way that accomodates the common case (many private images used by a individual services that migrate infrequently) with good performance. The convenience of global accessibility and transparent mobility must not cost much when it is not used much.
 
@@ -38,9 +38,12 @@ Service clusters are a platform for flexible commodity computation, which may ta
 
 \subsection{Basic environment and assumptions}
 
-
-
-It's a cluster, dom0 is trusted, it's all managed together, expect users to start from standard installs
+\begin{itemize}
+\item The network is well provisioned, and there is no significant difference in distance between different machines in the cluster.
+\item Each machine has an administrative virtual machine that is trusted. An instance of the envoy service runs in this VM, and it serves all clients on the same physical machine.
+\item Machines in the cluster are reasonably independent. Power supplies and other hardware are isolated enough that we can consider failures to happen independently.
+\item A catalogue of machines in the cluster is available. We ignore resource discovery. Adding and removing machines may require some manual intervention.
+\end{itemize}
 
 \subsection{Use and administration}
 
@@ -120,13 +123,19 @@ The overall distributed architecture of Envoy is modeled after human-administere
 
 \subsection{Storage layer}
 
-Citations: \cite{stein05}, HP trace shows that with caching, most operations that go to disk are writes, and non-sequential operations \cite{ruemmler}, so access patterns are probably less important in the storaage layer than recovery concerns, which pimp for chained declustering and correlated failure \cite{lee96}. Object storage works well and is growing in popularity \cite{factor}. File layout doesn't matter as much behind the cache \cite{stein05}
+Citations: \cite{stein05}, HP trace shows that with caching, most operations that go to disk are writes, and non-sequential operations \cite{ruemmler}, so access patterns are probably less important in the storaage layer than recovery concerns, which pimp for chained declustering and correlated failure \cite{lee96}. Object storage works well and is growing in popularity \cite{factor}. File layout doesn't matter as much behind the cache \cite{stein05}. Use chained declustering \cite{hsiao}.
 
 The objective of the storage layer is to provide a simple, stateless interface for accessing objects. Redundancy to enhance availability and reliability and distribution to balance load is also handled by this part of the system. The storage layer is implemented in two parts, called the top and bottom halves.
 
 The bottom half is implemented in the storage daemon hosted on each physical server. While the storage daemon instances form a collective pool of storage, they do not communicate directly with each other. At the local level, each storage manager is unaware of any global state, and responds blindly to incoming requests from the envoy layer. Instances do not attempt to balance load, resolve conflicting requests, or create redundancy, nor do they monitor which object IDs they considered valid. Instead, they provide a thin, simple storage service for numbered objects with attributes.
 
 To make these servers more useful, the top half of the storage layer is implemented in the envoy daemon. It is responsible for mapping an object ID to the set of storage server instances that host the referent object. Combined with the persistent cache, the storage layer top half provides a simple procedural interface to the storage layer, where objects are named by unique IDs. The top half is responsible for creating and locating replicas, detecting and masking/recovering from failures, allocating new object IDs when needed, and reading and writing data and attributes.
+
+An object ID is considered a globally unique name for that object. When replication is introduced, it is assumed that all replicas are given the same object ID. One object server from a replica group is nominated as the master; it is the only one to which \texttt{reserve} requests will be sent, and all servers within that replica group are bound by its allocations (although the servers themselves do not offer any enforcement mechanism). Object servers can participate in multiple replica groups, so the \texttt{reserve} procedure includes a parameter to indicate the ID space from which the allocation should come.
+
+\subsubsection{Open problems}
+
+The mapping of object IDs to specific storage servers is not yet defined. For now, a configuration file with a static mapping can be distributed to all participants, and changing that mapping will require a restart of the complete system. No scheme for migrating objects in response to load or failure is currently defined.
 
 Numerous strategies are available for distributing objects across the cluster. While I discuss some of them here, I only do so with the intent of demonstrating that an independent storage layer is viable and reasonable; many other object storage systems of varying levels of sophistication could be substituted for one I describe and other work has addresses object storage in more detail than I attempt here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
 
@@ -296,7 +305,8 @@ The interesting case is when sharing occurs within an image. The envoy tries to 
 
 \section{Summary}
 
-\subsection{Desirable properties that the envoy model achieves}
+Desirable properties that the envoy model achieves:
+
 \begin{itemize}
 \item distribute only when there's a reason; favor centralization when practical
 \item perfectly consistent persistent caching without constant refresh checks

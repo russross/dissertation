@@ -8,6 +8,10 @@ In this chapter I survey the most important and widely known storage systems, wi
 
 \subsection{Embarassingly parallel problems}
 
+\subsection{Service platforms}
+
+Jini
+
 \subsection{Clusters}
 CARD for cluster monitoring\cite{anderson97}
 
@@ -18,10 +22,6 @@ Partition cloning \cite{rauch}
 \subsubsection{TranSend}
 
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
-
-\subsection{Service platforms}
-
-Jini
 
 \subsection{Network of workstations}
 Networks of workstations (NOW)\cite{anderson95a}
@@ -37,7 +37,7 @@ Networks of workstations (NOW)\cite{anderson95a}
 \subsubsection{Denali}
 \subsubsection{Xen}
 \cite{barham}
-Live migration \cite{clark} \cite{sapuntzakis}
+Live migration \cite{clark} \cite{sapuntzakis02}
 \subsubsection{Terra}
 \cite{garfinkel}
 \subsubsection{VMWare}
@@ -73,7 +73,7 @@ Ventana \cite{pfaff}
 \cite{sandberg,pawlowski,callaghan}
 \subsubsection{NFSv4}
 \subsubsection{Sprite}
-\cite{baker91,nelson}
+\cite{baker91,nelson,welch}
 \subsubsection{AFS}
 \cite{howard}
 \subsubsection{Coda}
@@ -91,9 +91,9 @@ Plan 9 \cite{pike90} name spaces \cite{pike92} in Linux with v9fs \cite{hensberg
 \subsubsection{Caching}
 \cite{dahlin94a}\cite{chaiken}\cite{blaze}\cite{dahlin94b}\cite{keleher}\cite{muthitacharoen}. 1\% of files are used daily, 90\% never used after creation \cite{gibson98b}.
 \subsubsection{Disk layout}
-Zebra \cite{hartman} is network RAID \cite{patterson}
+Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off.
 
-AutoRAID \cite{wilkes}
+AutoRAID \cite{wilkes95}
 
 Block-based sharing \cite{mcgregor}
 
@@ -128,15 +128,19 @@ The Echo distributed file system \cite{birrell93} was designed to provide a sing
 \subsubsection{Pangaea}
 \cite{saito02}
 \cite{stein02}
+\subsubsection{JetFile}
+\cite{gronvall}
 
 For file distribution, read-only file systems \cite{fu} and bittorrent, etc.
 
 To be reliable you need lots of replicas \cite{rabin}, probably too many \cite{blake}.
 
-\subsection{Mobile computing support}
+%\subsection{Mobile computing support}
 \cite{kim}\cite{mummert}\cite{sobti}
 
 \subsection{Clusters}
+
+\cite{amiri}
 
 Layered clustering in Cuckoo allows NFS servers to be combined into a cluster system \cite{klosterman}, spreading load, etc. Mirage uses a similar approach to aggregate multiple NFS servers into a single, virtual server \cite{baker02}.
 
