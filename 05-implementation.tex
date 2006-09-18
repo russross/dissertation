@@ -1,8 +1,17 @@
 \chapter{The Envoy Prototype}
 
+Even the simplest file systems involve complex interactions between numerous hardware and software components, and distributed file systems compound that complexity. While all modern designs tend to draw heavily on prior work, the particular combination of classic components and new innovations that make up a new system like Envoy can only be validated with empirical results.
+
+I have implemented a prototype of Envoy to make testing possible and to permit a level of refinement in the design that is only possible with practical experience. This chapter first details the goals and parameters of the prototype, then discusses aspects of the implementation that shed further light on the design, expose its limitations, or show how implementation choices have shaped the prototype.
+
 \section{Scope and design coverage}
 
 \subsection{Goals of the prototype}
+
+* Sanity check
+* Test effects of runtime migration
+* Check performance of machine-level caching vs. OS-level caching
+* Check performance of shared access, remote vs. local
 
 \subsection{Implementation shortcuts}
 
@@ -14,16 +23,19 @@ The prototype uses a simplified concurrency model based on a few assumptions. Co
 
 Use the underlying OS to cache stuff. No need to reinvent the wheel here. Note that this makes good sense, it's not really a limitation. Set the size of the envoy service VM to control the cache size, take advantage of advances in the underlying OS, focus on the problem at hand.
 
+\subsubsection{Garbage collection}
+
 \section{The 9p protocol}
 
 Clients access Envoy using a client-server file system protocol between the virtual machine of the client and that of the envoy service. While a custom protocol would offer the greatest flexibility, it would also make the implementation considerably more complicated and would have little value in demonstrating the viability of the design.
 
 \subsection{Alternatives}
 
-With Linux as the client operating system of choice, a few prominent options were available but ultimately rejected for the prototype:
+With Linux as the client operating system of choice, a few prominent options were available but ultimately rejected for the prototype.
 
-\begin{description}
-\item[NFS version 3] The NFS protocol is popular, simple, well-understood, and has a robust implementation. Most of the complexity is implemented in the client drivers, so servers can be quite simple. I also had experience with the protocol after implemented a stackable, copy-on-write file system (CoWNFS) for the XenoServers deployment project \cite{kotsovinos}.
+\subsubsection{NFS version 3}
+
+The NFS protocol is popular, simple, well-understood, and has a robust implementation. Most of the complexity is implemented in the client drivers, so servers can be quite simple. I also had experience with the protocol after implemented a stackable, copy-on-write file system (CoWNFS) for the XenoServers deployment project \cite{kotsovinos}.
 
 For user mode servers generally and Envoy in particular, however, the stateless model of NFS complicates implementation. File handles assigned by the server and given to the client are expected to be immutable and always available (there are no explicit open and close operations), making it difficult to maintain pairings between active files and the envoy instances that own them. With transparent copy-on-write, these handles must either be cached indefinately or inherently tied to the name of the file. Changing territory boundaries makes caching impractical, and allowing for higher-level directories to be renamed makes the latter difficult to make robust.
 
@@ -31,12 +43,25 @@ Security under NFSv3 is based on Unix user and group IDs, which proves to be an 
 
 The caching model of NFS is entirely under the control of the client driver, which generally sends frequent \texttt{stat} requests to check if its cache is still current. Write operations are generally asynchronous, however, and the lack of control would have defeated the cache coherency guarantees that Envoy seeks to achieve. Caching at the client level would also prevent consolidation of duplicate caches as the physical machine level, another of the aims of the Envoy design.
 
-\item[NFS version 4] The most recent update to NFS addresses many of these concerns by introducing a stateful model and using leases to manage client caching. These client delegations could work well with Envoy, allowing private files to be cached by the client and shared files to be held back and cached by the envoy. More flexible file handles and explicit state management also a better match. NFSv4 would be an attractive candidate for a future implementation, but at the time the Envoy prototype implementation was started, it was still relatively immature and the supporting tools were complicated to use and poorly documented.
+\subsubsection{NFS version 4}
 
-\item[AFS] The Andrew File System is another popular client-server system with a mature implementation. It employs persistent caching at the client, which is a poor fit for the Envoy model, and it is not intended as a general-purpose protocol for implementing custom servers. Adapting it to a system with very different semantics and basic assumptions would negate the benefits of using an establised protocol and implementation.
+The most recent update to NFS addresses many of these concerns by introducing a stateful model and using leases to manage client caching. These client delegations could work well with Envoy, allowing private files to be cached by the client and shared files to be held back and cached by the envoy. More flexible file handles and explicit state management also a better match. NFSv4 would be an attractive candidate for a future implementation, but at the time the Envoy prototype implementation was started, it was still relatively immature and the supporting tools were complicated to use and poorly documented.
 
-\item[FUSE] The FUSE driver and tools support custom userspace file systems under Linux. The FUSE interface is modeled after the Linux VFS interface and exposes some of its complexity, but the main point against using FUSE for the Envoy prototype is that it is not a network-facing protocol. A userspace tool for the client would be required that would in turn connect to the envoy service across the virtual network device. Besides adding an unnecessary layer of indirection, this would complicate using Envoy as a root file system.
-\end{description}
+\subsubsection{AFS}
+
+The Andrew File System is another popular client-server system with a mature implementation. It employs persistent caching at the client, which is a poor fit for the Envoy model, and it is not intended as a general-purpose protocol for implementing custom servers. Adapting it to a system with very different semantics and basic assumptions would negate the benefits of using an establised protocol and implementation.
+
+\subsubsection{FUSE}
+
+The FUSE driver and tools support custom userspace file systems under Linux. The FUSE interface is modeled after the Linux VFS interface and exposes some of its complexity, but the main point against using FUSE for the Envoy prototype is that it is not a network-facing protocol. A userspace tool for the client would be required that would in turn connect to the envoy service across the virtual network device. Besides adding an unnecessary layer of indirection, this would complicate using Envoy as a root file system.
+
+\subsubsection{Custom Envoy client driver}
+
+Another possibility would be to implement a custom kernel driver for the Envoy client as well as the Envoy server. This would permit an exact between the expectations of the client and the semantics supported by the server. It would also permit optimizations precluded in standard drivers by the need to support a diverse range of servers.
+
+Using a custom driver would have disadvantages, among them the need to divert time away from the server or to extend the total implementation time required. A custom driver would not be available in standard software distributions, either, requiring additional deployment effort for end users. Finally, a protocol would make evaluation more difficult by making it harder to isolate the costs of the Envoy deployment model from the costs of the protocol and client implementation. Being able to compare Envoy performance against other servers using the same client driver may penalize the overall performance, but it also allows a more detailed analysis of the results.
+
+\subsubsection{9p}
 
 The Envoy prototype is implemented using the 9p protocol from the Plan~9 operating system \cite{pike90,pike92}, which is specified in section 5 of the Plan~9 manual \cite{9man}. Plan~9 breaks from Unix semantics in many ways, so the Linux port of 9p has been extended to better support Unix semantics \cite{hensbergen}. The 9p protocol is intentionally simple. Individual connections are established for each user, and file ownership is tracked using user and group names, not numeric identifiers. The protocol includes no explicit support for client-side caching beyond the availability of file version tagging that could support NFS-style cache validation checks.
 
@@ -44,36 +69,70 @@ The 9p protocol is based around the thirteen messages listed in \prettyref{tab:9
 
 \begin{table}[tp]
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{lp{8cm}}
 \textbf{Message name} & \textbf{Description} \\
-version & Initial handshake, establish message size limits \\
-auth & Authenticate a user to mount a specific path name \\
-flush & Cancel a pending request \\
-attach & Mount a specific path for a specific user \\
-walk & Navigate directories and/or establish file handles \\
-open & Open a file or directory \\
-create & Create a file or directory \\
-read & Read bytes from a file or entries from a directory \\
-write & Write bytes to a file \\
-clunk & Release a file handle and close the file \\
-remove & Delete a file or empty directory \\
-stat & Read attributes for a file \\
-wstat & Change file attributes
+\texttt{version} & Initial handshake; establish message size limits. \\
+\texttt{auth} & Authenticate a user to mount a specific path name. \\
+\texttt{flush} & Cancel a pending request. \\
+\texttt{attach} & Mount a specific path for a specific user. \\
+\texttt{walk} & Navigate directories and/or clone a file handle. \\
+\texttt{open} & Open a file or directory. \\
+\texttt{create} & Create a file or directory. \\
+\texttt{read} & Read bytes from a file or entries from a directory. \\
+\texttt{write} & Write bytes to a file. \\
+\texttt{clunk} & Release a file handle and close the file. \\
+\texttt{remove} & Delete a file or empty directory. \\
+\texttt{stat} & Read attributes for a file. \\
+\texttt{wstat} & Change a file's attributes.
 \end{tabular}
 \end{center}
 \caption{The messages in the 9p protocol. \texttt{version} and \texttt{auth} prepare a connection for an \texttt{attach} request, which establishes a single file handle. \texttt{walk} can clone or move existing file handles, giving access to the rest of the file tree. \texttt{flush} relates to an individual transaction, but all other messages operate relative to an active file handle.}
 \label{tab:9p-messages}
-\end{table} 
+\end{table}
 
 \subsection{Mapping Envoy to 9p}
 
-For basic file operations, an envoy acts like a 9p server to the client. When a file is owned remotely, the local envoy acts as a proxy server and forwards requests to the appropriate envoy. Like client connections, forwarded transactions are tracked relative to file handles owned by specific users.
+For basic file operations, an envoy acts like a 9p server to the client. The service connects over a virtual network device that connects the service VM to the VM hosting the envoy service. While the prototype uses a standard TCP connection for communicating, 9p supports any transport layer and could use an interface for virtual machine environments that swaps memory pages between VMs instead of copying data through the standard network protocol stack. While this has not yet been implemented for 9p servers, it is a potential optimization that could reduce the additional cost of retrieving data from the machine-level cache over retrieving it from an OS-level cache in an individual VM.
+
+\subsubsection{File handles and state management}
+
+When a file is owned remotely, the local envoy acts as a proxy server and forwards requests to the appropriate envoy. Like client connections, forwarded transactions are tracked relative to file handles owned by specific users.
 
 File handles are tracked by small positive integers, which are unique in the context of a specific connection. When acting as proxies, envoys map client identifiers to \emph{remote identifiers}, which are unique for a given envoy instance. This allows envoys to combine all requests from their constituent servives when contacting a remote envoy, effectively making the envoy act like a single client. By making the identifiers unique for all outgoing requests from the envoy instead of for each local-remote envoy pair, no remapping is required when file handles migrate from one remote envoy to another during territory realignments.
 
+\subsubsection{Security}
+
+\subsubsection{Caching}
+
 \section{Storage service}
 
+The storage service implements the bottom half of the storage layer, which is essentially an independent, stateless object server. Each server that contributes storage space runs a single instance of the storage service to export an object-level interface.
+
+The storage layer is underspecified. It is an essential part of a complete Envoy implementation, but object management systems are not the subject of this dissertation, which instead focuses on building a complete distributed file system above an object-storage layer. The artifact described here is a stub, offering enough support to complete and test the file system build above it, but not enough for a production setup.
+
+At a minimum, the storage system could be completed with a centralized manager that periodically queried each server 
+
+The remainder of this section describes the protocol 
+
 \subsection{Protocol}
+
+\begin{table}[tp]
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\textbf{Message name} & \textbf{Description} \\
+\texttt{reserve} & Claim a range of unallocated object IDs. \\
+\texttt{create} & Create a new object. \\
+\texttt{clone} & Copy an existing object, set copy-on-write flags for directories. \\
+\texttt{read} & Read a byte range from an object. \\
+\texttt{write} & Write a byte range to an object. \\
+\texttt{stat} & Query an object's attributes. \\
+\texttt{wstat} & Modify an object's attributes. \\
+\texttt{delete} & Remove an object. \\
+\end{tabular}
+\end{center}
+\caption{The messages in the storage service protocol. \texttt{reserve} returns a range of object IDs previously unallocated by the same storage server. \texttt{clone} copies an object, and if it is a directory it also sets the copy-on-write flag for all entries in the new copy. All operations except \texttt{reserve} are stateless, requiring an object ID as well as operation-specific parameters.}
+\label{tab:storage-messages}
+\end{table}
 
 Storage instances are stateless and unaware of higher-level semantics with two exceptions:
 
@@ -107,6 +166,26 @@ File names are of fixed length, incorporating the lowest-order bits of the ID an
 \section{Envoy service}
 
 \subsection{Protocol}
+
+\begin{table}[tp]
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\textbf{Message name} & \textbf{Description} \\
+\texttt{snapshot} & Take a snapshot of a territory. \\
+\texttt{nominate} & Request that the parent transfer control of a territory. \\
+\texttt{grant} & Give the target control of a territory. \\
+\texttt{revoke} & Reclaim control of a territory. \\
+\texttt{migrate} & Inform an envoy of file handles that have moved. \\
+\texttt{walkremote} & Change directories across a territory boundary. \\
+\texttt{statremote} & Query file attributes across a territory boundary. \\
+\texttt{closefid} & Release an old file handle after it has walked to a new host. \\
+\texttt{renametree} & Inform descendents of a directory that has been renamed.
+\end{tabular}
+\end{center}
+\caption{The messages in the envoy service protocol. The first five support the major state management operations, while the remainder }
+\label{tab:envoy-messages}
+\end{table}
+
 
 \subsection{Data structures}
 
@@ -251,5 +330,7 @@ The prototype is designed to favor simplicity over other virtues in complex tran
 \end{figure}
 
 \subsection{Limitations}
+
+\section{Not implemented}
 
 \section{Summary}
