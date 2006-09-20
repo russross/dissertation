@@ -190,7 +190,15 @@ Despite the absense of these essential features, the storage prototype does impl
 
 \section{Envoy service}
 
+The envoy service runs on each node to form a single, distributed service across the cluster. It exports a view of the global namespace by acting as a 9p server to VM clients running on the same physical machine. Each instance assumes responsibility for specific territories, or subsets of the namespace. The name \emph{envoy} comes into play in two respects: it negotiates contact between local clients and the larger system, and acts as representative for its local territories to other nodes in the cluster and their constituent clients.
+
+This section starts by describing the protocol used for inter-envoy communication, and then proceeds to discuss some internals in the envoy implementation. This includes details about basic file operations and navigation between envoy instances, the copy-on-write mechanism behind the fork and snapshot operations, and the coordination of state during territory boundary realignment.
+
+For operations that require the synchronous cooperation of multiple envoy instances, dependency cycles and deadlock become a concern. To minimize these issues, Envoy is designed with a top-down locking protocol where synchronous operations only directly involve immediate neighbors in the tree of territories, and owners of parent territories always initiate and coordinate transactions with those lower in the tree. While operations with wide-ranging impact may require communicating with every node in the cluster, they never require a cycle in the connectivity graph and are not prone to distributed deadlock.
+
 \subsection{Protocol}
+
+As with the storage service, the envoy services protocol is implemented as a series of extensions to the 9p protocol. The integration is closer at the envoy level, however, as forwarded transactions from remote clients use the standard 9p messages when appropriate, depending on the extensions listed in \prettyref{tab:envoy-messages} mainly to implement territory management and handle operations that straddle territory boundaries.
 
 \begin{table}[tp]
 \begin{center}
@@ -207,18 +215,53 @@ Despite the absense of these essential features, the storage prototype does impl
 \texttt{renametree} & Inform descendents of a directory that has been renamed.
 \end{tabular}
 \end{center}
-\caption{The messages in the envoy service protocol. The first five support the major state management operations, while the remainder }
+\caption{The messages in the envoy service protocol. The first five support the major state management operations, while the remainder handle cases where an operation affects multiple territories.}
 \label{tab:envoy-messages}
 \end{table}
 
+Envoys establish connections with each other only when they need to, specifically when they have neighboring territories or when transactions from one envoy's clients involve a territory owned by another envoy. Neighboring territories always form a tree structure, with one territory in every pairing (and by extension its envoy) being considered the parent of the other.
+
+New connections between envoys must be authenticated in a way similar to connections between envoys and storage servers. The handshake messages from 9p are used, with the protocol string in the \texttt{version} message identifying the connection as one between envoys so that the appropriate range of messages will be understood. Authentication can proceed through an exchange of credentials, or the controlled environment of the service cluster can be exploited and network addresses can be used to identify authorized service hosts.
+
+9p messages from \prettyref{tab:9p-messages} are all considered valid coming from other envoys, with the exception of the \texttt{walk} and \texttt{attach} messages, which are replaced by an augmented version called \texttt{remotewalk} that accomodates territory boundary changes. Transactions still proceed in relation to normal file handles, with the further restriction that an envoy will never forward requests as a proxy for another envoy, only for clients.
 
 \subsection{Data structures}
 
-Having examined the high-level architecture of the Envoy file system, I next turn to a more detailed discussion of how specific operations are served. This includes basic file operations and navigation between envoy instances, the copy-on-write mechanism behind the fork and snapshot operations, coordination of state during territory boundary realignment, security considerations, and the procedure for deleting file system images.
+Unlike the stateless storage servers, envoy instances must track two main classes of state related to the two main roles an envoy assumes, namely those of 9p file server and territory owner.
 
-For operations that require the synchronous cooperation of multiple envoy instances, dependency cycles and deadlock become a concern. To minimize these issues, Envoy is designed with a top-down locking protocol where synchronous operations only directly involve immediate neighbors in the tree of territories, and owners of territories closer to the root always initiate and coordinate transactions with those lower in the tree. While operations with wide-ranging impact may require communicating with every node in the cluster, they never require a cycle in the connectivity graph and are not prone to distributed deadlock.
+\subsubsection{Territories and claims}
 
-\subsection{Freezing and thawing}
+\begin{figure}[tp]
+\centering
+\includegraphics[width=100mm]{figures/territory-claims}
+\caption{Territories are trees, and their boundaries (yellow squares) are defined by the root pathname and the exits, which point to child territories owned by remote envoys. Claims (blue circles) represent individual storage objects, and within a territory they form a tree covering a subset of the territory, with leaves at each territory exit and active file or directory.}
+\label{fig:territory-claims}
+\end{figure}
+
+An envoy may own zero or more territories, each of which is a branch of the global file tree, possibly with exits to child territories owned by other envoys as depicted in \prettyref{fig:territory-claims}. When the territory is given to the envoy through a \texttt{grant} message, it is also given the object ID that currently backs the root directory or file (a territory can be a single file) and a flag indicating if the object is writable. A territory may cover a snapshot image, in which case all objects are read-only. The root of the territory is never flagged as copy-on-write, so thaw operations (described in \prettyref{sec:freeze-thaw}) can always operate locally.
+
+Overlaid on the file tree within a territory is another tree of \emph{claims}, or references to storage layer objects. Claims are maintained for all file handles, territory exits (actually the immediate parent directories of exits), and the path from any other claim back to the root of the territory. It is possible for multiple claims to exist for a single storage object, but only when the claims are all read-only or copy-on-write, and thus the associated objects are read-only. In this case, coordination for accessing the object is not necessary, and the file cache will recognize them as the same object to avoid duplication.
+
+\subsubsection{File handles}
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=100mm]{figures/file-handles}
+\caption{File handles for incoming connections are grouped and distinguished by the source, be it a client VM or a remote envoy. Each handle is tied to a specific claim in a local territory. Client handles may also be forwarded to a remote envoy, in which case it is assigned an entry from the envoy's single remote file handle pool.}
+\label{fig:file-handles}
+\end{figure}
+
+File handles in 9p are identified by small positive integers picked by the client, so the envoy interprets them in relation to the incoming connection. This gives each client a seperate namespace, preventing confusion when resolving file handle IDs to file handles. All clients represented by a remote envoy are combined into a single ID space, so the envoy receiving the requests treats the entire envoy and all the clients is represents as a single client, as illustrated in \prettyref{fig:file-handles}. Since the user credentials are associated with individual file handles, this does not confuse security handling. Envoys-as-clients are not quite like regular clients, as their file handles are never re-forwarded; instead, when a file handle moves to a new territory the handle is sent back to the original envoy, which can forward it directly to the appropriate target.
+
+When forwarding client requests for remote territories, the envoy remaps the client ID to an envoy-specific remote ID. A single pool of remote IDs serves all outgoing connections, regardless of their targets, which simplifies territory migration as described in \prettyref{sec:migrating-state}. The envoy also maintains a local file handle stub for remote files, which is kept up-to-date by peeking at the requests and responses for remote operations. In this way, state for local clients is lost when an envoy fails, but state for remote envoys and their clients is preserved and can be used to recover from the failure.
+
+\subsubsection{Persistent cache}
+
+The persistent cache is the other major source of state in an envoy. On-disk objects are managed using the same code as the storage service uses for managing the object store, with the same disk structure and the same reliance on the underlying file system for in-memory caching.
+
+The significant difference between the cache that an envoy maintains and the object store tended by a storage server is that the envoy must determine which objects are properly synchronized with the storage layer. Validating an unknown entry (one found in the persistent store but whose status is unknown) can be accomplished with a simple metadata comparison, so it is worthwhile keeping old objects even when the envoy has ceded the territory that referenced them, as it may eventually come back. Objects can be cleared when deleted, or based on a least-recently-used strategy. Once an object has been validated in the context of a territory that owns the object, it's validity need not be refreshed until the object has left local control.
+
+\subsection{Freezing and thawing}\label{sec:freeze-thaw}
 
 Synchronization at the object level is governed by an important invariant: an object in the system may be referred to by exactly one name in the hierarchical namespace, or it must be read-only. The storage layer makes no attempt to detect or enforce the read-only case, so it is left to the envoy layer to ensure that this invariant is preserved. To make this straightforward, objects can transition from being writable to read-only, but they can never go back. Note that this refers only to objects in the storage layer, not to the access control of file system objects.
 
@@ -325,7 +368,7 @@ Like other operations involving multiple envoy instances, territory migration is
 \label{fig:grant-topdown}
 \end{figure}
 
-\subsubsection{Transferring state}
+\subsubsection{Transferring state}\label{sec:migrating-state}
 
 When an envoy is granted a new territory, the first thing that it needs is a description of the boundaries. A territory is just a branch of the global namespace hierarchy, so it can be uniquly identified by its root pathname. In addition to that, the parent envoy sends a list of exits from the territory. An exit is a link to an already-established territory that branches off from the one being granted. Since the boundary description may include any number of exits, multiple messages may be required to transmit the full set.
 
@@ -356,6 +399,26 @@ The prototype is designed to favor simplicity over other virtues in complex tran
 
 \subsection{Limitations}
 
-\section{Not implemented}
+The prototype include some limitations that are artifacts of the implementation, rather than being inherent to the Envoy model. These are problems that can be solved with some routine engineering, and would need to be addressed in a production system. For the prototype, however, solving them would have added little value at the expense of extra complexity.
+
+\subsubsection{Envoys as failure points}
+
+The first issue is that a failing envoy loses all state for its local clients. This makes the failure of a single service affect all services on the same physical machine without an option for recovery. While services also depend on other node-wide management software, including the virtual machine manager, this is a dependency that could be removed.
+
+The 9p protocol does not include any provision for recovering from a server failure, and the TCP connection used between the client and the envoy cannot be recovered transparently using standard network stacks. Both issues can be resolved by introducing a proxy between the client and the envoy (much as the envoy serves as a proxy for connections to remote envoys) that tracks the state of file handles, and is capable of restoring that state to a restarted envoy. Better yet, the client driver could be modified to maintain this state, and a recovery protocol introduced to synchronize and validate the state with a restarted envoy.
+
+\subsubsection{Migrating clients}
+
+A related problem is restoring state for VM instances that have been migrated to a different machine. With the current prototype, those instances will continue to send all requests to the envoy on the old machine, as they will not be aware of the migration. The envoys could easily transfer the state by employing a mechanism similar to that used to transfer territories, but a way to detect the migration would be necessary, probably through direct cooperation with the management process invoking the migration. The IP address of the new envoy would be different than the old, so some cooperation from the client would also be necessary to restart the TCP connection. Tricks involving the virtual network device connecting the client to the envoy may also be possible, but it is unlikely that the additional transparency gained would be worth the complexity introduced.
+
+A related problem is virtual machines that are suspended to disk and restarted later, on either the same or a different physical machine. This can be viewed as another form of client migration, but from the client's perspective it more closely resembles the condition when the envoy fails and restarts. The solution proposed for that---clients retaining copies of file handle state and envoys validating and accepting it---would also be applicable here.
+
+\subsubsection{Control of administrative directories}
+
+For simplicity, territories control is only transferred starting at an image root, so all administrative directories are controlled by a single envoy. Traffic to these levels of the hierarchy are normally confined to mount requests and administrative actions, and for the latter most of the work for snapshot creation and removal is still done by territory owners.
+
+Still, nothing precludes this area from being split up. Tracking authentication credentials and resolving the target of fork requests would become a bit more complex, but not substantially so.
+
+The more serious issue is that the prototype cannot migrate control of the root to another envoy. The standard mechanism for migrating territories is applicable, but in addition all envoys would need to be notified of the change so that mount requests (which always start from the root of the namespace) could be properly routed. Straightforward solutions exist, but they were of little value in accomplishing the goals of the prototype and so were not pursued.
 
 \section{Summary}
