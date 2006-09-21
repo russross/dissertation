@@ -301,7 +301,41 @@ The interesting case is when sharing occurs within an image. The envoy tries to 
 
 \section{Recovery}\label{sec:envoy-recovery}
 
+Putting commodity computation in a managed environment with well-provisioned hardware reduces the rate of node failure, but all computer systems are subject to the risk of failure, whether from hardware faults or software problems. A viable recovery procedure is essential for any storage system, and minimizing the disruption to other nodes is also important in a cluster environment.
 
+The controlled environment has its advantages, however, in that the expectation of failure for a given node is low enough that it can be treated as an exceptional condition, rather than a normal part of operation. This stands in contrast to distributed systems running on machines owned and managed by a wide range of people, whether peer-to-peer systems on volunteered machines or networks of workstations in a corporate environment, where the needs and habits of the owners preempt the interests of the whole system.
+
+As a commodity platform, failure of an individual node can reasonably disrupt the services running on it. Uptime guarantees and other reliability requirements must come from higher-level services, which may be implemented as a series of clients on a service cluster or across multiple clusters. The latter is necessary for the most stringent requirements anyway, since catastrophic failures such as natural disasters may affect all machines at a location no matter how well cared for. Since prevention of failure is impossible, and failover capabilities for all clients would be complex and expensive, a more practical approach is to assume that nodes will occasionally fail, and seek to minimize the disruption to the rest of the cluster while restoring the service of the lost node as quickly as possible.
+
+The basic assumption implicit in Envoy's recovery model is that the failure of a machine or any of its parts (including management software) may result in lost service to the clients hosted on that machine. Moving outward, envoys that were interacting with the failed machine should be able to recover fully with some disruption, while nodes that had not overlapping interests should be unaffected.
+
+\subsection{Prerequisites}
+
+Some amount of redundancy of runtime state is necessary to allow complete recovery after a node failure. The fate of a client is already tied to that of its local envoy, so envoys track the state of all active file handles for local clients, including those files that are owned by remote envoys. The local envoy acts as a proxy server for remote files, so it can easily peek at request and reply messages to observe state updates. For local and remote file handles, an envoy tracks the full pathname of the file, the user credentials used to access the file, and any state related to file status and position required to support the client-server protocol exported to the client.
+
+A client's envoy can track its file handle state locally, but file data is not duplicated for forwarded requests. Duplicating runtime state can prevent disruption, but preventing data loss requires redundancy in written data and attributes. The write-through persistent cache in Envoy answers this requirement by ensuring that data has reached the storage servers for all replicas before reporting a write operation as complete. As long as the relevent storage servers are able to carry on long enough to write the data to stable storage, the crash of an envoy node will not affect the stability of data, nor its immediate availability to the recovery process.
+
+Depending on the storage layer implementation, a window of vulnerability may exist between the time the first and last storage servers have been notified of an update, during which an envoy crash would result in an inconsistent state between replicas. The problem resembles that of a storage node failure, and in both cases recovery of the storage node would neccessitate it ``catching up'' with missed transactions. This is fundamentally a part of the storage layer design, and as a detailed discussion of object storage strategies is beyond the scope of this dissertation, I omit further discussion of solutions to this problem.
+
+\subsection{Process}
+
+With runtime state and file data available, it is possible for envoys that were interacting with a failed node to recover fully from the disruption, with temporarily degraded performance as the only effect visible to clients. The affected envoys include all those with which the crashed node had any kind of relationship, including the ownders of the parents of its territories, the ownders of the children of its territories, remote envoys accessing files in its territories, and remote envoys to which it is forwarding requests for local clients.
+
+The first step in recovery is recognizing that something has gone wrong. 
+
+detecting need: connection-oriented protocols, periodic heartbeats to bound disconnect duration
+
+process: everybody walks from the root down in the recovery process. the parent annexes the territory, children join it as they become aware (and the first one to try walking down makes the parent aware). FIDs likewise walk down to find the new owner. When FID home dies, fid is considered closed.
+
+Exits need to be in sync before anything else--either a time delay, or children report exits to their parents.
+
+\subsection{Special cases}
+
+special case: root node has annointed successor, or ordered list of succession.
+
+alternative: territory changes are logged, periodically checkpointed with a complete layout
+
+partitions: whoever can access enough storage replicas is considered the live portion, those with minority of accessible replicas are considered offline
 
 \section{Summary}
 

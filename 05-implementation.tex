@@ -174,19 +174,25 @@ Envoy considers a write request finished when it is in the memory of the storage
 
 \subsection{Limitations}
 
-The storage server implementation is meant to be as simple as possible while still supporting realistic workloads. With the intention that a production design would take advantage of other work in object storage systems, the prototype neglects several important characteristics of a complete system:
-
-\begin{itemize}
-\item Security: while the mechanism for authenticating envoys at connection time exists, no authentication is attempted in the prototype. From a performance standpoint, a challenge-response scheme or something similar would be a startup cost that is ignored in the prototype. It would be largely hidden by even a moderately-sized connection pool, but it would be present. In a controlled environment like a service cluster, a scheme based on IP addresses would be faster, simpler, and just as secure in practice. IP addresses could be assigned according to the role of the owner, so traffic from client VMs could be easily identified by all, and the VM hosting envoy and storage services could employ a firewall to prevent storage servers from ever seeing client requests.
-
-\item Replica groups: the top half of the storage layer, i.e., the part that maps object IDs to storage servers, is essentially absent from the prototype. For any large deployment, a suitable disbursement of objects across storage servers is essential. Different degrees of failure protection may be desirable as well, with increased replication being available to clients at a premium cost.
-
-\item Redistribution: when nodes are added or removed from the cluster, objects must be moved and copied to maintain a suitable replication factor. While I have stated that this could be controlled by a centralized service, no mechanism currently exists for copying directly between storage servers (other than systems such as \texttt{rsync} that bypass the storage service and go directly to its object store). These capabilities are critical to a system that will change over time, which is a basic characteristic of any realistic cluster deployment.
-
-\item Failure: recovery of a crashed envoy node is addressed in \prettyref{sec:envoy-recovery}, but recovery of a failed storage node is an equally important problem. While redundancy allows the envoy layer to continue serving files, changes made during the downtime must be propogated to the restored node to ensure consistency, and nodes that do not recover must be replaced or their stored objects redistributed.
-\end{itemize}
+The storage server implementation is meant to be as simple as possible while still supporting realistic workloads. With the intention that a production design would take advantage of other work in object storage systems, the prototype neglects several important characteristics of a complete system.
 
 Despite the absense of these essential features, the storage prototype does implement replicated storage with all the characteristics necessary to support the envoy layer. As that is sufficient for the stated purposes of this dissertation, the prototype is also considered sufficient.
+
+\subsubsection{Security}
+
+While the mechanism for authenticating envoys at connection time exists, no authentication is attempted in the prototype. From a performance standpoint, a challenge-response scheme or something similar would be a startup cost that is ignored in the prototype. It would be largely hidden by even a moderately-sized connection pool, but it would be present. In a controlled environment like a service cluster, a scheme based on IP addresses would be faster, simpler, and just as secure in practice. IP addresses could be assigned according to the role of the owner, so traffic from client VMs could be easily identified by all, and the VM hosting envoy and storage services could employ a firewall to prevent storage servers from ever seeing client requests.
+
+\subsubsection{Replica groups}
+
+The top half of the storage layer, i.e., the part that maps object IDs to storage servers, is essentially absent from the prototype. For any large deployment, a suitable disbursement of objects across storage servers is essential. Different degrees of failure protection may be desirable as well, with increased replication being available to clients at a premium cost.
+
+\subsubsection{Redistribution}
+
+When nodes are added or removed from the cluster, objects must be moved and copied to maintain a suitable replication factor. While I have stated that this could be controlled by a centralized service, no mechanism currently exists for copying directly between storage servers (other than systems such as \texttt{rsync} that bypass the storage service and go directly to its object store). These capabilities are critical to a system that will change over time, which is a basic characteristic of any realistic cluster deployment.
+
+\subsubsection{Failure recovery}
+
+Recovery of a crashed envoy node is addressed in \prettyref{sec:envoy-recovery}, but recovery of a failed storage node is an equally important problem. While redundancy allows the envoy layer to continue serving files, changes made during the downtime must be propogated to the restored node to ensure consistency, and nodes that do not recover must be replaced or their stored objects redistributed.
 
 \section{Envoy service}
 

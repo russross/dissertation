@@ -1,12 +1,13 @@
 \documentclass[a4paper,oneside,openright,12pt]{report}
 \usepackage{graphicx}
 \usepackage{xspace}
-\usepackage{url}
+% \usepackage{url}
+\input{style}
 
 % font and encoding setup
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{newcent}
+% \usepackage{newcent}
 
 % references
 \usepackage{prettyref}
@@ -17,13 +18,23 @@
 
 % page setup
 \usepackage[margin=1.5in]{geometry}
-\usepackage{fancyhdr}
+% \pagestyle{fancyplain}
+% \headrulewidth=0pt
+% \footrulewidth=0pt
+% \plainheadrulewidth=0pt
+% \plainfootrulewidth=0pt
+% \headheight=14pt
+% \lhead[\fancyplain{}{\sffamily}]{\fancyplain{}{\sffamily\small\rightmark}}
+% \rhead[\fancyplain{}{\rightmark}]{\fancyplain{}{\sffamily}}
+% \lfoot[\sl\thepath]{}
+% \cfoot[]{}
+% \rfoot[]{\sl\thepath}
 \usepackage{setspace}
 \onehalfspace
 \parskip 10pt
 
 % set up floats
-\usepackage[font=small,labelfont=bf]{caption}
+% \usepackage[font=small,labelfont=bf]{caption}
 \renewcommand{\topfraction}{.8}
 \renewcommand{\bottomfraction}{.8}
 \renewcommand{\textfraction}{.2}
@@ -49,7 +60,14 @@
 
 % front matter
 
-{ \parskip 0pt plus 1pt \tableofcontents }
+\tableofcontents
+% \addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+% \cleardoublepage
+% \addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+% \cleardoublepage
+
 %\include{titles}
 \cleardoublepage
 \pagenumbering{arabic}
