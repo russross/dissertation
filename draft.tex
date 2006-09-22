@@ -1,13 +1,12 @@
 \documentclass[a4paper,oneside,openright,12pt]{report}
 \usepackage{graphicx}
 \usepackage{xspace}
-% \usepackage{url}
-\input{style}
+\usepackage{url}
 
 % font and encoding setup
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-% \usepackage{newcent}
+\usepackage{newcent}
 
 % references
 \usepackage{prettyref}
@@ -18,23 +17,13 @@
 
 % page setup
 \usepackage[margin=1.5in]{geometry}
-% \pagestyle{fancyplain}
-% \headrulewidth=0pt
-% \footrulewidth=0pt
-% \plainheadrulewidth=0pt
-% \plainfootrulewidth=0pt
-% \headheight=14pt
-% \lhead[\fancyplain{}{\sffamily}]{\fancyplain{}{\sffamily\small\rightmark}}
-% \rhead[\fancyplain{}{\rightmark}]{\fancyplain{}{\sffamily}}
-% \lfoot[\sl\thepath]{}
-% \cfoot[]{}
-% \rfoot[]{\sl\thepath}
+\usepackage{fancyhdr}
 \usepackage{setspace}
-\onehalfspace
-\parskip 10pt
+\raggedbottom
+\renewcommand\footnoterule{\vfill\hrule\vspace{6pt}}
 
 % set up floats
-% \usepackage[font=small,labelfont=bf]{caption}
+\usepackage[font=small,labelfont=bf]{caption}
 \renewcommand{\topfraction}{.8}
 \renewcommand{\bottomfraction}{.8}
 \renewcommand{\textfraction}{.2}
@@ -50,9 +39,6 @@
 \widowpenalty=9999
 \interfootnotelinepenalty=9999
 
-\newcommand{\current}{\texttt{current}\xspace}
-\newcommand{\snapshot}{\texttt{snapshot}\xspace}
-\newcommand{\password}{\texttt{password}\xspace}
 \newcommand{\vs}{vs.\xspace}
 \newcommand{\etc}{etc.\xspace}
 
@@ -60,17 +46,50 @@
 
 % front matter
 
-\tableofcontents
-% \addcontentsline{toc}{chapter}{List of Figures}
-\listoffigures
-% \cleardoublepage
-% \addcontentsline{toc}{chapter}{List of Tables}
-\listoftables
-% \cleardoublepage
-
+\pagenumbering{roman}
 %\include{titles}
+
+\renewcommand\contentsname{Table of Contents}
+\tableofcontents
+
+\addcontentsline{toc}{chapter}{\listfigurename}
+{ \parskip 0pt plus 1pt \listoffigures }
+
+\addcontentsline{toc}{chapter}{\listtablename}
+{ \parskip 0pt plus 1pt \listoftables }
+
 \cleardoublepage
+
+% page headings for main body
+
+\pagestyle{fancyplain}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\plainheadrulewidth}{0pt}
+\renewcommand{\plainfootrulewidth}{0pt}
+
+\headheight 15pt
+
+\makeatletter
+  \if@twoside
+    \lhead[\fancyplain{}{\sffamily\small\textsl{\leftmark}}]{\fancyplain{}{}}
+    \rhead[\fancyplain{}{}]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
+  \else
+    \lhead[\fancyplain{}{}]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
+    \rhead[\fancyplain{}{}]{\fancyplain{}{}}
+  \fi
+\makeatother
+
+\lfoot[\sl\thepage]{}
+\cfoot[]{}
+\rfoot[]{\sl\thepage}
+
+\renewcommand{\chaptermark}[1]{\markboth{#1}{\thechapter.\ #1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+
 \pagenumbering{arabic}
+\onehalfspace
+\parskip 10pt
 
 % main text
 
@@ -84,6 +103,7 @@
 
 % bibliography
 
+\singlespace
 \renewcommand{\bibname}{References}
 \addcontentsline{toc}{chapter}{\bibname}
 \bibliographystyle{plain}

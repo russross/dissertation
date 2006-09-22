@@ -51,19 +51,19 @@ This section presents the administrative interface to Envoy, which is designed a
 
 All services share a single cluster-wide namespace tree with a common root. Mounting the root of the entire tree requires special priviledges, normally reserved for the administrative tools managing the file system. The top levels of the hierachy respond normally to standard file operations, with a few notable exceptions described here.
 
-A few file names are given special significance and their use is restricted. The name \current is reserved for use as the root of a client file system, positive integers are reserved as the read-only roots of snapshots (in ascending order) of the tree rooted at \current in the same directory, and a symbolic link names \snapshot is created and protected by the system to link to the most recently-created snapshot in the same directory. In addition, a normal file named \password can exist to store credentials for clients accessing descendents of the containing directory.
+A few file names are given special significance and their use is restricted. The name \texttt{current} is reserved for use as the root of a client file system, positive integers are reserved as the read-only roots of snapshots (in ascending order) of the tree rooted at \texttt{current} in the same directory, and a symbolic link names \texttt{snapshot} is created and protected by the system to link to the most recently-created snapshot in the same directory. In addition, a normal file named \texttt{password} can exist to store credentials for clients accessing descendents of the containing directory.
 
-The namespace is conceptually divided between the administrative levels and the client levels. The client levels include anything that is a descendent of a directory named \current or one of its snapshots (named as positive integers). Any path that does not pass through one of these points is considered part of the administrative namespace and is subject to the restrictions and special semantics described in this section.
+The namespace is conceptually divided between the administrative levels and the client levels. The client levels include anything that is a descendent of a directory named \texttt{current} or one of its snapshots (named as positive integers). Any path that does not pass through one of these points is considered part of the administrative namespace and is subject to the restrictions and special semantics described in this section.
 
-To create a new file system root, a user or management tool creates any desired layers of files and directories within the administrative area, ending with a directory called \current. Services can then mount \current or any of its descendent directories. A client mount request specifies the desired root pathname along with the username attempting the mount and any credentials required to validate the request. The server checks these credentials against any files called \password that it encounters in administrative directories passed through before arriving at \current, with those further down the hierarchy overriding those encountered earlier.
+To create a new file system root, a user or management tool creates any desired layers of files and directories within the administrative area, ending with a directory called \texttt{current}. Services can then mount \texttt{current} or any of its descendent directories. A client mount request specifies the desired root pathname along with the username attempting the mount and any credentials required to validate the request. The server checks these credentials against any files called \texttt{password} that it encounters in administrative directories passed through before arriving at \texttt{current}, with those further down the hierarchy overriding those encountered earlier.
 
 In addition to end-user mounts, this system of password files applies to the administrative file areas as well. If given suitable credentials, a service can attach to the namespace in an administrative directory to create and manage its own file system trees and credential files, creating a hierachy for management roles as well as file storage. Controlling access to any directory requires credentials to mount its parent, along with standard file permissions within the parent directory to manipulate the credential file. Envoy does not map user and group names to numeric IDs, so any clients that can agree on usernames and credentials can share access to a file system.
 
-The \current directory---in addition to marking the transition from administrative to client directories--- can have its snapshot taken. When the server receives a request to create a symbolic link with a positive integer as its name and \current as its target, it checks to make sure that the integer is correct for the next snapshot (either \texttt{1} or the number linked to by \snapshot plus one). If so, it takes a snapshot of \current, makes it accessible using the requested name (accessible as a directory, not a symbolic link), and creates or updates \snapshot to link to the newly created snapshot. Any request with the wrong target or the wrong number is rejected.
+The \texttt{current} directory---in addition to marking the transition from administrative to client directories--- can have its snapshot taken. When the server receives a request to create a symbolic link with a positive integer as its name and \texttt{current} as its target, it checks to make sure that the integer is correct for the next snapshot (either \texttt{1} or the number linked to by \texttt{snapshot} plus one). If so, it takes a snapshot of \texttt{current}, makes it accessible using the requested name (accessible as a directory, not a symbolic link), and creates or updates \texttt{snapshot} to link to the newly created snapshot. Any request with the wrong target or the wrong number is rejected.
 
 Snapshots are always given positive integers as names (and cannot be renamed), but this is not always convenient for use. It may be useful to name a particular snapshot with a more meaningful name using a symbolic link. Symbolic links are normally considered opaque by the server and cannot be used in any mount or directory-change requests, so to make accessing named snapshots more convenient the server silently dereferences symbolic links that refer to snapshots in the same directory.
 
-Snapshots also serve another special purpose: they can be used as the root for a file system fork operation. Just as the \current directory diverges from its most recent snapshot using copy-on-write semantics, new \current roots in other administrative directories can use an existing snapshot as a starting point. A request to create a symbolic link called \current that refers to the fully-qualified pathname of a snapshot (again, links to a snapshot within the same directory are dereferenced, but others are not) is treated as a fork operation using the given snapshot as the starting point for a new root file system. The newly forked file system is subject to the same rules as those created with \texttt{mkdir}, and respects the credentials local to its creation site, not those of the snapshot from which it diverges. For this reason, fork operations require sufficient credentials at both locations.
+Snapshots also serve another special purpose: they can be used as the root for a file system fork operation. Just as the \texttt{current} directory diverges from its most recent snapshot using copy-on-write semantics, new \texttt{current} roots in other administrative directories can use an existing snapshot as a starting point. A request to create a symbolic link called \texttt{current} that refers to the fully-qualified pathname of a snapshot (again, links to a snapshot within the same directory are dereferenced, but others are not) is treated as a fork operation using the given snapshot as the starting point for a new root file system. The newly forked file system is subject to the same rules as those created with \texttt{mkdir}, and respects the credentials local to its creation site, not those of the snapshot from which it diverges. For this reason, fork operations require sufficient credentials at both locations.
 
 \section{Architecture}
 
@@ -72,7 +72,7 @@ Services access Envoy using a client-server network file system interface. Each 
 \begin{figure}[tp]
 \centering
 \includegraphics{figures/single-machine}
-\caption{Each physical machine has a single administrative VM that hosts the Envoy services. This VM exports a network file system protocol to other service VMs running on the same machine.}
+\caption[Layout of Envoy services in a single machine]{Each physical machine has a single administrative VM that hosts the Envoy services. This VM exports a network file system protocol to other service VMs running on the same machine.}
 \label{fig:single-machine}
 \end{figure}
 
@@ -83,7 +83,7 @@ On top of the storage service is the envoy layer, which builds a hierarchical fi
 \begin{figure}[tp]
 \centering
 \includegraphics{figures/layers}
-\caption{The envoy service coordinates access to provide a single, coherent view of the distributed file system. It relies on the storage service, which provides a repository of objects referenced by unique identifiers.}
+\caption[The layers of the Envoy file system]{The envoy service coordinates access to provide a single, coherent view of the distributed file system. It relies on the storage service, which provides a repository of objects referenced by unique identifiers.}
 \label{fig:layers}
 \end{figure}
 
@@ -96,7 +96,7 @@ In the remainder of this section I detail the functionality and requirements of 
 \begin{figure}[tp]
 \centering
 \includegraphics[width=100mm]{figures/client-server}
-\caption{A popular storage solution for groups of clients involves a series of dedicated servers. Content on the servers is carefully managed to distributed storage demand and transaction load between the servers.}
+\caption[Machines served by a series of client-server file systems]{A popular storage solution for groups of clients involves a series of dedicated servers. Content on the servers is carefully managed to distribute storage demand and transaction load between the servers.}
 \label{fig:client-server}
 \end{figure}
 
@@ -192,7 +192,7 @@ To summarize the architecture of Envoy, consider the data paths followed by typi
 \begin{figure}[tp]
 \centering
 \includegraphics{figures/hops}
-\caption{File system requests proceed from service VMs to the local envoy service. A request from a local territory may be filled by the local in-memory cache, the local disk cache, or by a single network hop to a storage server. A request for a foreign territory adds a single network hop in each case, as the local envoy acts as the client to a remote envoy.}
+\caption[Network paths taken by typical file requests]{File system requests proceed from service VMs to the local envoy service. A request from a local territory may be filled by the local in-memory cache, the local disk cache, or by a single network hop to a storage server. A request for a foreign territory adds a single network hop in each case, as the local envoy acts as the client to a remote envoy.}
 \label{fig:hops}
 \end{figure}
 
@@ -228,24 +228,39 @@ A single, hierarchical namespace unites all the participants in an Envoy cluster
 
 \subsection{Security}
 
-Service clusters must accomodate a heterogeneous collection of clients, some of which may trust each other, but most of which will not. To support standard operating systems and tools, Envoy must support familiar semantics, including granting complete control over private images, while also accomodating shared images that grant limited access to various clients.
-\note{TODO}
+Service clusters must accomodate a heterogeneous collection of clients, some of which may trust each other, but most of which will not. To support standard operating systems and tools, Envoy must support familiar semantics, including granting complete control over private images, while also accomodating shared images that grant limited access to various clients. In addition, clients themselves may wish to arbitrate access to shared storage, rather than expecting the cluster owner to provide a sufficiently rich sharing model for any combination of services.
 
 \subsubsection{Enforcement}
 
-Envoy is designed with a fail-stop failure model. This is relatively simple to deal with, but is unrealistic in many environments. Service clusters 
+Simple security is one of the benefits of the service cluster model. Physical machines are controlled by trusted software that isolates clients from each other and from the administrative tools. Having the cluster in a managed environment similarly secures physical access to the machines and makes a trusted environment possible. Virtual network devices connect client VMs within a machine, and they also route network packets from clients to the rest of the cluster and the outside world. With well-defined and controlled boundaries, packets cannot be spoofed and network addresses can be an accurate and reliable indication of the origin of network data.
 
-Envoy services run in trusted virtual machines that are administered by the owner of the cluster. Messages from one envoy to another and to storage servers must be authenticated to ensure , either by  
-\note{TODO}
+For Envoy, this means that client access to the file system can be strictly isolated to the client-server interface exported by a client's local envoy. The clear lines of trust provided by the environment make enforcement of security policies relatively simple. Envoys communicating with each other can be authenticated by their network address as well as by the credentials they provide, as can connections between envoys and storage servers. Encryption of traffic is possible, but since the cluster contains only trusted machines, the threat of packet sniffing is much less than in other environments.
+
 \subsubsection{Policy}
 
-Access to images is controlled through \texttt{password} files in the administrative directories. At the time a client mounts an image, its credentials are checked against all password 
+When a client mounts a directory, be it a file system image or an administrative directory, it supplies its credentials and the pathname of its root directory relative to the global root of the file hierarchy. Envoy evaluates the supplied credentials relative to the directory that the client is attempting to mount. If permission is granted, then the client can access that directory and any of its descendents with the level of access it was granted at mount time.
 
-\note{TODO}
+The credentials required to access a given directory are determined by the contents of files called \texttt{password} located in the administrative directories above the target directory. The access granted by each level is additive, i.e., permissions can only be added by a new \texttt{password} file, not taken away, and normally applies to all subdirectories that are siblings of the \texttt{password} file, not to the directory that contains it. The root of the entire tree is an exception, as its \texttt{password} file applies to the root directory as well as its descendents. The significance given to \texttt{password} files only applies to administrative directories. Once the boundary to an image has been crossed, all special names recognized in the administrative directories cease to have significance.
 
-\subsection{Forks and snapshots}
+The lowest level of access granted by a \texttt{password} file is read-only or read/write access to images. This allows clients to mount images and use them, but grants no access to the administrative directories. The next level up lets the client mount administrative directories to trigger and manage snapshots, but not create new images or manipulate other files in the administrative areas. The highest level of access permits these activities as well, giving clients the ability to manipulate lower-level \texttt{password} file as well. To fork an existing image, the user must also have read permission to the complete base image.
 
-A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \current or one of its numbered snapshots. Snapshots are always immutable
+Credentials can be restricted to grant access as a specific user name in the file system, or they can be mapped to any user within an image. The latter case is analagous to the \texttt{root} user in a Unix system, which can assume the identity of any other user within the same system.
+
+With this system, a few typical user types are expected:
+
+\begin{description}
+\item[Service managers] coordinate groups of client VMs that cooperate to form larger services. They create new boot images, set up shared volumes, and grant appropriate access to the individual participants.
+
+\item[Client owners] act like root users for a particular image. The client may create its own user names, but instead of registering them individually with the file system, the client owner uses its own credentials to authenticate them and grant them a name for the duration of the active session. Client owners may also manage their own snapshots.
+
+\item[Independent users] may be authorized by service managers to access individual shared volumes within their management domain, without granting them \emph{carte blanche} or putting them under the control of individual client owners. These free agents are guests in the images they visit, but their access may come high in the file tree giving them access to many images.
+ \end{description}
+
+Other roles may be created with the system. The objective is to make it simple for individual users, allow clients to manage their own user base in shared setups, and allow restricted access to be granted by clients to other clients for sharing.
+
+\subsection{Forks and snapshots}\label{sec:snapshots}
+
+A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \texttt{current} or one of its numbered snapshots. Snapshots are always immutable
 
 \subsection{Deleting snapshots}
 
@@ -309,6 +324,10 @@ As a commodity platform, failure of an individual node can reasonably disrupt th
 
 The basic assumption implicit in Envoy's recovery model is that the failure of a machine or any of its parts (including management software) may result in lost service to the clients hosted on that machine. Moving outward, envoys that were interacting with the failed machine should be able to recover fully with some disruption, while nodes that had not overlapping interests should be unaffected.
 
+The other philosophy that drives failure recovery is that it should be as simple as possible. Recovery scenarios are both difficult to predict and difficult to simulate. In a distributed system, interactions involving multiple participants can be complex enough when they work, and an unanticipated failure at an unexpected time can often lead to conditions that are hard to anticipate. Enumerating cases that must be handled is an error-prone process that can become intractible with too many sources of faults. Even when complex failure cases are correctly identified, simulating under realistic conditions to test equally complex recovery code is another difficult and error-prone process. Ongoing field testing is dominated by correct behavior (one hopes) so recovery code is rarely exercised as well as normal code paths. Finally, because recovery procedures are only invoked in response to failure, they represent the last line of defense against lost data and the last chance to retain the trust of users, a critical element in storage systems.
+
+Some of the most successful systems reflect these concerns. Database systems typically log transactions in a simple, append-only structure before applying changes to complex data structures. At recovery time, no attempt to diagnose the exact conditions of failure is necessary---instead the log can be replayed to complete committed transactions or even an interrupted recovery process. Similar journaling schemes are increasingly common in modern file systems for many of the same reasons. Careful ordering of writes can ensure that a crash at any stage leaves the system in a sane state, offering the same principle benefit: recovery from a wide range of failure conditions can proceed even without knowing what actually caused the failure.
+
 \subsection{Prerequisites}
 
 Some amount of redundancy of runtime state is necessary to allow complete recovery after a node failure. The fate of a client is already tied to that of its local envoy, so envoys track the state of all active file handles for local clients, including those files that are owned by remote envoys. The local envoy acts as a proxy server for remote files, so it can easily peek at request and reply messages to observe state updates. For local and remote file handles, an envoy tracks the full pathname of the file, the user credentials used to access the file, and any state related to file status and position required to support the client-server protocol exported to the client.
@@ -319,23 +338,27 @@ Depending on the storage layer implementation, a window of vulnerability may exi
 
 \subsection{Process}
 
-With runtime state and file data available, it is possible for envoys that were interacting with a failed node to recover fully from the disruption, with temporarily degraded performance as the only effect visible to clients. The affected envoys include all those with which the crashed node had any kind of relationship, including the ownders of the parents of its territories, the ownders of the children of its territories, remote envoys accessing files in its territories, and remote envoys to which it is forwarding requests for local clients.
+With runtime state and file data available, it is possible for envoys that were interacting with a failed node to recover fully from the disruption, with temporarily degraded performance as the only effect visible to clients. The affected envoys include all those with which the crashed node had any kind of relationship, including the owners of the parents of its territories, the owners of the children of its territories, remote envoys accessing files in its territories, and remote envoys to which it is forwarding requests for local clients.
 
-The first step in recovery is recognizing that something has gone wrong. 
+The first step in recovery is recognizing that something has gone wrong. Envoys monitor the status of their neighbors in the territory tree as well as that of the envoys with which they share files. These connections can be monitored closely without imposing a significant burden on the network, as they are always unicast messages between small sets of hosts. Normal interactions can double as heartbeat messages most of the time, and explicit messages are only necessary on otherwise idle connections.
 
-detecting need: connection-oriented protocols, periodic heartbeats to bound disconnect duration
+Once a node fails, the territories it owned and their descendents are immediately dissolved and annexed into the parent territory. In-flight operations no longer act under the authority of a territory owner and are suspended. Forwarded operations between two otherwise-healthy envoys are rejected with a suitable error so that the client's envoy is made aware of the failure. Parents notify children recursively, resulting in a pool of envoys that hold file handles for their clients but have nowhere to send transactions. The envoys then reconnect each file handle to a territory owner by walking from the root of the file system tree to find the new owner. Unlike normal directory navigation requests, these traversals always succeed, even if directory permissions have recently changed. Envoys can also nominate themselves to reclaim ownership of territories, or they can leave it to the normal demand-driven process to sort out boundaries over time.
 
-process: everybody walks from the root down in the recovery process. the parent annexes the territory, children join it as they become aware (and the first one to try walking down makes the parent aware). FIDs likewise walk down to find the new owner. When FID home dies, fid is considered closed.
+In keeping with the goal of simplicity and blanket coverage of failure cases, this handles failures that occur in the middle of territory ownerships transfers as well as simpler, steady-state cases. The canonical version of the file tree is maintained by the storage system, not by the soft state of territory ownership. Once the ownership tree is corrupted by a failure, the corrupt branch is pruned and regrown from its former root. Similarly, the canonical version of a file handle is maintained by the client's envoy, not by the territory owner. Envoys champion the needs of their own clients by restoring their file handles to working status and resuming their suspended operations, while the operations initiated by failed envoys are forgotten and their files implicitly closed.
 
-Exits need to be in sync before anything else--either a time delay, or children report exits to their parents.
+If a snapshot was in progress when the failure occurred, it is possible that orphaned objects may result. The snapshot can still succeed, because the change at the root automatically covers the entire branch, but objects that were being cloned through the copy-on-write mechanism, either to permit a file write or to maintain writable territory roots, may be lost due to a failure. Directories and their links to objects are updated after objects are successfully cloned, so this will not result in a data loss, but it may leave an occasional object that cannot be reached through the file tree. The potential for minor capacity loss is regretable, but should not be the source of too many tears.
 
 \subsection{Special cases}
 
-special case: root node has annointed successor, or ordered list of succession.
+Throwing away damaged soft state and rebuilding it instead of trying to patch it makes recovery from a node failure simple and uniform across a range of failure conditions. An important step in the process depends on the ability of newly-ostracized envoys to rejoin the collective by starting at the root of the tree and pushing file handles back down to their appropriate locations. Two problems can inhibit this process: failure of the root node, or a change in the path from the root to the target node.
 
-alternative: territory changes are logged, periodically checkpointed with a complete layout
+Every node that joins the Envoy system must know how to locate the root node. Whenever a client attempts to mount a file system image, it specifies it as the path from the root of the global namespace to the root of the image. Locating the root initially may be part of the startup process for an envoy, or it may integrate more closely with a higher-level service-cluster management tool. Other management services must exist to instantiate and monitor client VMs, and it is sensible to have Envoy coordinate directly with those services. Monitoring the root node and annointing a replacement when it fails could fall to the management tools as well, or envoys could instead be started with an ordered list of root nodes, the next taking over when the previous fails.
 
-partitions: whoever can access enough storage replicas is considered the live portion, those with minority of accessible replicas are considered offline
+The rest of the recovery process need not be changed for the root node, as the existing procedure would suffice. It may prove worthwhile to treat it as an exception, however. In the prototype, all of the top-level administrative directories are managed by a single envoy, with the transition to individual images being the first point at which territory ownership changes are allowed. While this is just a simplification for the prototype, an implementation with no such restriction would probably follow that pattern quite often, as most clients would mount an image and then never interact with administrative directories again. The root node may end up with many more children than a typical node, and dissolving all territory boundaries would disrupt the whole cluster instead of localized region of related clients. As an optimization, the root node could log territory changes that it observes into a regular file with a well-known name (periodically checkpointing by dumping a complete list). Its successor would then start in the normal way, read the log file, and then contact each child to inform it of the change. This would also require children of the root to be aware of their special status so that they would not dissolve their branch of the tree upon detecting the root node failure. A similar process could be applied to other branches of the tree, though the smaller reduction in disruption would make it less profitable.
+
+Renaming a directory always throws file handles for its descendents temporarily out-of-sync. A recursive update procedure ensures that this does not last too long, but node failure could interrupt the propogation of the update, or the update could happen after a descendent fails but before other affected nodes have fully recovered; in either case the file handles that they use to reconnect would have incorrect pathnames. Renaming high-level directories is already quite rare, and having it coincide with a node failure is quite unlikely. It would be reasonable to simply report a stale file handle to the client when this happens, forcing it to relocate its files and open them again. Alternatively, the messages used to propogate renames down the territory tree could be adapted to implement a two-phase commit protocol. This would also prevent other potential race conditions that might come up when renaming directories.
+
+Besides envoy failure, storage node failure and network partitions could also disrupt a running system. Both problems are the province of the storage layer. A failing node is expected and survived through redundancy, though the details of recovery are omitting from this dissertation. The network partition case is more serious, as it resembles the simultaneous failure of many nodes. The most important consideration is to prevent permanent data loss, which means preventing conflicting updates that cannot later be resolved. By relying on the storage layer, this can be easily resolved: envoys can only make binding changes in the storage layer when they can contact a majority of the replicas. If a small part of the network is isolated, it will soon fail until connectivity is restored. If the larger portion retains enough storage servers, it can continue on uniterrupted, but it may also happen that both parts of the network are disabled until the problem is resolved.
 
 \section{Summary}
 

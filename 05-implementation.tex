@@ -86,7 +86,7 @@ The 9p protocol is based around the thirteen messages listed in \prettyref{tab:9
 \texttt{wstat} & Change a file's attributes.
 \end{tabular}
 \end{center}
-\caption{The messages in the 9p protocol. \texttt{version} and \texttt{auth} prepare a connection for an \texttt{attach} request, which establishes a single file handle. \texttt{walk} can clone or move existing file handles, giving access to the rest of the file tree. \texttt{flush} relates to an individual transaction, but all other messages operate relative to an active file handle.}
+\caption[Messages in the 9p protocol]{The messages in the 9p protocol. \texttt{version} and \texttt{auth} prepare a connection for an \texttt{attach} request, which establishes a single file handle. \texttt{walk} can clone or move existing file handles, giving access to the rest of the file tree. \texttt{flush} relates to an individual transaction, but all other messages operate relative to an active file handle.}
 \label{tab:9p-messages}
 \end{table}
 
@@ -132,7 +132,7 @@ The storage server protocol is implemented as an extension of the 9p protocol. I
 \texttt{delete} & Remove an object. \\
 \end{tabular}
 \end{center}
-\caption{The messages in the storage service protocol. \texttt{reserve} returns a range of object IDs previously unallocated by the same storage server. \texttt{clone} copies an object, and if it is a directory it also sets the copy-on-write flag for all entries in the new copy. All operations except \texttt{reserve} are stateless, requiring an object ID as well as operation-specific parameters.}
+\caption[Additional message in the storage service protocol]{The messages in the storage service protocol. \texttt{reserve} returns a range of object IDs previously unallocated by the same storage server. \texttt{clone} copies an object, and if it is a directory it also sets the copy-on-write flag for all entries in the new copy. All operations except \texttt{reserve} are stateless, requiring an object ID as well as operation-specific parameters.}
 \label{tab:storage-messages}
 \end{table}
 
@@ -221,7 +221,7 @@ As with the storage service, the envoy services protocol is implemented as a ser
 \texttt{renametree} & Inform descendents of a directory that has been renamed.
 \end{tabular}
 \end{center}
-\caption{The messages in the envoy service protocol. The first five support the major state management operations, while the remainder handle cases where an operation affects multiple territories.}
+\caption[Additional messages in the envoy service protocol]{The messages in the envoy service protocol. The first five support the major state management operations, while the remainder handle cases where an operation affects multiple territories.}
 \label{tab:envoy-messages}
 \end{table}
 
@@ -240,7 +240,7 @@ Unlike the stateless storage servers, envoy instances must track two main classe
 \begin{figure}[tp]
 \centering
 \includegraphics[width=100mm]{figures/territory-claims}
-\caption{Territories are trees, and their boundaries (yellow squares) are defined by the root pathname and the exits, which point to child territories owned by remote envoys. Claims (blue circles) represent individual storage objects, and within a territory they form a tree covering a subset of the territory, with leaves at each territory exit and active file or directory.}
+\caption[A territory managed by a single envoy]{Territories are trees, and their boundaries (yellow squares) are defined by the root pathname and the exits, which point to child territories owned by remote envoys. Claims (blue circles) represent individual storage objects, and within a territory they form a tree covering a subset of the territory, with leaves at each territory exit and active file or directory.}
 \label{fig:territory-claims}
 \end{figure}
 
@@ -253,7 +253,7 @@ Overlaid on the file tree within a territory is another tree of \emph{claims}, o
 \begin{figure}[tp]
 \centering
 \includegraphics[width=100mm]{figures/file-handles}
-\caption{File handles for incoming connections are grouped and distinguished by the source, be it a client VM or a remote envoy. Each handle is tied to a specific claim in a local territory. Client handles may also be forwarded to a remote envoy, in which case it is assigned an entry from the envoy's single remote file handle pool.}
+\caption[Managing file handles in local and remote envoys]{File handles for incoming connections are grouped and distinguished by the source, be it a client VM or a remote envoy. Each handle is tied to a specific claim in a local territory. Client handles may also be forwarded to a remote envoy, in which case it is assigned an entry from the envoy's single remote file handle pool.}
 \label{fig:file-handles}
 \end{figure}
 
@@ -370,7 +370,7 @@ Like other operations involving multiple envoy instances, territory migration is
 \begin{figure}[tp]
 \centering
 \includegraphics[width=100mm]{figures/grant-topdown}
-\caption{Territory migrations are always driven by the parent in the namespace tree, which can annex a neighboring territory, cede territory to another envoy, or coordinates the transfer of a territory from one neighbor to another. For a child to initiate a transfer, it must send a \texttt{nominate} request to the parent, which then carries out the transfer.}
+\caption[Types of territory migrations]{Territory migrations are always driven by the parent in the namespace tree, which can annex a neighboring territory, cede territory to another envoy, or coordinates the transfer of a territory from one neighbor to another. For a child to initiate a transfer, it must send a \texttt{nominate} request to the parent, which then carries out the transfer.}
 \label{fig:grant-topdown}
 \end{figure}
 
@@ -399,7 +399,7 @@ The prototype is designed to favor simplicity over other virtues in complex tran
 \begin{figure}[tp]
 \centering
 \includegraphics[width=100mm]{figures/migrate-sync}
-\caption{The sequence of events when a client file request conflicts with a territory transfer.}
+\caption[Sequence of events in a territory migration]{The sequence of events when a client file request conflicts with a territory transfer.}
 \label{fig:migrate-sync}
 \end{figure}
 
