@@ -36,14 +36,19 @@ Service clusters are a platform for flexible commodity computation, which may ta
 
 \section{Using Envoy}
 
+This section gives a brief tour of how Envoy is used and managed to provide a general context for more detailed discussion of its features and design. Envoy is intended for a specific environment to provide for the storage needs of a specific class of problems. It relies on some features of that environment to simplify the design and optimize the implementation to match the expected demands.
+
 \subsection{Basic environment and assumptions}
 
-\begin{itemize}
-\item The network is well provisioned, and there is no significant difference in distance between different machines in the cluster.
-\item Each machine has an administrative virtual machine that is trusted. An instance of the envoy service runs in this VM, and it serves all clients on the same physical machine.
-\item Machines in the cluster are reasonably independent. Power supplies and other hardware are isolated enough that we can consider failures to happen independently.
-\item A catalogue of machines in the cluster is available. We ignore resource discovery. Adding and removing machines may require some manual intervention.
-\end{itemize}
+Envoy is designed for service clusters, with the needs of flexibly commodity computation informing its assumptions about security and client demands.
+
+Service clusters are assumed to have well-provisioned networks. High-speed local-area networking makes communication between nodes in the cluster cheap and fast, and switched interconnects make communcations between pairs of nodes possible without significantly affecting the rest of the cluster. Redundant connections reduce the impact of failures, so network partitions---while still possible---are expected to be rare.
+
+Nodes are also expected to fail independently. Clusters are expected to run in machine rooms with redundant power sources and ample cooling. While commodity hardware is expected to fail, well-managed hardware can still be reliable and well-engineered clusters can isolate failing nodes, preventing groups of machines from failing together.
+
+Service clusters run jobs for untrusted clients, but the environment itself is assumed to be trustworthy. Virtual machine managers isolate clients and prevent many malicious forms of behavior. In particular, the network is assumed to be secure, with address spoofing and packet sniffing by clients prevented by the virtual machine managers and related systems. In addition, Envoy's services can run in a secure environment, isolated from untrusted clients.
+
+This work also assumes that other aspects of service-cluster management are provided for by suitable solutions. Procedures for billing, managing client sessions, balancing load, allocating resources, etc., are omitted from this dissertation. It is further assumed that Envoy can cooperate with management software when necessary, though specific details are ignored. Envoy provides mechanisms to support client file system image management, but it does not prescribe procedures or management practices, as these must necessarily depend on other aspects of the system in addition to the storage system.
 
 \subsection{Use and administration}
 
@@ -135,9 +140,7 @@ An object ID is considered a globally unique name for that object. When replicat
 
 \subsubsection{Open problems}
 
-The mapping of object IDs to specific storage servers is not yet defined. For now, a configuration file with a static mapping can be distributed to all participants, and changing that mapping will require a restart of the complete system. No scheme for migrating objects in response to load or failure is currently defined.
-
-Numerous strategies are available for distributing objects across the cluster. While I discuss some of them here, I only do so with the intent of demonstrating that an independent storage layer is viable and reasonable; many other object storage systems of varying levels of sophistication could be substituted for one I describe and other work has addresses object storage in more detail than I attempt here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
+The mapping of object IDs to specific storage servers is not defined in this work. Numerous strategies are available for distributing objects across the cluster, including random distribution, chained declustering, parititioning based on object ID ranges, colocating objects created together, etc. For the purposes of this dissertation, I assert that an independent storage layer is viable and reasonable, but I do not discuss a specific system in detail. Other object storage systems of varying levels of sophistication could be substituted for the stub I describe here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
 
 \subsection{Envoy layer}
 
@@ -153,7 +156,7 @@ The envoy service is stateful, and tracks not only its territories and neighbors
 
 Under this system, two envoys maintain a direct relationship with each other only when they are immediate neighbors in territory ownership, or when one is serving requests for a client of the other. It follows that if territories are alloted such that the owner of a territory is also its most active user, traffic on an envoy instance will generally be dominated by its local clients.
 
-Often, the best that can be achieved in a steady-state system is to have the owner of a territory be the envoy driving a plurality of traffic, not a majority. Sometimes this is an inevitible consequence of overlapping client demands, but often some further gerrymandering of the territory boundaries can restore a majority to the local territory. Since the needs of the clients and the needs of the envoys are generally aligned, a practice that in polotics usually serves those in power at the expense of those they represent serves both equally well in file systems.
+Often, the best that can be achieved in a steady-state system is to have the owner of a territory be the envoy driving a plurality of traffic, not a majority. Sometimes this is an inevitible consequence of overlapping client demands, but often some further gerrymandering of the territory boundaries can restore a majority to the local territory. Since the needs of the clients and the needs of the envoys are generally aligned, a practice that in politics usually serves those in power at the expense of those they represent serves both equally well in file systems.
 
 \subsubsection{Files}\label{sec:directory-format}
 
@@ -254,13 +257,37 @@ With this system, a few typical user types are expected:
 \item[Client owners] act like root users for a particular image. The client may create its own user names, but instead of registering them individually with the file system, the client owner uses its own credentials to authenticate them and grant them a name for the duration of the active session. Client owners may also manage their own snapshots.
 
 \item[Independent users] may be authorized by service managers to access individual shared volumes within their management domain, without granting them \emph{carte blanche} or putting them under the control of individual client owners. These free agents are guests in the images they visit, but their access may come high in the file tree giving them access to many images.
- \end{description}
+\end{description}
 
 Other roles may be created with the system. The objective is to make it simple for individual users, allow clients to manage their own user base in shared setups, and allow restricted access to be granted by clients to other clients for sharing.
 
 \subsection{Forks and snapshots}\label{sec:snapshots}
 
-A few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \texttt{current} or one of its numbered snapshots. Snapshots are always immutable
+To support the rapid deployment of services, standard installations of commodity operating systems and software can be provided to clients as a starting point. This is accomplished in Envoy by creating a small set of well-known base images and allowing clients to fork them as a starting point for their own private images. Using copy-on-write techniques, many clients can diverge from a single image, sharing unchanged files and consuming resources only for the changes made.
+
+The copy-on-write mechanism in Envoy works at the level of an object in the storage system. Files and empty directories are leaves in the object tree, with non-empty directories acting as interior nodes that branch out. Modifications to privately-owned objects can be made directly to those objects, but changes to a shared object can only be made by cloning it and applying the changes to the copy.
+
+An object clone has a different object ID than the original, so directory links to the object must be updated, which in turn may require cloning the directory object. Changing a leaf in the file system tree requires cloning a path from a writable ancestor to the object itself, a process that resembles modifying an immutable tree structure in a functional language: an entirely new tree is produced that links back into the old tree whenever possible.
+
+\subsubsection{Image versions}
+
+While snapshots could be taken at any point in the file hierarchy, a few additional rules simplify management. The root of the namespace is always writable, as are all administrative directories, i.e., those that are not descendents of a directory called \texttt{current} or one of its numbered snapshots. Existing snapshots are always immutable, and new ones can only be taken from the root of an image, not from arbitrary points in the client's directory structure.
+
+A new image is started by creating a directory called \texttt{current} in an administrative directory that does not already contain an image. The active version of the image retains that name, while snapshots are named as successive positive integers. This process restricts the history of an image to a linear progression of snapshots taken over time. For management purposes, the entire collection is considered a single image with an active head rooted in the \texttt{current} directory and a series of historical versions.
+
+\subsubsection{Forking an image}
+
+The word ``snapshot'' implies that a copy of the state of an image is frozen and set aside as an external observation of the active system, but in reality it is the active version that is frozen and set aside, while a newly-created head takes the place of the old one and diverges from it over time. The continuity of the active image is preserved through sleight-of-hand as active file state is transparently transferred from the old head to the new.
+
+The process of forking an image is the same, except that it starts with a snapshot already frozen as part of the history of another image. To fork a running image, a snapshot must first be taken, after which the forked image and the new head of the old image can both start from the same immutable tree and move forward independently.
+
+\subsubsection{Snapshots and territories}
+
+Because of the copy-on-write mechanism, changing a single file may require modifying a path all the way back to the root of the image, potentially crossing territory boundaries and involving multiple envoys in the process. This would violate the goal of local impact for normal file operations and complicate the protocol between envoys. To simplify matters, Envoy requires that the root of each territory be writable unless it is part of a read-only snapshot. The worst case is reduced from cloning a path back to the root of the image to cloning a path to the root of the territory, making it possible for write operations to be completed by a single envoy.
+
+To satisfy this requirement, the snapshot operation must clone a path to each territory exit after freezing the territory. In practice, snapshots operate on the territory tree from the leaves to the root. Child territories are frozen and their roots cloned, then parent territories are frozen and paths from their roots to their children cloned. Eventually, the root object of the image is replaced by a clone; the old object becomes the root of the snapshot and the new clone becomes the root of the active head of the image.
+
+This process simplifies writes, but it also creates unnecessary cloning for territories that do not serve any write requests before the next snapshot. This is a tradeoff between simplicity of design and space efficiency. Cheap and ample disk space is one of the motivating advantages to using commodity hardware, so this tradeoff is consistent with the goals of the Envoy file system.
 
 \subsection{Deleting snapshots}
 

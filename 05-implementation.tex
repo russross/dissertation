@@ -8,22 +8,29 @@ I have implemented a prototype of Envoy to make testing possible and to permit a
 
 \subsection{Goals of the prototype}
 
-* Sanity check
-* Test effects of runtime migration
-* Check performance of machine-level caching vs. OS-level caching
-* Check performance of shared access, remote vs. local
+The goals of the prototype are more modest than the goals of the Envoy design. The design addresses the storage needs of a complex system, and its suitability for the problem at hand is determined partly by how accurately the problem was described. Including appropriate features addresses some of the needs of service clusters, and only production experience can fully determine how successful some features are. Because this dissertation addresses only the storage aspect of the commodity computation problem, a complete evaluation must be deferred.
+
+Other aspects of the design and its suitability for the intended task can be validated by testing an implementation of the file system, even in the absense of a complete service cluster environment. The prototype was implemented to allow empirical testing of the basic structure of Envoy, and to expose practical issues that could lead to refinement of the design. The design presented in the previous chapter reflects many lessons learned from the prototype implementation, and the next chapter presents measurements from using it.
+
+The remainder of this chapter describes the artifact itself. The Envoy design calls for a client-server file system interface for connecting individual clients to the distributed system, but it does not require a specific one. The prototype is written to support a specific interface, and the rest of the prototype takes design cues from that interface. While the storage layer is underspecified in the general design, a prototype supporting the general interface and redundant layout required by Envoy was necessary for testing; its implementation is also described here.
 
 \subsection{Implementation shortcuts}
+
+The prototype is designed to validate the basic design and performance of the Envoy system. Features with little effect on performance, such as authentication schemes and recovery procedures, were omitted because their implementation would prove little. Other shortcuts in the implementation supported faster implementation at the expense of runtime performance. For a prototype this is an appropriate tradeoff, as validation of the overall design is more important than particular benchmark results. A few such shortcuts are described here.
 
 \subsubsection{Synchronization}
 
 The prototype uses a simplified concurrency model based on a few assumptions. Concurrent transactions are permitted and executed on individual processor threads, but only one is allowed to execute at any given time. A global lock is held by the running thread, and is released whenever a network or disk operation is invoked. This simplifies shared-memory management considerably, and is justified on the assumption that the processing time for transactions is dominated by I/O latency.
 
+Deadlock is avoided by forcing transactions to release all held locks when an attempt to acquire a new one fails. The transaction then waits on a queue and is restarted when the contended object becomes available. This forces transactions to acquire all necessary locks before introducing any side-effects that cannot easily be rolled back, but in exchange it allows locks to be acquired in any order and simplifies lock management. Multiple-reader/single-writer locks are also available for controlling access to territories, so contention is mostly limited to concurrent operations on the same file.
+
 \subsubsection{Caching}
 
-Use the underlying OS to cache stuff. No need to reinvent the wheel here. Note that this makes good sense, it's not really a limitation. Set the size of the envoy service VM to control the cache size, take advantage of advances in the underlying OS, focus on the problem at hand.
+The prototype runs under Linux or other Unix systems, and takes advantage of the buffer cache of its host rather than implementing its own cache. This is a deliberate choice rather than a shortcut, as it takes advantage of the ongoing refinement of the host operating system. This is in line with the goal of taking advantage of commodity hardware and software, where continuing improvements are expected over time. The cache can be managed by managing the VM that hosts the envoy services.
 
 \subsubsection{Garbage collection}
+
+The prototype is implemented in C and uses the Boehm-Demers-Weiser conservative garbage collector \cite{boehm}. Garbage collection is unusual in file system implementations, and may come at a performance cost, but it is useful for simplifying and speeding up the implementation of the prototype.
 
 \section{The 9p protocol}
 
@@ -102,7 +109,17 @@ File handles are tracked by small positive integers, which are unique in the con
 
 \subsubsection{Security}
 
+In 9p individual users mount the file system, and file identifiers are subsequently tied to a single user. The server authenticates a specific user and authorizes the creation of a specific file handle at mount time, and additional file handles are produced by cloning existing ones and walking the directory structure to find the desired files.
+
+This system is simple and matches the distributed layout of Envoy well. Envoys trust each other, so authentication need not be repeated as clients cross territory boundaries. Identifying individual users instead of authenticating hosts and leaving user management to them also makes shared images easier to manage. A user or process on one client can connect to a shared image using its own credentials, without requiring administrative access even on its own virtual machine. Likewise, the administrative user can be restricted and treated like a normal user on a shared volume without requiring any specific trust in the client's operating system.
+
+9p does not specify the protocol for authenticating users, but instead offers a mechanism for arbitrary exchanges to take place before a user succeeds in attaching an image. This allows flexibility in the server implementation, which may rely on the network address (which can be securely controlled in service clusters) in addition to security protocols that exchange credentials. Generic implementations are possible within the bounds of 9p, along with closer integration with the cluster administrative system.
+
 \subsubsection{Caching}
+
+9p does not explicitly manage caching, and the Linux client driver does not implement any client-side caching. This supports Envoy's model of consolidated node-level caching by forwarding all requests immediately to the envoy. No further configuration is necessary for clients.
+
+Because all requests cross the virtual network device between a client VM and the envoy services, the efficiency of the protocol is important to the performance of the file system. 9p permits any transport layer to be introduced under its message protocol, so an implementation that avoids copying data through the network stack and instead swaps physical memory pages between two virtual machines is viable. The prototype does not implement this, but 9p would permit it as an optimization.
 
 \section{Storage service}
 
@@ -315,7 +332,7 @@ Like the corresponding read operations, writes to files and changes to file meta
 
 To ensure consistent time stamps, the modification time is determined by the envoy that owns the file and transmitted to the storage layer along with the data being written. While the clocks of machines within a cluster can be synchronized within reasonable bounds, network latencies and variations in storage server load levels would make it difficult to rely on strict synchronization for consistent timestamps. The envoy is a natural location for deciding on the canonical time for its territories.
 
-Thawing a file requires walking back in the file tree until an already-thawed directory is found. To bound the complexity of this procedure and to avoid deadlocks, the root of every local territory is always thawed unless it is part of a read-only snapshot image. While thawing may require cloning multiple levels of the directory hierarchy, this confines the direct impact to a single envoy. It also preserves the top-down rule for synchronous inter-envoy operations by preventing an envoy from demanding a bilateral change from its parent in the tree of territory ownership.
+Thawing a file requires walking back in the file tree until an already-thawed directory is found. To bound the complexity of this procedure and to avoid deadlocks, the root of every local territory is always thawed unless it is part of a read-only snapshot image. While thawing may require cloning multiple levels of the directory hierarchy, this confines the direct impact to a single envoy. It also preserves the top-down rule for synchronous inter-envoy operations by preventing an envoy from demanding a coordinated change from its parent in the tree of territory ownership.
 
 \subsubsection{Deleting files}
 
