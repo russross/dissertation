@@ -12,21 +12,26 @@ In this chapter I argue that a platform of \emph{service clusters} approximates 
 
 Not every task is best served by a common platform---oil tankers will continue to excel at transporting oil---but many jobs that today run on custom installations could be better implemented as commodity computation tasks that are cheaper for clients to run and profitable for vendors to host. I discuss other efforts toward commodity computation and how my proposal overlaps or relates to them.
 
-Finally, I do not propose a full solution. Instead, I argue for a few major characterstics that service clusters should have, while leaving much of the general cluster management infrastructure to others. I focus on the storage needs of the platform and identifying how a suitably designed file system can use the commodity hardware in a cluster to cheaply and easily support deployment and management of services built on commodity tools.
+Finally, I do not propose a complete solution. Instead, I argue for the essential characterstics that distinguish service clusters from other large-scale uses of commodity computers, while leaving much of the general infrastructure to others. I focus on the storage needs of the platform and identify how a suitably designed file system can use the commodity hardware in a cluster to cheaply and easily support deployment and management of services built on commodity tools.
 
 \section{The need for a commodity computing platform}
+
+Services are harder to package as commodities than goods. The quality of oil, the purity of precious metals, the strength of steel, and the composition of building materials can all be objectively measured. Compatibility with standards, quality of workmanship, energy consumption, and feature sets make consumer electronic devices comparable, and even food can be graded and compared, at least at the level of basic ingredients. Services can also be commodities, but only when competing offerings can be compared on price and quality, and when customers can move freely between providers without prohibitive lock-in effects.
+
+This section starts by defining computation as a service amenable to commoditization, then explores how this proposal relates to existing platforms and projects with similar goals.
 
 \subsection{The flexible commodity computation problem}
 
 Commodity computing describes a range of systems for exploiting the cheap and plentiful computing power available in commodity PCs. Instead of building expensive, specialty servers to tackle complex problems, commercial users and researchers are increasingly harnessing the power of many smaller, cheaper machines to achieve the same end. Because of the massive economies of scale in the PC market, the aggregate power that can be had from a group of cheap PCs is much greater than what the equivalent funds could purchase in more powerful, specialized server hardware.
 
-Efforts to use commodity hardware for large computation tasks are orthogonal to the goal of treating computation power itself as a commodity. While clusters of commodity machines may be part of the underlying implementation of a commodity computation service, using specialized server hardware is also a viable option.
+Efforts to use commodity hardware for large computation tasks are orthogonal to the goal of treating computation power itself as a commodity. While clusters of commodity machines may be part of the underlying implementation of a commodity computation service, using specialized server hardware is also a viable option. When considering a service as a commodity, the methods used to offer the service are left to the provider, and innovation through proprietary techniques may prove a competitive advantage. From the customer's perspective, it is only the quality of the service rendered and the cost that matter.
 
-\emph{Utility computing}, also called \emph{on-demand computing}, describes the business model of providing computing services and charging based on use of resources, which may include resources reserved but not actually utilized. This may apply to specialized services such as databases or web hosting platforms, or to any service where usage is metered and clients pay based on what they use rather than the capabilities that are available.
+\emph{Utility computing}, also called \emph{on-demand computing}, describes the business model of providing computing services and charging based on use of resources. This may apply to specialized services such as databases or web hosting platforms, or to any service where usage is metered and clients pay based on what they use rather than the capabilities that are available. By itself, utility computing answers only part of the problem. Customers are isolated from the fixed costs, risk of component failure, and administrative expenses associated with hardware ownership, but they may be restricted in the range of services offered or applications accomodated. Just as early mainframes required customized software development and incurred porting costs with each new iteration or change of vendor, utility computing systems subject clients to the tools and infrastructure requirements of their hosts.
 
-\emph{Flexible commodity computation} is to a form of utility computing that allows standard commodity operating systems and tools as well as customized services to be deployed quickly and cheaply, where the basic environment provides commodity operating systems and tools rather than a specialized platform. Deployment costs are proportional to how far a client deviates from a standard, commodity environment, e.g., a standard Linux distribution, rather than the total space required for a service to operate. By providing standard tools and standard environments, one flexible commodity computation service can be swapped for another without significant barriers such as deployment costs, making computation itself a fungible commodity that can be used for a wide range of tasks, large and small.
+\emph{Flexible commodity computation} is to a form of utility computing that allows standard commodity operating systems and tools as well as customized services to be deployed quickly and cheaply, where the basic environment provides commodity operating systems and tools rather than a specialized platform. Deployment costs are proportional to how far a client deviates from a standard, commodity environment, e.g., a standard Linux distribution, rather than the total amount of software their application requires to operate. By providing standard tools and standard environments, one flexible commodity computation service can be swapped for another without significant barriers such as porting costs and deployment costs, making computation itself a fungible commodity that can be used for a wide range of tasks, large and small.
 
 \subsection{Commodity clusters}
+
 \subsubsection{Google}
 \subsubsection{Beowulf clusters}
 \subsubsection{Supercomputer 500 list}
@@ -48,23 +53,32 @@ Mobile users \cite{demers}
 
 \section{The service as a unit of management}
 
-\subsection{Services as a management unit}
+Services work as commodities when the providers of a specific are interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped, which would affect the cost structure and combine two services that are more efficient when seperated and optimized individually: loading and shipping.
+
+Likewise, a web services platform may offer compelling services for its specific domains, allowing clients to host their web applications easier and cheaper than they could with their own hardware and software stack, but doing so would conflate two issues that could be better optimized individually: providing and managing the hardware resources, and managing the infrastructure for web applications. The expertise required for these two parts of the problem may be quite different, and combining them forces clients to choose a package deal when they may be better served by independent choices. The skills of hardware managers may also be put to better use serving the needs of multiple software platforms, not just web services.
+
+Any domain-specific middleware will necessarily be limited, and coupling the efficiency of a shared hardware infrastructure to a specific application domain will limit the economies of scale that could otherwise be achieved by more specialized providers. True commodity computation will divorce the application domain from the provision of a hosting platform, allowing specialists to excel in serving their respective functions. A platform that supports only a restricted domain of applications is not offering \emph{computation} as its product in the most general sense. Attempting to port service from a client's own machines to a hosted service provider to a competitor's platform will reveal how far each provider is from offering generic computation as a product.
+
+The most flexible host available to clients is wholly-owned and managed hardware. The PC has proved to be extremely adaptable and capable of hosting an enourmous range of applications. Approximating the flexibility of a complete machine gives clients maximum latitude in using a commodity platform, without requiring them to conform to a specific application structure or use specific tools. It also protects the client from being locked-in to a single provider through dependence on proprietary software.
+
+
+* need the most flexible platform that still allows management, isolation. efficient virtualization of entire machines only recently available on commodity machines, it's the way to go
+
+* VMs let users build and test and even deploy on their own machines, using own tools. using standard OS and toolchain gives same advantages as commodity hardware: cheap, powerful, gets better all the time.
+
+* Structure by services, not by machines. deployment no longer about maximizing use of hardware capabilities---that's a seperate function. instead, run minimum unit (service) in a stripped container (VM on commodity OS + needed tools). mix & match
+
+* package for deployment as a diff from commodity os. just give access to a fresh image for installation, or build infrastructure on top of it to actually package things, let clients start from exact same base image as cluster has
+
+* higher-level services can build on it, differentiate providers, middle-man as a new business, etc. hardware people are good at hardware, middleware people are good at middleware, applications good at applications. what commodities are all about.
 
 One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
-
-\subsection{Hosting services}
-
-\subsection{Virtual machines}
 
 Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
 
 Using virtual machines makes it easier to manage OSes \cite{chen}. Gartner thinks virtualization is the way to go \cite{bittman}.
 
-\subsection{Commodity everything}
-
-Including something as intangible as computation. Storage outsourcing makes sense \cite{ng}.
-
-Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+Commodity everything, including something as intangible as computation. Storage outsourcing makes sense \cite{ng}.
 
 \section{Service clusters as a commodity computing platform}
 
@@ -100,6 +114,9 @@ This is an \emph{advantage}---avoids community effects (stock market, business h
 Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
 
 Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
+
+Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+
 
 \section{The storage needs of service clusters}
 
