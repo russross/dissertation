@@ -47,26 +47,43 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 \subsubsection{Hosted services}
 email, payroll, tax prep
 
+Storage outsourcing makes sense \cite{ng}.
+
 \subsection{XenoServers}
 
 Mobile users \cite{demers}
 
 \section{The service as a unit of management}
 
-Services work as commodities when the providers of a specific are interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped, which would affect the cost structure and combine two services that are more efficient when seperated and optimized individually: loading and shipping.
+\subsection{Decoupling software and hardware management}
 
-Likewise, a web services platform may offer compelling services for its specific domains, allowing clients to host their web applications easier and cheaper than they could with their own hardware and software stack, but doing so would conflate two issues that could be better optimized individually: providing and managing the hardware resources, and managing the infrastructure for web applications. The expertise required for these two parts of the problem may be quite different, and combining them forces clients to choose a package deal when they may be better served by independent choices. The skills of hardware managers may also be put to better use serving the needs of multiple software platforms, not just web services.
+The provider of services and the trader of physical commodities resememble each other the most when the services of multiple providers are essentially interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped and how well it packed next to the goods of other customers. This would in turn affect the cost structure and tie together two services that are more efficient when seperated and optimized individually: loading and shipping.
 
-Any domain-specific middleware will necessarily be limited, and coupling the efficiency of a shared hardware infrastructure to a specific application domain will limit the economies of scale that could otherwise be achieved by more specialized providers. True commodity computation will divorce the application domain from the provision of a hosting platform, allowing specialists to excel in serving their respective functions. A platform that supports only a restricted domain of applications is not offering \emph{computation} as its product in the most general sense. Attempting to port service from a client's own machines to a hosted service provider to a competitor's platform will reveal how far each provider is from offering generic computation as a product.
+Likewise, a web services platform may offer compelling services for its specific domains, allowing clients to host their web applications easier and cheaper than they could with their own hardware and software stack, but doing so would conflate two issues that could be better optimized individually: providing and managing the hardware resources, and managing the software infrastructure for web applications. The expertise required for these two parts of the problem may be quite different, and combining them forces clients to choose a package deal when they may be better served by independent choices. The skills of hardware managers may also be put to better use serving the needs of multiple software platforms at a larger scale, not just accomodating clients of a particular class of web services.
 
-The most flexible host available to clients is wholly-owned and managed hardware. The PC has proved to be extremely adaptable and capable of hosting an enourmous range of applications. Approximating the flexibility of a complete machine gives clients maximum latitude in using a commodity platform, without requiring them to conform to a specific application structure or use specific tools. It also protects the client from being locked-in to a single provider through dependence on proprietary software.
+Any domain-specific middleware will necessarily be limited, and coupling the efficiency of a shared hardware infrastructure to a specific application domain will limit the economies of scale that could otherwise be achieved by more specialized providers. True commodity computation will divorce the application domain from the provision of a hosting platform, allowing specialists to excel in serving their respective functions. A platform that supports only a restricted domain of applications is offering a computation service, but it is not offering computation itself as its product. Attempting to port a service from a client's own machines to a hosted service provider to a competitor's platform may reveal how far each provider is from offering generic computation as a product.
 
+The most flexible platform available to clients is wholly-owned and managed hardware. The PC has proved to be extremely adaptable and capable of hosting an enourmous range of applications. Giving clients a commodity hosting platform that approximates the flexibility of a standard machine gives them access to familiar tools and maximum latitude in designing their applications, without requiring them to conform to a specific middleware structure or use custom programming interfaces. It also protects the client from being locked-in to a single vendor through dependence on proprietary software.
 
-* need the most flexible platform that still allows management, isolation. efficient virtualization of entire machines only recently available on commodity machines, it's the way to go
+Partitioning physical machines using a virtual machine manager and giving clients access to entire virtual machines pushes the dividing line between vendor- and client-management as close as possible to the hardware itself. Constraints still remain to retain control of the hardware and the ability to manage security concerns, but machine virtualization currently represents the state of the art in minimally decoupling control of the hardware from the concerns of the software stack.
 
-* VMs let users build and test and even deploy on their own machines, using own tools. using standard OS and toolchain gives same advantages as commodity hardware: cheap, powerful, gets better all the time.
+\subsection{Decoupling unrelated services}
 
-* Structure by services, not by machines. deployment no longer about maximizing use of hardware capabilities---that's a seperate function. instead, run minimum unit (service) in a stripped container (VM on commodity OS + needed tools). mix & match
+As hardware gets more capable, individual hosts can accomodate multiple applications. Organizations that wish to make efficient use of hardware investments must measure or estimate the requirements of each application and map them to machines in a way that maximizes the use of resources without overtaxing individual nodes. Managers are left with the choice to underutilize hardware resources, explicitly address load balancing in the applications, or manually allocation resources and rebalance as necessary. Each has its costs and its advantages.
+
+Modern virtualization managers like Xen have low enough overhead to justify partitioning a machine even absent concerns about security and control of the machine \cite{barham}. By putting each application in its own virtual machine, the issue of hardware allocation can be seperated from the design and administration of the software itself. Instead of combining applications in an attempt to maximize hardware usage, a minimalist approach of assigning one application to one virtual machine becomes viable. VMs and the services they contain can be migrated as individual management units in response to runtime demand, without the explicit cooperation of the application.
+
+Decoupling unrelated services seperates the problems of load balancing and maximizing resource utilization from the problems of software installation and deployment. Services contained in virtual machines become generic units that can be managed with generic tools, ignoring many of the intricacies of the actual software package.
+
+The disadvantage of this deployment model is that extra resources are consumed. In addition to the application software, operating systems and supporting libraries must be part of each service container. Overhead that is shared in a traditional environment is duplicated in each VM when services are partitioned in this way. This is a cost, but not one without reward; it buys flexibility and the potential for automation and simplification of management.
+
+\subsection{Supporting commodity tools}
+
+Any suitably designed framework can seperate the management and control of hardware from that of software: this is one of the basic functions of operating systems. Similarly, balancing the demands of applications against the capabilities of hardware is a recurring theme in system design. Achieving both of these aims while permitting the use of a wide range of standard, commodity tools and operating systems precludes custom frameworks, however. Virtualization and a discipline of packaging applications into minimal service containers brings these capabilities to existing applications without the expense of porting to a new software platform.
+
+Using commodity software when appropriate brings many of the same advantages as commodity hardware. Commodity operating systems and tools are cheap, powerful, and under constant development, so features and improvements accrue over time. Just as using commodity hardware allows users to benefit from the scale and competition of a thriving market, relying on commodity software gives access to the benefits of wide-ranging testing and development efforts driven by competition and a large, demanding user base.
+
+An important characteristic of commodity software tools is that they are widely used, and the most popular can be easily identified. This makes it possible to select a few 
 
 * package for deployment as a diff from commodity os. just give access to a fresh image for installation, or build infrastructure on top of it to actually package things, let clients start from exact same base image as cluster has
 
@@ -78,21 +95,26 @@ Hardware virtualization is one of the more potent tools available for achieving 
 
 Using virtual machines makes it easier to manage OSes \cite{chen}. Gartner thinks virtualization is the way to go \cite{bittman}.
 
-Commodity everything, including something as intangible as computation. Storage outsourcing makes sense \cite{ng}.
 
 \section{Service clusters as a commodity computing platform}
 
-Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
+\subsection{Definition of a service cluster}
 
-Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but the flexibility achieved in return makes the tradeoff profitible.
+\subsection{Economies of scale}
 
-\subsubsection{When one is better than many}
+heterogeneous workloads, oversubscribing, slices or dedicated subnets---its all good
 
-Centralized administration and high-speed communication (via shared memory and IPC) are two advantages of traditional servers. Clusters typically put components in a single location with high-speed local networking and a secure physical location. The machines are all owned and administered by a single organization and can have whatever cooling systems and redundant power supplies are appropriate for the application. Systems designed to prevent or avoid any centralized control usually do so for privacy or legal reasons, neither of which is compelling in the service cluster environment. Indeed, some degree of central administration is an essential feature of service clusters. The owner of the cluster needs to control access and admission to the service pool as well as monitor services that are running to ensure that they do not exceed their alloted resources. Given physical proximity and central control, central administration adds convenience without introducing unnecessary penalties in flexibility.
+shared storage, even when the clients don't know they are sharing
 
-To further emulate the desirable characteristics of centralized servers, clusters must ensure global access to data in the storage system from any constituent node. This is best achieved through a single, global name space with a completely coherent view of all files in the cluster. Trading coherence for performance represents a failure of global access, as concurrent services effectively create private views of the data, requiring a seperate mechanism for restoring the consistency that the file system violated \cite{birrell93}.
+\subsubsection{Heterogeneous workloads}
 
-Services running on a single server all fail together if the server fails. Correlated failure is generally considered a problem in distributed systems, but it can also simplify the requirements of failure recovery at least in the common case. When a single server fails, the file system is generally restored to a consistent state before its services are restarted and allowed to recover. If the file system fails while the service continues, this is often considered a similarly catastrophic failure of the system, no better than the two parts failing together. In a virtual machine environmenet, the distributed file system manager can be located on the same physical machine as the service that depends on it, restoring this hardware correlation between the two components. Note that the virtual machine monitor already represents a single point of failure for an entire physical machine; adding the file system manager as a second critical software component that cannot be recovered without a restart of the node only enlarges the set of critical tools, it does not create it. The failure of a client service does not enjoy the same priviledged status.
+This is an \emph{advantage}---avoids community effects (stock market, business hours, etc.).
+
+Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
+
+Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
+
+Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
 
 \subsubsection{When many is better than one}
 
@@ -107,16 +129,25 @@ Clusters have mainly been confined to solving ``embarrassingly parallel''\footno
 
 Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
 
-\subsection{Heterogeneous workloads}
+\subsection{Central management}
 
-This is an \emph{advantage}---avoids community effects (stock market, business hours, etc.).
+dedicated management (single task), clever construction, fat pipes
 
-Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
+\subsubsection{When one is better than many}
 
-Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
+Centralized administration and high-speed communication (via shared memory and IPC) are two advantages of traditional servers. Clusters typically put components in a single location with high-speed local networking and a secure physical location. The machines are all owned and administered by a single organization and can have whatever cooling systems and redundant power supplies are appropriate for the application. Systems designed to prevent or avoid any centralized control usually do so for privacy or legal reasons, neither of which is compelling in the service cluster environment. Indeed, some degree of central administration is an essential feature of service clusters. The owner of the cluster needs to control access and admission to the service pool as well as monitor services that are running to ensure that they do not exceed their alloted resources. Given physical proximity and central control, central administration adds convenience without introducing unnecessary penalties in flexibility.
 
-Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+To further emulate the desirable characteristics of centralized servers, clusters must ensure global access to data in the storage system from any constituent node. This is best achieved through a single, global name space with a completely coherent view of all files in the cluster. Trading coherence for performance represents a failure of global access, as concurrent services effectively create private views of the data, requiring a seperate mechanism for restoring the consistency that the file system violated \cite{birrell93}.
 
+Services running on a single server all fail together if the server fails. Correlated failure is generally considered a problem in distributed systems, but it can also simplify the requirements of failure recovery at least in the common case. When a single server fails, the file system is generally restored to a consistent state before its services are restarted and allowed to recover. If the file system fails while the service continues, this is often considered a similarly catastrophic failure of the system, no better than the two parts failing together. In a virtual machine environmenet, the distributed file system manager can be located on the same physical machine as the service that depends on it, restoring this hardware correlation between the two components. Note that the virtual machine monitor already represents a single point of failure for an entire physical machine; adding the file system manager as a second critical software component that cannot be recovered without a restart of the node only enlarges the set of critical tools, it does not create it. The failure of a client service does not enjoy the same priviledged status.
+
+\subsection{Supporting end-to-end design}
+
+* low-level platform, middle-men can build intermediate services, focus on taking away the hardware ownership and management requirements + lightweight and flexible infrastructure
+
+Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
+
+Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but the flexibility achieved in return makes the tradeoff profitible.
 
 \section{The storage needs of service clusters}
 
