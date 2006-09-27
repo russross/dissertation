@@ -14,7 +14,7 @@ Not every task is best served by a common platform---oil tankers will continue t
 
 Finally, I do not propose a complete solution. Instead, I argue for the essential characterstics that distinguish service clusters from other large-scale uses of commodity computers, while leaving much of the general infrastructure to others. I focus on the storage needs of the platform and identify how a suitably designed file system can use the commodity hardware in a cluster to cheaply and easily support deployment and management of services built on commodity tools.
 
-\section{The need for a commodity computing platform}
+\section{Commodity computation}
 
 Services are harder to package as commodities than goods. The quality of oil, the purity of precious metals, the strength of steel, and the composition of building materials can all be objectively measured. Compatibility with standards, quality of workmanship, energy consumption, and feature sets make consumer electronic devices comparable, and even food can be graded and compared, at least at the level of basic ingredients. Services can also be commodities, but only when competing offerings can be compared on price and quality, and when customers can move freely between providers without prohibitive lock-in effects.
 
@@ -31,6 +31,9 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 \emph{Flexible commodity computation} is to a form of utility computing that allows standard commodity operating systems and tools as well as customized services to be deployed quickly and cheaply, where the basic environment provides commodity operating systems and tools rather than a specialized platform. Deployment costs are proportional to how far a client deviates from a standard, commodity environment, e.g., a standard Linux distribution, rather than the total amount of software their application requires to operate. By providing standard tools and standard environments, one flexible commodity computation service can be swapped for another without significant barriers such as porting costs and deployment costs, making computation itself a fungible commodity that can be used for a wide range of tasks, large and small.
 
 \subsection{Commodity clusters}
+
+Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
+
 
 \subsubsection{Google}
 \subsubsection{Beowulf clusters}
@@ -53,11 +56,11 @@ Storage outsourcing makes sense \cite{ng}.
 
 Mobile users \cite{demers}
 
-\section{The service as a unit of management}
+\section{Service containers}
 
 \subsection{Decoupling software and hardware management}
 
-The provider of services and the trader of physical commodities resememble each other the most when the services of multiple providers are essentially interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped and how well it packed next to the goods of other customers. This would in turn affect the cost structure and tie together two services that are more efficient when seperated and optimized individually: loading and shipping.
+The provider of services and the trader of physical commodities resememble each other the most when the services of multiple providers are essentially interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Cars of the same make and model can be repaired by a wide range of mechanics. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped and how well it packed next to the goods of other customers. This would in turn affect the cost structure and tie together two services that are more efficient when seperated and optimized individually: loading and shipping.
 
 Likewise, a web services platform may offer compelling services for its specific domains, allowing clients to host their web applications easier and cheaper than they could with their own hardware and software stack, but doing so would conflate two issues that could be better optimized individually: providing and managing the hardware resources, and managing the software infrastructure for web applications. The expertise required for these two parts of the problem may be quite different, and combining them forces clients to choose a package deal when they may be better served by independent choices. The skills of hardware managers may also be put to better use serving the needs of multiple software platforms at a larger scale, not just accomodating clients of a particular class of web services.
 
@@ -75,59 +78,51 @@ Modern virtualization managers like Xen have low enough overhead to justify part
 
 Decoupling unrelated services seperates the problems of load balancing and maximizing resource utilization from the problems of software installation and deployment. Services contained in virtual machines become generic units that can be managed with generic tools, ignoring many of the intricacies of the actual software package.
 
-The disadvantage of this deployment model is that extra resources are consumed. In addition to the application software, operating systems and supporting libraries must be part of each service container. Overhead that is shared in a traditional environment is duplicated in each VM when services are partitioned in this way. This is a cost, but not one without reward; it buys flexibility and the potential for automation and simplification of management.
+Isolating services their own virtual machines also has the potential to increase security. While the same operating system and tool chain may be used, it can be stripped to include only those services and drivers necessary to support a single task. By being deployed with a minimal set of supporting software, a service can reduce its risk of being compromised by the flaws of unrelated services.
+
+The disadvantage of this deployment model is that extra resources are consumed. In addition to the application software, operating systems and supporting libraries must be part of each service container. Overhead that is shared in a traditional environment is duplicated in each VM when services are partitioned in this way. This is a cost, but not one without reward; it buys flexibility and the potential for automation and simplification of management. Tayloring the runtime environment to the specific task can reduce the memory and CPU overhead without significant reengineering, and suitable storage strategies can reduce the storage redundancy that otherwise results from increasing the number of virtual machines complete with operating systems.
 
 \subsection{Supporting commodity tools}
 
 Any suitably designed framework can seperate the management and control of hardware from that of software: this is one of the basic functions of operating systems. Similarly, balancing the demands of applications against the capabilities of hardware is a recurring theme in system design. Achieving both of these aims while permitting the use of a wide range of standard, commodity tools and operating systems precludes custom frameworks, however. Virtualization and a discipline of packaging applications into minimal service containers brings these capabilities to existing applications without the expense of porting to a new software platform.
 
-Using commodity software when appropriate brings many of the same advantages as commodity hardware. Commodity operating systems and tools are cheap, powerful, and under constant development, so features and improvements accrue over time. Just as using commodity hardware allows users to benefit from the scale and competition of a thriving market, relying on commodity software gives access to the benefits of wide-ranging testing and development efforts driven by competition and a large, demanding user base.
+Using commodity software when appropriate brings many of the same advantages as commodity hardware. Commodity operating systems and tools are cheap, powerful, and under constant development, so features and improvements accrue over time. Just as using commodity hardware allows users to benefit from the scale and competition of a thriving market, relying on commodity software gives access to the benefits of industry-wide testing and development efforts driven by competition and a large, demanding user base.
 
-An important characteristic of commodity software tools is that they are widely used, and the most popular can be easily identified. This makes it possible to select a few 
+An important characteristic of commodity software tools is that they are widely used, and the most popular can be easily identified. Even without a formal process, standards emerge over time and change slowly, both in proprietary and open source software communities. Computation providers can streamline deployment and reduce costs by offering a small set of file system images based around \emph{de facto} standards, complete with an operating system and standard tools. Clients can then customize an image to support a specific service, and deploy it with little additional effort. The setup time needed, bandwidth consumed, and storage required to customize the image are related to the degree of customization required, not to the overall complexity of the service. As supporting tools become more sophisticated and capable, and as the base of standard software evolves, more intricate services can be deployed without increasing the deployment costs.
 
-* package for deployment as a diff from commodity os. just give access to a fresh image for installation, or build infrastructure on top of it to actually package things, let clients start from exact same base image as cluster has
+The users best served by these base images are those whose needs are met entirely by commodity software. Deploying a DNS server or a web server requires little more than configuration and some content, all of which can be transferred using standard tools on a private virtual machine. Offering standard base images as an option does not restrict clients to what is provided, however. The architecture favors the use of standard tools, but it does not prevent users from starting from scratch. As is true in many product domains, departing from the standard is discouraged only by the higher cost.
 
-* higher-level services can build on it, differentiate providers, middle-man as a new business, etc. hardware people are good at hardware, middleware people are good at middleware, applications good at applications. what commodities are all about.
-
-One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Forty years later, we have made progress but still recognize similar goals.
-
-Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
-
-Using virtual machines makes it easier to manage OSes \cite{chen}. Gartner thinks virtualization is the way to go \cite{bittman}.
-
-
-\section{Service clusters as a commodity computing platform}
+\section{Service clusters}
 
 \subsection{Definition of a service cluster}
 
+One of the enduring goals of systems research is to provide a good platform for running applications. Even early systems such as Multics were explicitly intended as infrastructure for higher-level computing services, seeking ``continuous operation in a utility-like manner, with flexible remote access,'' with requirements such as ``convenience of manipulating data and program files, ease of controlling processes during execution and above all, protection of private files and isolation of independent processes'' \cite{corbato}. Four decades has seen much progress, but similar goals are still applicable.
+
+The first part of the problem of commoditizing computation is packaging tasks into managable units. As argued above, service containers are a flexible way to isolate applications from the machines that host them and from unrelated tasks with which they may share hardware. While service containers can be deployed on individual machines, networks of workstations, or other groups of hardware, it is in cluster environments that they find their natural home. \emph{Service clusters} are clusters of commodity machines managed centrally to support the deployment of arbitrary service containers, either as isolated instances or as groups of interacting services.
+
 \subsection{Economies of scale}
 
-heterogeneous workloads, oversubscribing, slices or dedicated subnets---its all good
+The most obvious benefits of hardware clusters are related to scale. Quantity purchases generally lead to better prices, and dedicated facilities can be streamlined for a single purpose to eliminate waste, e.g., temperature control, lighting, and physical layout can be optimized entirely for the hosting machines, rather than for a mixed environment of machines and people. Fixed costs can be amortized over large numbers of nodes, and running costs can be negotiated for bulk quantities.
 
-shared storage, even when the clients don't know they are sharing
-
-\subsubsection{Heterogeneous workloads}
-
-This is an \emph{advantage}---avoids community effects (stock market, business hours, etc.).
-
-Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
-
-Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
-
-Encouraging everyone to use commodity tools and operating systems also increases the capacity of a cluster. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
-
-\subsubsection{When many is better than one}
-
-Scalability is a significant benefit of clusters over centralized servers. Hardware can be added incrementally according to need, which eliminates the need for an accurate forecast of the lifetime demands of the system. In addition, clusters of machines can achieve much greater overall scale than even the largest single machines. Scalability over time and absolute scalability are also features of non-clustered distributed systems, but those lack the high-speed interconnects possible in managed environments (note that I consider a cluster to be defined more by the coherent administrative environment and high-speed networking than by physical proximity; machines in a single cluster could be located in different buildings or at different sites if the other conditions are met).
+Hardware can be added incrementally, which eliminates the need for an accurate forecast of the lifetime demands of the system. In addition, clusters of machines can achieve much greater overall scale than even the largest single machines. Scalability over time and absolute scalability are also features of non-clustered distributed systems, but those lack the high-speed interconnects and coordinated administration possible in managed environments.
 
 The use of commodity hardware also allows rapid machine acquisition and cheap prices. Incremental scaling means that newly added hardware can always take advantage of the best price/performance ratios and benefit from the constant downward pressure on prices in a competitive market \cite{fox}. Commodity disks are relatively unreliable, but they are also large and cheap and offer a good source for storage capacity \cite{patterson,warfield} that comes standard with most machines.
 
 The independence of nodes in a cluster offers redundancy that can be exploited for both reliability and availability. This is necessary not only to exceed the expectations of a single system, but to match it as well. Having many parts that can fail independently offers a much higher probability that at least one will fail than that any single component will fail, and a cluster that does not tolerate some component failures will quickly become unusable \cite{birrell93}.
 
-Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
+\subsubsection{Heterogeneous workloads}
+
+Service clusters can support a diverse range of tasks from unrelated clients, and can actually benefit from the heterogeneity. Varied workloads 
+
+heterogeneous workloads, oversubscribing, slices or dedicated subnets---its all good
 
 
-Combining groups of services into clusters yields numerous benefits over deployment in isolation. Load balancing can extend not only to multiple participants in a single logical service, but across dispirate services hosted in the same cluster.
+This is an \emph{advantage}---avoids community effects (stock market, business hours, etc.).
+
+Many web hosting services routinely oversubscribe their hardware capacity, a practice that allows them to provision based on expected average use rather than maximum potential use. Since clusters can be expanded incrementally, observed average use can become the metric for established providers, especially at large scale. It is prudent to hold some reserve capacity to handle bursts in usage, but even burstiness becomes more predictible at large scales. The more diverse the services using a cluster, the less likely an external event will trigger a burst in usage that overwhelms the capacity of the entire cluster. Designing for overflow capability using machines outside the cluster provides insurance against unexpected traffic \cite{fox}, but using a general-purpose service platform with a heterogeneous load allows averaging to reduce the probability of needing resources beyond those in normal use.
+
+Besides accounting for random bursts of traffic, periodic fluctuactions in demand can be exploited to make better use of resources. Predictable events like business hours, holidays, academic calendars, and other stable cycles can significantly influence some service workloads. Planning for these by pairing complementary services in a dynamically-configured cluster can help avoid idle resources and reduce expenses. Systems used heavily during business hours could share with systems used by game servers, assuming that the latter are used more during leisure hours than on company time.
+
 
 \subsection{Central management}
 
@@ -149,9 +144,17 @@ Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-base
 
 Clusters of commodity hardware offer several benefits over highly provisioned servers or cooperative but dispersed workstations. They offer a degree of centralization that retains many of the benefits of single servers while adding the robustness and scalability of distributed groups of machines. The onus for maintaining a coherent platform is transfered from the hardware vendor in the case of large servers to the software, but the flexibility achieved in return makes the tradeoff profitible.
 
-\section{The storage needs of service clusters}
+\subsection{Building an ecosystem}
+
+* higher-level services can build on it, differentiate providers, middle-man as a new business, etc. hardware people are good at hardware, middleware people are good at middleware, applications good at applications. what commodities are all about.
+
+\section{Storage for service clusters}
 
 aka ``Storage requirements''
+
+* Encouraging everyone to use commodity tools and operating systems also increases the storage capacity of a cluster by deliberately introducing redundancy that can be easily exploited. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+
+shared storage, even when the clients don't know they are sharing
 
 \subsection{Distribution}
 

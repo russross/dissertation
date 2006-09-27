@@ -9,3 +9,9 @@ As internet services become more sophisticated, human clients are not the only o
 All of these examples benefit from the simple and rapid deployment and management of software services in a range of environments. Recent years have seen a renaissance of machine virtualization technology, this time in cheap, commodity hardware.
 
 In this chapter I start by defining \emph{flexible commodity computation} and discussing some examples that motivate its adoption. I then discuss existing commodity computing systems and how they succeed at exploiting commodity systems but fail at making general-purpose computation a true commodity. I argue that the combination of virtual machine managers and clusters of commodity hardware offers a potent platform for service deployment, which I call \emph{service clusters}. I further argue that existing storage systems are not well suited for this environment when used as a platform for flexible commodity computation, so a new set of requirements and a storage system to match them are called for.
+
+\section{Service clusters as a platform using VMs}
+
+Hardware virtualization is one of the more potent tools available for achieving these ends. Virtual memory systems are a standard tool for isolating processes managed by operating systems, and virtualizing entire hardware platforms extends the ability to partition resources to the operating system level, which is a more flexible unit of management \cite{hand}. Once confined mainly to specialized server hardware, machine virtualization is emerging as an important general purpose management tool. The Xen hypervisor \cite{barham} was the first to make virtualization efficient for commodity hardware, especially for I/O intensive applications.
+
+Using virtual machines makes it easier to manage OSes \cite{chen}. Gartner thinks virtualization is the way to go \cite{bittman}.
