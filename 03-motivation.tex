@@ -34,12 +34,16 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 
 Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
 
+* single owners
+* big tasks
+* have to manage the hardware and the software
 
 \subsubsection{Google}
 \subsubsection{Beowulf clusters}
 \subsubsection{Supercomputer 500 list}
 
 \subsection{The GRID}
+
 \subsubsection{Volunteer projects}
 \subsubsection{Commercial and research projects}
 \subsubsection{Planetlab}
@@ -47,16 +51,20 @@ Clusters have mainly been confined to solving ``embarrassingly parallel''\footno
 \subsection{Web services}
 \subsubsection{Thin clients}
 \subsubsection{Mobile clients}
+
+Mobile users \cite{demers}
+
 \subsubsection{Hosted services}
+
 email, payroll, tax prep
 
 Storage outsourcing makes sense \cite{ng}.
 
 \subsection{XenoServers}
 
-Mobile users \cite{demers}
-
 \subsection{Replacing the machine room}
+
+Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands.
 
 \section{Service containers}
 
@@ -86,13 +94,13 @@ The disadvantage of this deployment model is that extra resources are consumed. 
 
 \subsection{Supporting commodity tools}
 
-Any suitably designed framework can seperate the management and control of hardware from that of software: this is one of the basic functions of operating systems. Similarly, balancing the demands of applications against the capabilities of hardware is a recurring theme in system design. Achieving both of these aims while permitting the use of a wide range of standard, commodity tools and operating systems precludes custom frameworks, however. Virtualization and a discipline of packaging applications into minimal service containers brings these capabilities to existing applications without the expense of porting to a new software platform.
+Any suitably designed framework can seperate the management and control of hardware from that of software; this is one of the basic functions of operating systems. Similarly, balancing the demands of applications against the capabilities of hardware is a recurring theme in system design. Achieving both of these aims while permitting the use of a wide range of standard, commodity tools and operating systems precludes custom frameworks, however. Virtualization and a discipline of packaging applications into minimal service containers brings these capabilities to existing applications without the expense of porting to a new software platform.
 
 Using commodity software when appropriate brings many of the same advantages as commodity hardware. Commodity operating systems and tools are cheap, powerful, and under constant development, so features and improvements accrue over time. Just as using commodity hardware allows users to benefit from the scale and competition of a thriving market, relying on commodity software gives access to the benefits of industry-wide testing and development efforts driven by competition and a large, demanding user base.
 
 An important characteristic of commodity software tools is that they are widely used, and the most popular can be easily identified. Even without a formal process, standards emerge over time and change slowly, both in proprietary and open source software communities. Computation providers can streamline deployment and reduce costs by offering a small set of file system images based around \emph{de facto} standards, complete with an operating system and standard tools. Clients can then customize an image to support a specific service, and deploy it with little additional effort. The setup time needed, bandwidth consumed, and storage required to customize the image are related to the degree of customization required, not to the overall complexity of the service. As supporting tools become more sophisticated and capable, and as the base of standard software evolves, more intricate services can be deployed without increasing the deployment costs.
 
-The users best served by these base images are those whose needs are met entirely by commodity software. Deploying a DNS server or a web server requires little more than configuration and some content, all of which can be transferred using standard tools on a private virtual machine. Offering standard base images as an option does not restrict clients to what is provided, however. The architecture favors the use of standard tools, but it does not prevent users from starting from scratch. As is true in many product domains, departing from the standard is discouraged only by the higher cost.
+The users best served by these base images are those whose needs are met entirely by commodity software. Deploying a DNS server or a web server requires little more than configuration and some content, all of which can be transferred using standard tools on a private virtual machine. Offering standard base images as an option does not restrict clients to what is provided, however. The architecture favors the use of standard tools, but it does not prevent users from starting from scratch. As is true in many product domains, departing from the standard is discouraged only by the higher cost. As is also true in many kinds of product fabrication, making a custom image incurs some one-time costs; using the image as the base for many service instances makes it possible to amortize that cost.
 
 \section{Service clusters}
 
@@ -146,53 +154,12 @@ In addition to end-user services, a service cluster economy could support an ent
 
 In an ecosystem of hosted software, service clusters are the base environment upon which other services build. Clients may require only a single service container, or they may hire a large amount of capacity, either to fill their own needs or to export their own higher-level services to other users. To support these different usage patterns, service clusters must address the needs of shared groups of services as well as services in isolation.
 
-
-Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
-
 \section{Storage for service clusters}
 
-aka ``Storage requirements''
+The design and intended applications of service clusters put specific demands on the storage system. While many of the storage requirements have been explored individually in other settings, the combination is unique, and existing systems only partially address the needs of the environment.
 
-* Encouraging everyone to use commodity tools and operating systems also increases the storage capacity of a cluster by deliberately introducing redundancy that can be easily exploited. The potential savings from shared cache isn't that great amoung unrelated systems \cite{muntz}, but getting everyone to start from a common base image (OS and applications) could improve this.
+The major relevant characterstics of a service cluster are the cluster architecture, the reliance on commodity hardware, the support for commodity software, the split in control between the operators of the cluster and the owners of individual services, the expectation of singleton services and cooperating groups of services, and the use of virtual machines as units of management.
 
-shared storage, even when the clients don't know they are sharing
-
-\subsection{Distribution}
-
-Three basic architectures are available. A centralized server model is the simplest and satisfies the mobility requirement, but it doesn't scale well and suffers from a single point of failure. This model has been extended quite successfully using RAIDs and SANs on the back end to increase performance and robustness, and by caching on the client end to reduce load, but it is still limited. Ultimately, all decisions are moderated by a single host which must communicate directly with all clients, so at larger scale the network bandwidth becomes a problem as well.
-
-At the other extreme, coordinations is pushed completely to the clients. This is essentially the centralized model turned upside down. Instead of many clients talking to a single server, a single client must communicate with many servers. Instead of one congestion point, every client becomes overwhelmed with bookkeeping. In practice, some structure can be introduced so that the system isn't a full $n$-way clique---the host for each object of storage may become the mediator for access to that object, for example---but making every participant a symmetric peer is mostly useful for privacy or other non-technical concerns.
-
-A more practical approach is to emulate a centralized architecture as much as possible, since this provides the simplest model with the least administrative overhead, and carve up the problem enough to achieve the desired scaling properties. The two extremes offer the greatest conceptual purity, but the practical benefits are to be had somewhere between them. Most P2P services now introduce some kind of a hierarchy that designates some hosts as ``superpeers'' or ``supernodes'' that act as aggregation points for a manageable set of participants. These distinguished hosts only need to communicate directly with other similarly endowed hosts, potentially reducing the visible size of the network by orders of magnitude. The world is small enough and computers big enough that a few orders of magnitude is enough reduction to make many distributed problems tractable.
-
-Another way of viewing this problem is to consider how many manually administered systems are often implemented today. NFS \cite{callaghan} is still one of the most widely-used systems, and a workstation environment may include a series of NFS servers to provide storage for a larger number of client workstations. Each server will be backed by a RAID \cite{patterson} system for improved performance and reliability, and the administrators may divide the file system namespace in order to balance average demand over the different servers. While most file access in uncontended, having a single server that serves all interested clients makes coherence easy (ignoring the effects of caching).
-
-An interesting thought exercise is to consider the same set of workstations locking into a long-term steady-state behavior, and then asking the systems administrator to hand configure the system based on those usage patterns. One reasonable possibility would be to locate files or branches of the namespace tree used exclusively by a single workstation on that workstation. When two or more users require the same file or set of files, it could be managed by the workstation that uses it the most and exported via NFS (or a similar client-server file system protocol) to the other participants. Since contention is relatively rare, this would reduce network traffic for the storage system to a low level for as long as the hypothetical steady-state continues. One of the goals of the Envoy design is to capture this approximate topology.
-
-In service clusters, physical hosts are divided into roughly 10s of services, which may be transient, untrusted, and unreliable. This increases the number of participants requiring access to the storage system by the same factor and exposes difficult security problems. One of the principle benefits of isolating services in individual virtual machines is in reducing the impact of services that fail, either benignly or maliciously, and trusting the administration of the file system to the services negates this benefit.
-
-The environment includes a trusted management domain on each server, however, which introduces a natural aggregation point and a way to sidestep many of those problems.
-
-\subsection{Local impact}
-
-Envoy is designed according to the principle of \textit{local impact}, meaning that the resources consumed directly or indirectly by a service should be as close to that service as possible. If not in the same VM, then on the same machine, or on another machine that has some specific reason to yield its resources to a remote service.
-
-By extension, this principle leads to a topology that is shaped according to runtime conflicts. When there is no reason to suspect contention, machines will prefer to assume complete control over the storage in active use by their client services. If two machines must explicitly coordinate their access to storage, they are treading on overlapping or neighboring storage and implicitly declaring that a conflict is likely to occur.
-
-Previous studies of file system traffic have repeatedly concluded that runtime contention is rare, so Envoy is designed to assume that exclusive access dominates and react to conflicts as they occur rather than optimizing for the occasions when access overlaps.
-
-\subsection{Supporting services}
-
-VM migration \cite{clark} is essential for load balancing and uninterrupted service in the presence of hardware servicing.
-
-To support migration, a file system cannot be tied to a single physical machine. Any given file system image must be as mobile as the service that relies on it.
-
-One of the attractive features of running individual services in virtual machines is the flexibility of management this model offers. Services can be decoupled, instances can be created and destroyed easily in response to need, and a new service can be deployed without dedicating a new machine to it, removing and old service to make room, or studying the potential interactions that would occur if a shared server was the only option. To this end, lightweight operations are required to instantiate and clone services.
-
-The unit of management is an entire operating system on a virtual machine. Installing an operating system for each service instance would be prohibitively slow, labour intensive, and wasteful of space. A typical installation of Linux using Fedora Core~3 takes about 50 terabytes of space, and an automated installation is unlikely to give the right set of installed packages and running daemons, so some customization will be necessary.
-
-Instead of trying to automate installations, Envoy offers lightweight operations to fork a file system.
-
-Snapshots allow simple backup and recovery, and time travel for debugging and forensics \cite{whitaker}.
+Note: What is this section about? There's a design requirements section in the next chapter; should they be merged? If so, where should it live?
 
 \section{Summary}
