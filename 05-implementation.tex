@@ -370,11 +370,11 @@ For this reason, Envoy offers only partial support for hard links; a file must b
 
 The implementation of the hard link operation is also unique in that the client's envoy intercepts the request before passing it on to the owning envoy if the link is being created in a foreign territory. The Linux extensions to 9p implement hard links by walking to the target of the link, then creating the new link as a file with a special extended attribute containing the file handle of the referent. The file handle state is only available to the client's envoy, so it uses the handle to freeze the target file (if necessary) and rewrites the request to include the object ID instead of the file handle. The envoy (remote or local) can then link the new name to the object.
 
-\note{Need to make sure at least one reference to a file survives so that the object can be deleted properly. We need to keep a list of those that were hard linked from a non-CoW state, and that list can be folded into the normal snapshot delete system.}
+\footnote{TODO: Need to make sure at least one reference to a file survives so that the object can be deleted properly. We need to keep a list of those that were hard linked from a non-CoW state, perhaps as a hidden directory in the image root, and that list can be folded into the normal snapshot delete system.}
 
 \subsection{Modifying territory ownership}
 
-Could use leases \cite{gray89}.
+leases \cite{gray89}.
 
 Misaligned boundaries do not prevent correct behavior, nor do they introduce a heavy performance penalty. The algorithms to trigger changes are designed to promote good long-term layout choices based on steady-state traffic patterns. Cache effects penalize excessive changes, while the low network latency in a cluster environment reduces the cost of relying on a remote envoy even when local ownership would be preferable. In centralized server systems, all file access is routed across a high-speed LAN to a server with many clients. In Envoy, this pattern is also quite servicable, even when it is not ideal, and Envoy is designed to favor gradual, long-term changes over a quick response in short-term traffic patterns.
 

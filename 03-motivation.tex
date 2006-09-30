@@ -20,7 +20,7 @@ Services are harder to package as commodities than goods. The quality of oil, th
 
 This section starts by defining computation as a service amenable to commoditization, then explores how this proposal relates to existing platforms and projects with similar goals.
 
-\subsection{The flexible commodity computation problem}
+\subsection{Flexible commodity computation}
 
 Commodity computing describes a range of systems for exploiting the cheap and plentiful computing power available in commodity PCs. Instead of building expensive, specialty servers to tackle complex problems, commercial users and researchers are increasingly harnessing the power of many smaller, cheaper machines to achieve the same end. Because of the massive economies of scale in the PC market, the aggregate power that can be had from a group of cheap PCs is much greater than what the equivalent funds could purchase in more powerful, specialized server hardware.
 
@@ -34,9 +34,7 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 
 Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
 
-* single owners
-* big tasks
-* have to manage the hardware and the software
+Single owners, big tasks, focused on throughput, not per-node performance, have to manage the hardware and the software. Good for render farms, search engines, simulations, scientific computing, supercomputer stuff. Not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
 
 \subsubsection{Google}
 \subsubsection{Beowulf clusters}
@@ -44,11 +42,16 @@ Clusters have mainly been confined to solving ``embarrassingly parallel''\footno
 
 \subsection{The GRID}
 
+Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
+
 \subsubsection{Volunteer projects}
 \subsubsection{Commercial and research projects}
 \subsubsection{Planetlab}
 
 \subsection{Web services}
+
+Why are these attractive? Many of the same reasons commodity computation is desirable: simple way to outsource IT work, continuous upgrades, accessible from anywhere. We want all these things but more general purpose; web services should be built on service clusters, letting providers specialize even more.
+
 \subsubsection{Thin clients}
 \subsubsection{Mobile clients}
 
@@ -62,13 +65,15 @@ Storage outsourcing makes sense \cite{ng}.
 
 \subsection{XenoServers}
 
+Lots in common---generally complementary. Service clusters are the ideal platform for XenoServers. XenoServers lacks a storage story, and its layout is too much like PlanetLab---a few servers here and there, with the bonus of making some money on the side. All the benefits of scale need big clusters and specialization.
+
 \subsection{Replacing the machine room}
 
-Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands.
+Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
 
 \section{Service containers}
 
-\subsection{Decoupling software and hardware management}
+\subsection{Decoupling hardware and software}
 
 The provider of services and the trader of physical commodities resememble each other the most when the services of multiple providers are essentially interchangible, which requires agreement about not only what is to be done, but what is being acted upon. Cars of the same make and model can be repaired by a wide range of mechanics. Shipping firms can offer to transport a container of a specific size and weight between two points for a specific cost. Before the container was standardized, loading and unloading procedures would vary based on what was being shipped and how well it packed next to the goods of other customers. This would in turn affect the cost structure and tie together two services that are more efficient when seperated and optimized individually: loading and shipping.
 
@@ -156,10 +161,46 @@ In an ecosystem of hosted software, service clusters are the base environment up
 
 \section{Storage for service clusters}
 
-The design and intended applications of service clusters put specific demands on the storage system. While many of the storage requirements have been explored individually in other settings, the combination is unique, and existing systems only partially address the needs of the environment.
+The design and intended applications of service clusters put specific demands on the storage system. While many of the storage requirements have been explored individually in other settings, the combination is unique, and existing systems only partially address the needs of the environment. This section discusses those requirements, and how they influence the design of Envoy, a storage system for service clusters.
 
-The major relevant characterstics of a service cluster are the cluster architecture, the reliance on commodity hardware, the support for commodity software, the split in control between the operators of the cluster and the owners of individual services, the expectation of singleton services and cooperating groups of services, and the use of virtual machines as units of management.
+Service clusters are a flexible platform for implementing arbitrary services, and the storage system that supports them must similarly flexible. While the design must not impose unnecessary restrictions on what clients are allowed to do, it can draw on expectations about how they will behave to guide optimizations. The high-level storage goal is to predict and optimize for the most common client demands, while degrading gracefully as they stray from expected patterns. In addition, some specific requirements are derived directly from the needs of the environment.
 
-Note: What is this section about? There's a design requirements section in the next chapter; should they be merged? If so, where should it live?
+\subsection{Running in a cluster}
+
+Service clusters are centrally managed clusters of physical machines, each of which hosts any number of client services on private VMs. One of the chief advantages of clustering independent services is that resources can be alloted based on average requirements even though many individual clients will be decidedly non-average. As actual demands are observed, the manager can periodically migrate running services to new hosts and redistribute the load to even out the combined demands of services on a single machine. To facilitate transparent migration, the storage system must not tie images to a single machine. Even private images used only by a single service must be location independent within the cluster, or capable of moving without forcing a restart or excessive disruption.
+
+Incremental scaling is another important aspect of cluster environments. Using commodity hardware gives owners access to the best price to performance ratios, and building the cluster gradually in response to demand allows them to track the desired part of the curve as it evolves over time. The storage system must be capable of accepting new hosts without undue disruption to those already running. Note that unlike peer-to-peer systems \cite{blake} or networks of workstations \cite{anderson95a}, machines are under central control and are used for a single purpose, so machines coming and going is an exceptional event rather than the norm. Such events must be accomodated, but they need not be optimized for.
+
+Another issue related to scale is that crash recovery must be localized. Transparent failover is not necessary, and recovering gracefully from failures rather than completely masking them \cite{baker94} is acceptable in this environment (note that hardware may fail as well; services that require specific reliability guarantees must implement redundancy at a higher level). Clusters are expected to run in machine rooms with well-provisioned machines that are properly managed, so failures are not expected to be frequent, but they are clusters of commodity hardware and failures will occur regularly for large installations. Confining the effect of a crash to a small area minimizes the damage, and restricting the disruption to participants with overlapping interests (sharing files, cache, etc.) is even better.
+
+Besides imposing specific requirements, a cluster of commodity machines provides useful resources for designing a storage system. Commodity disks are big and cheap, and having them distributed throughout the cluster provides a natural source of distributed storage capacity. Machines may reserve some capacity for administrative use, for booting the machine, or for providing swap space for clients, but most is available for use by the storage system. These disks are not of premium quality, but can be expected to perform reasonably well. The disk can be no more available than the machine to which it is connected. Other hardware faults besides disk failures can disable a node, so the storage system must provide redundancy across machines to tolerate failures even with reliable storage. Since that cannot be avoided, combining disks into a RAID within a single node would only significantly increase the reliability of that node, not the system as a whole. Envoy assumes that disks are independent, and that the failure of a disk will disqualify the entire machine until it is fixed or replaced.
+
+Commodity software is even more important than commodity hardware in supporting flexible commodity computation. By being presented with a choice of standard platforms and being charged according to how much they deviate from those basic starting points, most clients will be expected to draw heavily from common file system images. This can be considered a basic property of service clusters and the storage system must be designed to exploit it. Independent virtual machines introduce another scalar factor in scalability demands that could otherwise lead to excessive capacity requirements \cite{warfield}. This is mostly a benefit for the file system, however, because it allows Envoy to overlap caching even with unrelated clients.
+
+\subsection{Supporting heterogeneous clients}
+
+There is an inherent tension in service clusters between the goal of supporting the widest range of client applications possible on the one hand, while isolating them from each other and preventing unauthorized activities on the other hand. To address the latter concern, the storage system must be resiliant to arbitrary client behavior or misbehavior. Implementing the file system as a cooperative service run by the client would expose it to byzantine failures and considerable additional complexity. Instead, Envoy exploits the virtual machine architecture to isolate the cluster-wide file system management from client code, just as individual clients are isolated from each other.
+
+Combining file system functions at the physical machine level is not an arbitrary choice nor merely an artifact of using a virtual maching container. The host machine represents a new layer in the storage hierarchy that would otherwise be present on a cluster. Just as an operating system can aggregate the requests of unrelated processes, a file system manager can bring together the activity of all virtual machines hosted on the node, which may have no direct relationship or even awareness of each other. The failure of a client need not interfere with the continued operation of other clients or other machine-level nodes, and the vocabulary of the client is restricted to the protocol with which it connects to the file service, minimizing the damage that byzantine client failure can inflict on the rest of the system. The approach described here is not a requirement of the design, but the security and performance characteristics enabled can be considered minimum requirements for the intended use.
+
+Containing and restricting clients is only one side of the struggle in service cluster design. The other part is providing services with as much flexibility as possible. For the storage system, this means that clients must have as much control over their file access as possible. Specifically, client operating systems must be able to both create and override their own file access restrictions. For private file system images, turning over complete control over access to clients would be sufficient, but arbitrating shared access to images by multiple clients requires a more hands-on approach. To support truly flexible scenarios, Envoy's security model must accomodate both.
+
+Clients also vary in their longevity. Short-lived tasks will only thrive as part of the commodity computation ecosystem if they are cheap enough and can be deployed quickly enough to be competitive with the end-user owned and managed equivalents. Services that are tied to human activity may need to accomodate a human's impatience and short attention span. Interactive services or those that respond to other external conditions may need to expand over multiple instances in response to changing conditions, only to shut down excessive instances when a spike in demand subsides. These scenarios require a lightweight deployment mechanism that can rapidly produce not only standard base images, but also forked copies of custom file system images produced by clients. Forking running virtual machines is beyond the scope of this work, but file system support for the process is essential and relevant.
+
+Long-lived clients have their own requirements, which must also be addressed in the storage system. Reliability can be considered a basic requirement of general-purpose storage systems, but additional support for backups and historical snapshots is also crucial especially for long-lived tasks. Runtime snapshots give a stable version of a changing file system image that can be backed up offline, used for reverting changes, examined for debugging purposes, or analyzed for forensic purposes after a service has been compromised \cite{king,whitaker}. Only clients can determine the right tradeoff between the extra storage costs invoked by snapshots (which retain files that would otherwise be deleted) and the convenience of a detailed history, so Envoy must allow each client to dictate its own snapshot policy.
+
+Envoy must be able to provide a private, bootable image for each service that launches. Platforms for embarassingly parallel problems and other homogenous service platforms can install basic software at each node and rely on a shared file system only for shared data. The profile of service clusters admits this possibility for starting the virtual machine manager and other administrative software, but individual services cannot be tied to a specific machine. Even the possibility of supplying a range of standard base images on each node and using a stacking file system to export virtual private images falls apart as clients fork highly-customized images, leading to inconsistency and excessive management complexity. A better solution is to require that the storage system be able to supply globally accessible images and location transparency, but do so in a way that accomodates the common case (many private images used by a individual services that migrate infrequently) with good performance. The convenience of global accessibility and transparent mobility must not cost much when it is not used much.
+
+Service clusters are a platform for flexible commodity computation, which may take the form of distributed services as well as self-contained computation processes. Private images may be the most common case, but transparent file sharing is just as necessary for larger services. This leads to the problem of controlling shared access as mentioned above, and also to the necessity of managing concurrent file access. Past studies have repeatedly concluded that runtime contention is quite rare, but the potential is always present in a shared file system. Envoy aims for perfectly consistent file sharing, i.e., any read performed after a write completes observes the full effects of that write, and it does so with the further requirement that scaling of shared images be limited only by the extent of overlapping access. Subsets of a shared space that are used by only a single client should perform like private images, again supporting a range of access patterns but optimizing for the most common case.
+
+\subsection{Local impact}
+
+In normal clusters, the throughput of the whole system is the paramount concern. In service clusters, good aggregate performance is still important, but the owner is no longer the primary client, and clients are concerned primarily with the performance of their individual services.
+
+Envoy is designed to encourage \emph{local impact}, meaning that the resources consumed directly or indirectly by a service should be as close to that service as possible. If not in the same VM, then on the same machine, or on another machine that has some specific reason to yield its resources to a remote service.
+
+By extension, this principle leads to a topology that is shaped according to runtime conflicts. When there is no reason to suspect contention, machines will prefer to assume complete control over the storage in active use by their client services. If two machines must explicitly coordinate their access to storage, they are treading on overlapping or neighboring storage and implicitly declaring that a conflict is likely to occur.
+
+Previous studies of file system traffic have repeatedly concluded that runtime contention is rare, so Envoy is designed to assume that exclusive access dominates and react to conflicts as they occur rather than optimizing for the occasions when access overlaps.
 
 \section{Summary}
