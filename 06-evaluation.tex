@@ -1,6 +1,41 @@
 \chapter{Evaluation}
 
+\section{Experimental setup}
+
+\subsection{Test machines}
+
+\subsection{Benchmarks}
+
+\subsubsection{Bonnie}
+\subsubsection{Postmark}
+
+\subsubsection{Linux source tree}
+untar -- write test
+tar > /dev/null -- read test
+rsync -- 2nd read test
+find
+
+On druid-1 (local envoy control, local storage is master, druid \& skiing storage)
+results-untar-same-machine.txt
+
+
+
 \section{Baseline performance}
+
+If the goal is to get stuff as local as possible, quantify the benefits of achieving that.
+
+\subsection{Comparisons}
+
+ext3
+userspace nfs
+kernel nfs
+userspace 9p
+envoy same VM
+envoy same machine
+envoy remote machine
+
+cache: cold vs warm vs hot
+
 \begin{itemize}
 \item standard benchmarks verses userspace 9p. Postmark \cite{katcher}.
 \item same domain verses different domain verses different machine

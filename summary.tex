@@ -1,9 +1,35 @@
-\chapter*{Summary}
+% Required summary page
+% Must include name, college, title, date, and the abstract
+% approximately 300 words
 
-Standards in the computer industry have made basic components and entire architectures into commodities, and now software and services are following. Commodity hardware is being used increasingly for the heavy lifting formerly reserved for specialized platforms. Improved web interfaces, widespread internet access, and cheap servers make it practical for many software services to be hosted by specialized providers instead of being managed directly by users and corporate IT departments. Modern updates to virtualization technology make it practical to subdivide these commodity servers and manage groups of heterogeneous services using commodity operating systems and tools, allowing a move beyond specialized services. Computation as a commodity is soon to follow, and some progress has already been made in making this a reality.
+% for the separate summary:
 
-In this dissertation, I argue for the adoption of \emph{service clusters}---clusters of commodity machines managed by a single administrator, but running services in virtual machines for arbitrary, untrusted clients---as the basic building block for an economy of \emph{flexible commodity computation}. I then outline the requirements such a platform imposes on its storage system and argue that they are necessary for service clusters to be practical, but not found in existing systems.
+{
+\thispagestyle{empty}
+\begin{center}
+{
+    \Large Cluster Storage for\\ Commodity Computation
 
-Next I introduce the Envoy file system, a distributed file system for service clusters. In addition to meeting the needs of service clusters, Envoy introduces a novel file distribution scheme that organizes metadata management according to runtime usage patterns; in effect, the file system is partitioned to give control of each part to the client that uses it the most, and that client in turn acts as a server with caching for other clients that require concurrent access. This allows it to provide scalability that is limited by only by actual contention, and a perfectly consistent cache distributed across the cluster.
+    \bigskip
+
+    \textit{\large Summary}
+}
+\end{center}
+
+\hfill Russell Glen Ross\\
+October 2006 \hfill Wolfson College\\
+}
+
+% for the dissertation:
+
+% \chapter*{Summary}
+
+% the summary
+
+\noindent Standards in the computer industry have made basic components and entire architectures into commodities, and commodity hardware is increasingly being used for the heavy lifting formerly reserved for specialized platforms. Now software and services are following. Modern updates to virtualization technology make it practical to subdivide commodity servers and manage groups of heterogeneous services using commodity operating systems and tools, so services can be packaged and managed independent of the hardware on which they run. Computation as a commodity is soon to follow, moving beyond the specialized applications typical of today's utility computing.
+
+In this dissertation, I argue for the adoption of \emph{service clusters}---clusters of commodity machines under central control, but running services in virtual machines for arbitrary, untrusted clients---as the basic building block for an economy of \emph{flexible commodity computation}. I outline the requirements this platform imposes on its storage system and argue that they are necessary for service clusters to be practical, but are not found in existing systems.
+
+Next I introduce Envoy, a distributed file system for service clusters. In addition to meeting the needs of a new environment, Envoy introduces a novel file distribution scheme that organizes metadata and cache management according to runtime demand. In effect, the file system is partitioned and control of each part given to the client that uses it the most; that client in turn acts as a server with caching for other clients that require concurrent access. Scalability is limited only by runtime contention, and clients share a perfectly consistent cache distributed across the cluster. As usage patterns change, the partition boundaries are updated dynamically, with urgent changes made quickly and more minor optimizations made over a longer period of time.
 
 Experiments with the Envoy prototype demonstrate that service clusters can support cheap and rapid deployment of services, from isolated instances to groups of cooperating components with shared storage demands.
