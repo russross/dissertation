@@ -6,13 +6,11 @@ In this chapter I survey the most important and widely known storage systems, wi
 
 \section{Commodity computing}
 
+
+
 Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
 
 \subsection{Embarassingly parallel problems}
-
-\subsection{Service platforms}
-
-Jini
 
 \subsection{Clusters}
 CARD for cluster monitoring\cite{anderson97}
@@ -51,21 +49,28 @@ Live migration \cite{clark} \cite{sapuntzakis02}
 
 Ventana \cite{pfaff}
 
-\section{File systems}
+\section{Storage systems}
 
-\subsection{Early systems}
-\subsubsection{Multics}
-\cite{corbato}
-\subsubsection{The Tandem NonStop kernel}
-\cite{bartlett}
-\subsubsection{Grapevine}
-\cite{birrell82}
-\subsubsection{Worm}
-\cite{shoch}
+Storage is a fundamental component of all general-purpose computer systems. A combination of high storage density, random access with reasonable performance, durability, and low cost have made magnetic storage on rotating platters the dominant medium for online storage. The physical characteristics of disks and empirical studies of workloads have driven the design of file systems, and most systems can be characterised by their intended use and the architectural niche they occupy.
+
+% \subsection{Early systems}
+% 
+% \subsubsection{The Tandem NonStop kernel}
+% \cite{bartlett}
+% \subsubsection{Grapevine}
+% \cite{birrell82}
+% \subsubsection{Worm}
+% \cite{shoch}
 
 \subsection{Local file systems}
-\subsubsection{Berkeley FFS}
-\subsubsection{Elephant}
+
+Disks are mechanical devices and their performance is limited primarily by the need to physically position the head over the correct part of the platter to access a disk region. File systems designed for local disks achieve performance by minimizing the physical movement required. Disk access can be reduced through caching, and latency penalties can be minimized through strategic data placement.
+
+The Berkeley Fast File System (FFS) was the first to optimize data layout for performance by clustering related information. Block metadata is distributed across the disk to be near the file data it describes, file metadata is grouped for files in the same directory, and blocks in the same file are grouped whenever possible \cite{mckusick}. Similar concepts have extended beyond local file systems; the same expectations of correlated access can be exploited to reduce latency when accessing data across the network.
+
+File system tracing leads to more refined understanding of how files are accessed \cite{ousterhout,ruemmler,gibson98b}. Most files accessed are small, but size distributions are skewed enough that most data transferred is from large files. Most files are short-lived, and most files access is sequential. 
+
+Elephant
 \cite{santry}
 
 \subsection{Network file systems}

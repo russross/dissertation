@@ -1,4 +1,5 @@
 \documentclass[a4paper,12pt,twoside,openany]{report}
+% pdftex for both documentclass and graphicx
 \usepackage{graphicx}
 \usepackage{xspace}
 \usepackage{url}
@@ -44,6 +45,27 @@
 
 \newcommand{\vs}{vs.\xspace}
 \newcommand{\etc}{etc.\xspace}
+\newcommand{\thesistitle}{Cluster Storage for Commodity Computation}
+\newcommand{\thesistitlebig}{Cluster Storage for\\ Commodity Computation}
+
+\usepackage[
+  %pdftex,
+  bookmarks=true,
+  linkbordercolor={0 0 1},
+  pagebackref=true,
+  plainpages=false,
+  pdfpagelabels=true,
+  hypertexnames=false,
+  breaklinks=true]{hyperref}
+\hypersetup{
+  pdfauthor   = {Russell Glen Ross},
+  pdftitle    = {\thesistitle},
+  pdfsubject  = {A dissertation submitted to the University of Cambridge
+                  for the degree of Doctor of Philosophy},
+  pdfkeywords = {File Systems, Distributed Systems, Cluster Storage,
+                 Commodity Computation, Virtualization},
+  pdfcreator  = {LaTeX with hyperref package},
+  pdfproducer = {pdftex}}
 
 \begin{document}
 

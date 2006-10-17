@@ -1,22 +1,26 @@
 \chapter{Introduction}
 
-\section{Service clusters}
+This dissertation presents the design and implementation of a distributed file system. The design is motivated by the requirements of a new environment that emerges at the intersection of two trends: the renaissance of machine virtualization as a tool for hardware management, and the increasing use of commodity hardware and software for problems at the high end of the computation spectrum. 
 
-\subsection{Computation as a commodity}
-\subsection{Services as a management unit}
-\subsection{Need for another storage system}
+\section{Motivation}
+
+* Trends: commodity hardware 
+* Storage for specific environments
+* Storage driven by practical realities
+* Competing goals: speed vs reliability, etc.
+* POSIX is limited: extend with snapshots, forks, etc.
+* VMs
 
 \section{Contributions}
-\begin{itemize}
-\item Argument for commodity computing needing a platform
-\item Argument for services as basic unit of management
-\item Argument for clusters of services as platform for commodity computing
-\item Argument for new storage system to meet needs of this platform
-\item Design of Envoy file system
-\item Prototype and evaluation of Envoy
-\end{itemize}
 
-\section{Outline of dissertation}
+* Argument for commodity computing needing a platform
+* Argument for services as basic unit of management
+* Argument for clusters of services as platform for commodity computing
+* Argument for new storage system to meet needs of this platform
+* Design of Envoy file system
+* Prototype and evaluation of Envoy
+
+\section{Outline}
 \begin{enumerate}
 \item Background: commodity computing (GRID, clusters, utility computing), virtual machines, file systems
 \item Motivation: state of commodity computing, argument for service-based economy, proposal and definition of service clusters
