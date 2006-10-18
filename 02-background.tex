@@ -6,43 +6,40 @@ In this chapter I survey the most important and widely known storage systems, wi
 
 \section{Commodity computing}
 
-
-
 Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
 
-\subsection{Embarassingly parallel problems}
+\subsection{Network of workstations}
+Networks of workstations (NOW)\cite{anderson95a}
 
 \subsection{Clusters}
+
+Embarassingly parallel problems
+
 CARD for cluster monitoring\cite{anderson97}
 
 Fast crash recovery verses redundancy\cite{baker94}
 
 Partition cloning \cite{rauch}
 
-\subsubsection{TranSend}
-
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
-
-\subsection{Network of workstations}
-Networks of workstations (NOW)\cite{anderson95a}
 
 \subsection{The GRID}
 \cite{zhao}
 
+\subsection{Hosted services}
+
 \section{Virtualization}
 
 \subsection{Virtual machine monitors}
-\subsubsection{IBM System/370}
-\subsubsection{Disco}
-\subsubsection{Denali}
-\subsubsection{Xen}
-\cite{barham}
+IBM System/370 \cite{gum}
+Disco
+Denali
+Xen \cite{barham}
 Live migration \cite{clark} \cite{sapuntzakis02}
-\subsubsection{Terra}
-\cite{garfinkel}
-\subsubsection{VMWare}
-\subsubsection{vMatrix}
-\subsubsection{IBM Managed Hosting}
+Terra \cite{garfinkel}
+VMWare
+vMatrix
+IBM Managed Hosting
 
 \subsection{XenoServers}
 \cite{kotsovinos}
@@ -51,94 +48,72 @@ Ventana \cite{pfaff}
 
 \section{Storage systems}
 
+Storage is a fundamental component of all general-purpose computer systems. A combination of high storage density, random access, and low cost have made magnetic storage on rotating platters the dominant medium for durable storage. The time to access a random byte of data from a disk is typically measured in milliseconds, while for DRAM this time drops roughly six orders of magnitude to a nanosecond scale, and that gap is continuing to grow.
 
+Because disks are so slow, storage systems are designed around the goal of accessing the disk as little as possible, and favoring sequential access to avoid costly seek delays. Effective use of cache is vital to this goal, and specialized storage systems tuned to specific system architectures and expected workloads are worthwhile because of the potential speed gains over more general systems.
 
-Storage is a fundamental component of all general-purpose computer systems. A combination of high storage density, random access with reasonable performance, durability, and low cost have made magnetic storage on rotating platters the dominant medium for online storage. The physical characteristics of disks and empirical studies of workloads have driven the design of file systems, and most systems can be characterised by their intended use and the architectural niche they occupy.
-
-% \subsection{Early systems}
-% 
-% \subsubsection{The Tandem NonStop kernel}
-% \cite{bartlett}
-% \subsubsection{Grapevine}
-% \cite{birrell82}
-% \subsubsection{Worm}
-% \cite{shoch}
+Storage systems have been studied extensively, and one purpose of this section is to survey related work that has influenced this dissertation. A second purpose relates to the thesis of this work, which argues that a new environment justifies a new storage architecture. The works discussed here are presented in the context of the environments that inspired them, in part to establish a pattern of symbiosis between storage architectures and computation environments, a pattern at the heart of the present work.
 
 \subsection{Local file systems}
 
-Disks are mechanical devices and their performance is limited primarily by the need to physically position the head over the correct part of the platter to access a disk region. File systems designed for local disks achieve performance by minimizing the physical movement required. Disk access can be reduced through caching, and latency penalties can be minimized through strategic data placement.
+Disks are mechanical devices and their performance is limited primarily by the need to physically position the head over the correct part of the platter to access data. File systems designed for local disks achieve performance by minimizing the physical movement required. Disk access can be reduced through caching, and latency penalties can be minimized through strategic data placement.
 
 The Berkeley Fast File System (FFS) was the first to optimize data layout for performance by clustering related information. Block metadata is distributed across the disk to be near the file data it describes, file metadata is grouped for files in the same directory, and blocks in the same file are grouped whenever possible \cite{mckusick}. Similar concepts have extended beyond local file systems; the same expectations of correlated access can be exploited to reduce latency when accessing data across the network.
 
-File system tracing leads to more refined understanding of how files are accessed \cite{ousterhout,ruemmler,gibson98b}. Most files accessed are small, but size distributions are skewed enough that most data transferred is from large files. Most files are short-lived, and most files access is sequential. 
+File system tracing reveals how files are accessed in real systems. Most files accessed are small, but size distributions are skewed enough that most data transferred is from large files. Writes are less common than reads, and most files are short-lived. Files access is typically sequential, and most files are read from or written to in their entirety \cite{ousterhout,ruemmler,gibson98b}.
 
-Elephant
-\cite{santry}
+As cache sizes grow, more requests can be satisfied without consulting the disk, and file system designs can assume that commonly-used metadata is resident in memory. At the extreme, most read requests can be satisfied by a large cache, but all writes have to go to disk eventually (with the exception of data that is deleted or overwritten before it is commited to disk). Writes requests are fewer in number, but the mix of operations that penetrates the cache and reaches the disk has a different composition than those initiated by clients. Furthermore, updates often involve metadata changes as well, requiring multiple disk writes even for small updates. a Log-structured file systems (LFS) responded to this observation by making the entire file system an append-only log to optimize write operations \cite{rosenblum}. Seltzer et al.\ \cite{seltzer} compared FFS with LFS and found these two radically different designs had surprisingly comparable performance, with each performing better under specific workloads.
+
+As Stein argued \cite{stein05}, the low-level layout issues that drive much of local file system design are obscured in larger systems, particularly those involving multiple disks. Disk reliability depends on redundancy \cite{patterson}, so multiple disks are standard for important data. With distributed file systems that often takes the form of replication across multiple hosts, but even in local systems a file system will be most effective when it is matched to the expectations of its environment.
+
+% TODO: This is a really weak section
+
+Elephant? \cite{santry}
 
 \subsection{Network file systems}
-\subsubsection{Cedar}
-\cite{gifford,hagmann}
-\subsubsection{NFS}
-\cite{sandberg,pawlowski,callaghan}
-\subsubsection{NFSv4}
-\subsubsection{Sprite}
-\cite{baker91,nelson,welch}
-\subsubsection{AFS}
-\cite{howard}
-\subsubsection{Coda}
-\cite{kistler,satyanarayanan}
-\subsubsection{Alpine}
-\cite{brown}
-\subsubsection{LOCUS}
-\cite{walker}
-\subsubsection{Spring}
-\cite{khalidi}
-\subsubsection{Harp}
-\cite{liskov}
-\subsubsection{Plan 9}
+
+
+
+
+Cedar \cite{gifford,hagmann}
+NFS \cite{sandberg,pawlowski,callaghan}
+NFSv4
+Sprite \cite{baker91,nelson,welch}
+AFS \cite{howard}
+Coda \cite{kistler,satyanarayanan}
+Alpine \cite{brown}
+LOCUS \cite{walker}
+Spring \cite{khalidi}
+Harp \cite{liskov}
 Plan 9 \cite{pike90} name spaces \cite{pike92} in Linux with v9fs \cite{hensbergen}
+Venti \cite{quinlan}
+
 \subsubsection{Caching}
 \cite{dahlin94a}\cite{chaiken}\cite{blaze}\cite{dahlin94b}\cite{keleher}\cite{muthitacharoen}. 1\% of files are used daily, 90\% never used after creation \cite{gibson98b}.
+
 \subsubsection{Disk layout}
-Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off.
-
-AutoRAID \cite{wilkes95}
-
-Block-based sharing \cite{mcgregor}
+Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off. AutoRAID \cite{wilkes95}. Block-based sharing \cite{mcgregor}
 
 \subsection{Serverless file systems}
-\cite{douceur01}\cite{douceur02}
-\subsubsection{xFS}
-xFS\cite{wang93,anderson95b,wang98}
-\subsubsection{Farsite}
-\cite{bolosky,adya}
 
-\subsection{Archival systems}
-
-\subsubsection{Venti}
-\cite{quinlan}
+xFS \cite{wang93,anderson95b,wang98}
+Farsite \cite{bolosky,adya}\cite{douceur01}\cite{douceur02}
 
 \subsection{Wide-area file systems}
+
 Prospero \cite{neuman}
-
-\subsubsection{Oceanstore}
 Oceanstore and Pond \cite{kubiatowicz,rhea}
-
-\subsubsection{Echo}
 
 The Echo distributed file system \cite{birrell93} was designed to provide a single, global namespace that was accessible anywhere and perfectly coherent. It uses write-behind caching for files and directories with ordering constraints to preserve consistency even in the presence of crashes \cite{mann}, and employs a token-passing scheme to manage cache coherency. The top levels of the namespace are hosted on the DNS, with a link to a specific server. From there, servers host branches of the tree with further links to additional servers. Replication is done at the server level with primary and secondary servers that are synchronized. It died when the OS that hosted it wasn't ported to newer hardware (another reason to use commodity systems).
 
-\subsubsection{Ficus}
-\cite{popek}
+Ficus \cite{popek}
 
 \subsection{Peer-to-peer file systems}
-\subsubsection{Pasta}
-\cite{moreton}
-\subsubsection{Pangaea}
-\cite{saito02}
+
+Pasta \cite{moreton}
+Pangaea \cite{saito02}
 \cite{stein02}
-\subsubsection{JetFile}
-\cite{gronvall}
+JetFile \cite{gronvall}
 
 For file distribution, read-only file systems \cite{fu} and bittorrent, etc.
 
@@ -153,24 +128,15 @@ To be reliable you need lots of replicas \cite{rabin}, probably too many \cite{b
 
 Layered clustering in Cuckoo allows NFS servers to be combined into a cluster system \cite{klosterman}, spreading load, etc. Mirage uses a similar approach to aggregate multiple NFS servers into a single, virtual server \cite{baker02}.
 
-\subsubsection{Petal}
-\cite{lee95,lee96}
-\subsubsection{Frangipani}
-\cite{thekkath}
-\subsubsection{Ursa Minor}
-\cite{abd-el-malek}
-\subsubsection{Google file system}
-\cite{ghemawat}
-\subsubsection{Lustre}
-\cite{lustre}
-\subsubsection{Parallax}
-\cite{warfield}
-\subsubsection{FAB}
-\cite{frolund,saito04,ji}
-\subsubsection{Self-* Storage}
-\cite{ganger}
-\subsubsection{Ceph}
-\cite{weil}
+Petal \cite{lee95,lee96}
+Frangipani \cite{thekkath}
+Ursa Minor \cite{abd-el-malek}
+Google file system \cite{ghemawat}
+Lustre \cite{lustre}
+Parallax \cite{warfield}
+FAB \cite{frolund,saito04,ji}
+Self-* Storage \cite{ganger}
+Ceph \cite{weil}
 
 \subsection{Storage area networks}
 \cite{burns}. Bandwidth can become a problem as scale grows \cite{hospodor}, requiring careful architecture choices.

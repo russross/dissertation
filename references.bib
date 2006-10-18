@@ -217,6 +217,8 @@
 
 @String{usenixwinter94 = "Proceedings of the USENIX Winter 1994
                  Technical Conference"}
+@String{usenixwinter95 = "Proceedings of the USENIX Winter 1995
+                 Technical Conference"}
 
 @String{vldb81 = "Proceedings of the 7th International Conference on
                  Very Large Data Bases"}
@@ -234,7 +236,7 @@
 @String{cacm =   "Communications of the ACM"}
 
 @String{cs =     "Computing Systems"}
-
+@String{ibmrd = "IBM Journal of Research and Development"}
 @String{ieeecomputer = "IEEE Computer"}
 
 @String{ieeemicro = "IEEE Micro"}
@@ -349,13 +351,6 @@
 @String{vienna = "Vienna, Austria"}
 
 % Papers
-@Manual{9man,
-  title =        "Plan 9 Programmer’s Manual, Volume 1",
-  organization = "AT\&T Bell Laboratories",
-  address =      "Murray Hill, New Jersey",
-  year =         "1995",
-}
-
 @InProceedings{abd-el-malek,
   author =       "Michael Abd-El-Malek and William V. Courtright II and
                  Chuck Cranor and Gregory R. Ganger and James Hendricks
@@ -880,6 +875,16 @@
   address =      neworleans,
   year =         "1999",
 }
+@Article{gum,
+author = {Peter H. Gum},
+title = {System/370 Extended Architecture: Facilities for Virtual Machines},
+journal = ibmrd,
+year = {1983},
+volume = {27},
+number = {6},
+pages = {530--544},
+month = nov,
+}
 
 @InProceedings{hagmann,
   author =       "Robert Hagmann",
@@ -1324,6 +1329,14 @@
   month =        sep,
 }
 
+@Manual{9man,
+  author =       "Rob Pike",
+  title =        "Plan 9 Programmer’s Manual, Volume 1",
+  organization = "Bell Laboratories",
+  address =      "Murray Hill, New Jersey",
+  year =         "1995",
+}
+
 @InProceedings{popek,
   author =       "Gerald J. Popek and Richard G. Guy and Thomas W. Page
                  Jr. and John S. Heidemann",
@@ -1388,6 +1401,15 @@
   year =         "2000",
   address =      sandiego,
   month =        jun,
+}
+@InProceedings{rosenblum,
+author = {Mendel Rosenblum and John K. Ousterhout},
+title = {The Design and Implementation of a Log-Structured File System},
+booktitle = sosp91,
+pages = {1--15},
+year = {1991},
+address = pacificgrove,
+month = oct,
 }
 
 @InProceedings{ruemmler,
@@ -1480,6 +1502,15 @@
   pages =        "447--459",
   month =        apr,
 }
+@InProceedings{seltzer,
+author = {Margo Seltzer and Keith A. Smith and Hari Balakrishnan and Jacqueline Chang and Sara McMains and Venkata Padmanabhan},
+title = {File System Logging Versus Clustering: A Performance Comparison},
+booktitle = usenixwinter95,
+pages = {249--264},
+year = {1995},
+address = neworleans,
+month = jan,
+}
 
 @InProceedings{shapiro,
   author =       "Marc Shapiro",
@@ -1533,7 +1564,7 @@
                  minutes with {G}oogle's {E}ric {S}chmidt",
   month =        feb,
   year =         "2002",
-  note =         "\url{http://archives.cnn.com/2002/TECH/internet/02/01/interview.eric.schmidt.idg/index.html}",
+  howpublished = "\biburl{http://archives.cnn.com/2002/TECH/internet/02/01/interview.eric.schmidt.idg/index.html}",
 }
 
 @InProceedings{stein02,

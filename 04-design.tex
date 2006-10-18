@@ -42,7 +42,7 @@ Snapshots also serve another special purpose: they can be used as the root for a
 
 \section{Architecture}
 
-Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a contribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. \prettyref{fig:single-machine} illustrates a typical machine. By giving clients access to the system through a proxy on a trusted VM, they can use simple, well-understood client-server access protocols to join a more complicated system \cite{shapiro}. Byzantine failure from clients is less of a problem, because they have a limited interface to the system and hold no trusted data.
+Services access Envoy using a client-server network file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. The services on this VM partition the local disk between a contribution to the shared storage pool and the local persistent cache as well as providing a standard interface allowing other hosts on the machine to access the file system. \figref{fig:single-machine} illustrates a typical machine. By giving clients access to the system through a proxy on a trusted VM, they can use simple, well-understood client-server access protocols to join a more complicated system \cite{shapiro}. Byzantine failure from clients is less of a problem, because they have a limited interface to the system and hold no trusted data.
 
 \begin{figure}[tp]
 \centering
@@ -51,7 +51,7 @@ Services access Envoy using a client-server network file system interface. Each 
 \label{fig:single-machine}
 \end{figure}
 
-The file system management processes join a cluster-wide service that is comprised of two primary layers, as illustrated in \prettyref{fig:layers}. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
+The file system management processes join a cluster-wide service that is comprised of two primary layers, as illustrated in \figref{fig:layers}. Storage is managed by the lower level, which allows a small set of basic file operations on objects. All operations are stateless and the storage service makes no attempt to prevent or manage concurrent requests or to enforce any kind of security policy. Objects are extents of bytes with a small set of attributes.
 
 On top of the storage service is the envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for services to access.
 
@@ -66,7 +66,7 @@ In the remainder of this section I detail the functionality and requirements of 
 
 \subsection{Distribution}
 
-\prettyref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings and, despite alternatives developed over the years, is still the dominant storage model in practical use.
+\figref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings and, despite alternatives developed over the years, is still the dominant storage model in practical use.
 
 \begin{figure}[tp]
 \centering
@@ -160,7 +160,7 @@ Cache utilization is most effective when clients on a single machine use file sy
 
 \subsection{Data paths for typical requests}
 
-To summarize the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \prettyref{fig:hops}. The best case (retrieval from in-memory cache on the same machine) is designed to be the most common, with extra steps being required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
+To summarize the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \figref{fig:hops}. The best case (retrieval from in-memory cache on the same machine) is designed to be the most common, with extra steps being required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
 
 \begin{figure}[tp]
 \centering
@@ -263,7 +263,7 @@ This process simplifies writes, but it also creates unnecessary cloning for terr
 
 Storage space is cheap and plentiful, and systems such as Venti are designed to keep a complete history of all files ever created \cite{quinlan}. This may be appropriate for some workstation environments, where the increase in storage capacity can out-pace typical data creation rates, but deleting files permanently is still a necessity for many other users. In service clusters, users are charged according to the resources they use, so they must have the flexibility to completely remove old files. Also, when clients leave a particular service cluster, the owner may wish to reclaim the space for future use, as there is little incentive to keeping it around on behalf of a client that is no longer paying. Also, concern for privacy and compliance with data retention laws may require data to be completely removed.
 
-Backups in Envoy are done through snapshot operations, and anything created and deleted in the window between two successive snapshots is no longer accessible anywhere so it is deleted immediately (with an exception described in \prettyref{sec:hard-links}). This is easily detected through the copy-on-write mechanism, which identifies all files that were created since the most recent snapshot. All files with copy-on-write flags (either explicit in a directory link or implicit through an ancestor's link) are backed by objects referenced by one or more read-only snapshots, so envoys never delete these objects when their corresponding files are deleted.
+Backups in Envoy are done through snapshot operations, and anything created and deleted in the window between two successive snapshots is no longer accessible anywhere so it is deleted immediately (with an exception described in \secref{sec:hard-links}). This is easily detected through the copy-on-write mechanism, which identifies all files that were created since the most recent snapshot. All files with copy-on-write flags (either explicit in a directory link or implicit through an ancestor's link) are backed by objects referenced by one or more read-only snapshots, so envoys never delete these objects when their corresponding files are deleted.
 
 The problem comes when trying to delete old snapshots, as it can be difficult to determine which storage objects are used only by the files in a given snapshot.
 

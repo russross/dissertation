@@ -1,6 +1,5 @@
 \documentclass[a4paper,12pt,twoside,openany]{report}
 \usepackage{graphicx}
-\usepackage{xspace}
 \usepackage{url}
 
 % font and encoding setup
@@ -9,21 +8,23 @@
 \usepackage{newcent}
 
 % references
-\usepackage{prettyref}
-\newrefformat{cha}{Chapter~\ref{#1}}
-\newrefformat{sec}{Section~\ref{#1}}
-\newrefformat{tab}{Table~\ref{#1}}
-\newrefformat{fig}{Figure~\ref{#1}}
+\newcommand{\charef}[1]{Chapter~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\figref}[1]{Figure~\ref{#1}}
 
 % page setup
 \usepackage[margin=1.5in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\raggedbottom
+
 % put section numbers in the margin
 \makeatletter
 \def\@seccntformat#1{\protect\makebox[0pt][r]{\small\csname the#1\endcsname\quad}}
 \makeatother
-\usepackage{fancyhdr}
-\usepackage{setspace}
-\raggedbottom
+
+% push footnotes down to the bottom
 \renewcommand\footnoterule{\vfill\hrule\vspace{6pt}}
 
 % set up floats
@@ -33,9 +34,6 @@
 \renewcommand{\textfraction}{.2}
 \renewcommand{\floatpagefraction}{.8}
 \newcommand{\figwidth}{.8\textwidth}
-
-\newcommand{\note}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
-%\suppressnotes
 
 % ignore Overfull \vbox messages
 \vfuzz 2pt
@@ -52,7 +50,6 @@
 
 % pdf settings
 \usepackage[
-  %pdftex,
   bookmarks=true,
   linkbordercolor={0 0 1},
   pagebackref=true,
@@ -160,8 +157,9 @@
     \lhead[]{\fancyplain{}{\sffamily\small\textsl{\bibname}}}
   \fi
 \makeatother
+\DeclareUrlCommand\biburl{}
 
-\bibliographystyle{plain}
+\bibliographystyle{alpha}
 \bibliography{references}
 
 \end{document}
