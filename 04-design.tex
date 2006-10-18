@@ -46,7 +46,7 @@ Services access Envoy using a client-server network file system interface. Each 
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/single-machine}
+\includegraphics[width=\figwidth]{figures/single-machine}
 \caption[Layout of Envoy services in a single machine]{Each physical machine has a single administrative VM that hosts the Envoy services. This VM exports a network file system protocol to other service VMs running on the same machine.}
 \label{fig:single-machine}
 \end{figure}
@@ -57,7 +57,7 @@ On top of the storage service is the envoy layer, which builds a hierarchical fi
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/layers}
+\includegraphics[width=\figwidth]{figures/layers}
 \caption[The layers of the Envoy file system]{The envoy service coordinates access to provide a single, coherent view of the distributed file system. It relies on the storage service, which provides a repository of objects referenced by unique identifiers.}
 \label{fig:layers}
 \end{figure}
@@ -70,7 +70,7 @@ In the remainder of this section I detail the functionality and requirements of 
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/client-server}
+\includegraphics[width=\figwidth]{figures/client-server}
 \caption[Machines served by a series of client-server file systems]{A popular storage solution for groups of clients involves a series of dedicated servers. Content on the servers is carefully managed to distribute storage demand and transaction load between the servers.}
 \label{fig:client-server}
 \end{figure}
@@ -164,7 +164,7 @@ To summarize the architecture of Envoy, consider the data paths followed by typi
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/hops}
+\includegraphics[width=\figwidth]{figures/hops}
 \caption[Network paths taken by typical file requests]{File system requests proceed from service VMs to the local envoy service. A request from a local territory may be filled by the local in-memory cache, the local disk cache, or by a single network hop to a storage server. A request for a foreign territory adds a single network hop in each case, as the local envoy acts as the client to a remote envoy.}
 \label{fig:hops}
 \end{figure}

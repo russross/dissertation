@@ -1,5 +1,4 @@
 \documentclass[a4paper,12pt,twoside,openany]{report}
-% pdftex for both documentclass and graphicx
 \usepackage{graphicx}
 \usepackage{xspace}
 \usepackage{url}
@@ -18,6 +17,10 @@
 
 % page setup
 \usepackage[margin=1.5in]{geometry}
+% put section numbers in the margin
+\makeatletter
+\def\@seccntformat#1{\protect\makebox[0pt][r]{\small\csname the#1\endcsname\quad}}
+\makeatother
 \usepackage{fancyhdr}
 \usepackage{setspace}
 \raggedbottom
@@ -29,6 +32,7 @@
 \renewcommand{\bottomfraction}{.8}
 \renewcommand{\textfraction}{.2}
 \renewcommand{\floatpagefraction}{.8}
+\newcommand{\figwidth}{.8\textwidth}
 
 \newcommand{\note}[1]{\marginpar{\begin{tiny}#1\end{tiny}}}
 %\suppressnotes
@@ -40,14 +44,13 @@
 \widowpenalty=9999
 \interfootnotelinepenalty=9999
 
-% allow some extra space to avoid overfull hboxes
+% allow some extra space for paragraph breaking
 \setlength{\emergencystretch}{1em}
 
-\newcommand{\vs}{vs.\xspace}
-\newcommand{\etc}{etc.\xspace}
 \newcommand{\thesistitle}{Cluster Storage for Commodity Computation}
 \newcommand{\thesistitlebig}{Cluster Storage for\\ Commodity Computation}
 
+% pdf settings
 \usepackage[
   %pdftex,
   bookmarks=true,
@@ -71,50 +74,65 @@
 
 % front matter
 
-\pagenumbering{roman}
-\include{titles}
-
-\renewcommand\contentsname{Table of Contents}
-\tableofcontents
-
-\addcontentsline{toc}{chapter}{\listfigurename}
-{ \parskip 0pt plus 1pt \listoffigures }
-
-\addcontentsline{toc}{chapter}{\listtablename}
-{ \parskip 0pt plus 1pt \listoftables }
-
+\pagestyle{empty}
+\include{titlepage}
 \cleardoublepage
 
-% page headings for main body
-
+% set up page headers and footers
 \pagestyle{fancyplain}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 \renewcommand{\plainheadrulewidth}{0pt}
 \renewcommand{\plainfootrulewidth}{0pt}
-
-\headheight 15pt
-
-\makeatletter
-  \if@twoside
-    \lhead[\fancyplain{}{\sffamily\small\textsl{\leftmark}}]{\fancyplain{}{}}
-    \rhead[\fancyplain{}{}]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
-  \else
-    \lhead[\fancyplain{}{}]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
-    \rhead[\fancyplain{}{}]{\fancyplain{}{}}
-  \fi
-\makeatother
-
-\lfoot[\sl\thepage]{}
-\cfoot[]{}
-\rfoot[]{\sl\thepage}
-
 \renewcommand{\chaptermark}[1]{\markboth{#1}{\thechapter.\ #1}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+\headheight 15pt
 
-\pagenumbering{arabic}
+% no headers for the front matter
+\lhead{}
+\rhead{}
+\cfoot{}
+
+% number the front matter in roman numerals
+\pagenumbering{roman}
+\lfoot[\sl\thepage]{}
+\rfoot[]{\sl\thepage}
+
+\include{preface}
+\include{summary}
+\include{acknowledgements}
+
+% table of contents
+
 \onehalfspace
+\parskip 0pt plus 1pt
+
+\renewcommand\contentsname{Table of Contents}
+\tableofcontents
+
+% \clearpage
+% \addcontentsline{toc}{chapter}{\listtablename}
+% \listoftables
+% 
+% \clearpage
+% \addcontentsline{toc}{chapter}{\listfigurename}
+% \listoffigures
+
+% start normal page numbering with page one on the right side
+\cleardoublepage
+\pagenumbering{arabic}
+
 \parskip 10pt
+
+% page headers with chapter and section names
+\makeatletter
+  \if@twoside
+    \lhead[\fancyplain{}{\sffamily\small\textsl{\leftmark}}]{}
+    \rhead[]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
+  \else
+    \lhead[]{\fancyplain{}{\sffamily\small\textsl{\rightmark}}}
+  \fi
+\makeatother
 
 % main text
 
@@ -128,9 +146,21 @@
 
 % bibliography
 
+\clearpage
 \singlespace
 \renewcommand{\bibname}{References}
 \addcontentsline{toc}{chapter}{\bibname}
+
+% hardcode the headers so they are not uppercase
+\makeatletter
+  \if@twoside
+    \lhead[\fancyplain{}{\sffamily\small\textsl{\bibname}}]{}
+    \rhead[]{\fancyplain{}{\sffamily\small\textsl{\bibname}}}
+  \else
+    \lhead[]{\fancyplain{}{\sffamily\small\textsl{\bibname}}}
+  \fi
+\makeatother
+
 \bibliographystyle{plain}
 \bibliography{references}
 

@@ -256,7 +256,7 @@ Unlike the stateless storage servers, envoy instances must track two main classe
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/territory-claims}
+\includegraphics[width=\figwidth]{figures/territory-claims}
 \caption[A territory managed by a single envoy]{Territories are trees, and their boundaries (yellow squares) are defined by the root pathname and the exits, which point to child territories owned by remote envoys. Claims (blue circles) represent individual storage objects, and within a territory they form a tree covering a subset of the territory, with leaves at each territory exit and active file or directory.}
 \label{fig:territory-claims}
 \end{figure}
@@ -269,7 +269,7 @@ Overlaid on the file tree within a territory is another tree of \emph{claims}, o
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/file-handles}
+\includegraphics[width=\figwidth]{figures/file-handles}
 \caption[Managing file handles in local and remote envoys]{File handles for incoming connections are grouped and distinguished by the source, be it a client VM or a remote envoy. Each handle is tied to a specific claim in a local territory. Client handles may also be forwarded to a remote envoy, in which case it is assigned an entry from the envoy's single remote file handle pool.}
 \label{fig:file-handles}
 \end{figure}
@@ -386,7 +386,7 @@ Like other operations involving multiple envoy instances, territory migration is
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/grant-topdown}
+\includegraphics[width=\figwidth]{figures/grant-topdown}
 \caption[Types of territory migrations]{Territory migrations are always driven by the parent in the namespace tree, which can annex a neighboring territory, cede territory to another envoy, or coordinates the transfer of a territory from one neighbor to another. For a child to initiate a transfer, it must send a \texttt{nominate} request to the parent, which then carries out the transfer.}
 \label{fig:grant-topdown}
 \end{figure}
@@ -415,7 +415,7 @@ The prototype is designed to favor simplicity over other virtues in complex tran
 
 \begin{figure}[tp]
 \centering
-\includegraphics[width=.8\textwidth]{figures/migrate-sync}
+\includegraphics[width=\figwidth]{figures/migrate-sync}
 \caption[Sequence of events in a territory migration]{The sequence of events when a client file request conflicts with a territory transfer.}
 \label{fig:migrate-sync}
 \end{figure}
