@@ -62,27 +62,28 @@ The Berkeley Fast File System (FFS) was the first to optimize data layout for pe
 
 File system tracing reveals how files are accessed in real systems. Most files accessed are small, but size distributions are skewed enough that most data transferred is from large files. Writes are less common than reads, and most files are short-lived. Files access is typically sequential, and most files are read from or written to in their entirety \cite{ousterhout,ruemmler,gibson98b}.
 
-As cache sizes grow, more requests can be satisfied without consulting the disk, and file system designs can assume that commonly-used metadata is resident in memory. At the extreme, most read requests can be satisfied by a large cache, but all writes have to go to disk eventually (with the exception of data that is deleted or overwritten before it is commited to disk). Writes requests are fewer in number, but the mix of operations that penetrates the cache and reaches the disk has a different composition than those initiated by clients. Furthermore, updates often involve metadata changes as well, requiring multiple disk writes even for small updates. a Log-structured file systems (LFS) responded to this observation by making the entire file system an append-only log to optimize write operations \cite{rosenblum}. Seltzer et al.\ \cite{seltzer} compared FFS with LFS and found these two radically different designs had surprisingly comparable performance, with each performing better under specific workloads.
+As cache sizes grow, more requests can be satisfied without consulting the disk, and file system designs can assume that commonly-used metadata is resident in memory. At the extreme, most read requests can be satisfied by a large cache, but all writes have to go to disk eventually (with the exception of data that is deleted or overwritten before it is commited to disk). Writes requests are fewer in number, but the mix of operations that penetrates the cache and reaches the disk has a different composition than those initiated by clients. Furthermore, updates often involve metadata changes as well, requiring multiple disk writes even for small updates. a Log-structured file systems (LFS) responded to this observation by making the entire file system an append-only log to optimize write operations \cite{rosenblum}. Seltzer et al.\ \cite{seltzer} compared FFS with LFS and found these two radically different designs had surprisingly comparable performance overall. Each excelled under certain conditions, but both could be characterized by the disk head movements they required to satisfy requests.
 
-As Stein argued \cite{stein05}, the low-level layout issues that drive much of local file system design are obscured in larger systems, particularly those involving multiple disks. Disk reliability depends on redundancy \cite{patterson}, so multiple disks are standard for important data. With distributed file systems that often takes the form of replication across multiple hosts, but even in local systems a file system will be most effective when it is matched to the expectations of its environment.
+As Stein argued \cite{stein05}, the low-level layout issues that drive much of local file system design are obscured in larger systems, particularly those involving multiple disks. Disk reliability depends on redundancy \cite{patterson}, so multiple disks are standard for important data. With distributed file systems that often takes the form of replication across multiple hosts, but even in local systems a file system optimized around the movements of a disk head becomes less predictable when the single-disk model is not adhered to.
 
 % TODO: This is a really weak section
 
 Elephant? \cite{santry}
 
-\subsection{Network file systems}
+\subsection{Client-server file systems}
 
+If local file systems can be characterized by how they manage disk head motion, distributed file systems are dominated by concerns of data placement and cache management. For a single host, cache management is mainly concerned with deciding when to commit writes to disk to ensure durability in the face of a system crash, but distributed systems must also consider cache consistency in the face of concurrent access. ``Concurrent'' in this case includes overlapping cache entries as well as in-flight requests that potentially conflict.
 
+The Sun Network File System (NFS) was the first widely-used file system for sharing files across hosts \cite{sandberg}. NFS serves many clients from a single server, which hosts the persistent and canonical version of a file. Cache policy is unspecified, with no explicit support from the server. Clients generally cache files in memory and periodically check with the server to detect updates from other clients that would invalidate the cache entry. Thus an update made by one client is only detected by another when the first has sent the update to the server and the second has checked for an update, prompting clients to send a constant stream of \texttt{stat} requests to check for updates, but leaving them with no way to hasten a delayed update from another client. An update to the protocol helped this somewhat by performing implicit \texttt{stat} requests and including the results with common operations, but the fundamental problem remained \cite{pawlowski,callaghan}.
 
+Other client-server systems addressed the problem in different ways. The Andrew File System (AFS) \cite{satyanarayanan85,howard} and its successor Coda \cite{satyanarayanan90} use the client's disk as a persistent cache with close-to-open semantics. In this system, the cache is validated at file open time, and changes forwarded to the server at file close time. To reduce validity checks, a client could be given a \emph{callback}, meaning that the server would notify it if a change was made to the file by another client. These changes improved scalability by reducing the load on the server, but they still left open the possibility of conflicting updates on multiple clients.
 
-Cedar \cite{gifford,hagmann}
-NFS \cite{sandberg,pawlowski,callaghan}
-NFSv4
-Sprite \cite{baker91,nelson,welch}
-AFS \cite{howard}
-Coda \cite{kistler,satyanarayanan}
-Alpine \cite{brown}
+The Sprite team observed that most applications do not explicitly account for the possibility of inconsistency, so they sacrificed some performance for full cache consistency by disabling caching for files under contention \cite{baker91,nelson,welch}. Since concurrent access is relatively rare \cite{kistler}, this did not pose a significant problem for overall performance.
+
 LOCUS \cite{walker}
+Cedar \cite{gifford,hagmann}
+NFSv4
+Alpine \cite{brown}
 Spring \cite{khalidi}
 Harp \cite{liskov}
 Plan 9 \cite{pike90} name spaces \cite{pike92} in Linux with v9fs \cite{hensbergen}
@@ -96,7 +97,10 @@ Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman
 
 \subsection{Serverless file systems}
 
-xFS \cite{wang93,anderson95b,wang98}
+While creative caching can alleviate the problem somewhat, all client-server architectures have inherent scaling problems. As a single point of contact for all clients, a server's load grows in proportion to the number of clients, and it also represents a single point of failure. In addition, the duties of a server tend to make it unsuitable for other uses, so such an architecture calls for a dedicated server. As workstations became more powerful, harnessing their excess capacity to cooperate on large problems became attractive \cite{anderson95a}.
+
+In xFS, the traditional roles of a server are split and distributed to the clients to yield a serverless architecture \cite{wang93,anderson95b}. Hosts can act as clients, managers that coordinate data placement, and/or storage servers that provide disk space. Cache coherency is achieved through an explicit consistency protocol where conflicting clients are detected and managed. In addition, the xFS team observed that modern networks make retrieval from a peer's cache faster than from a disk, so sharing and coordinating cache across hosts can yield benefits over discrete local caches. The resulting protocol was so complex that the team had to employ a formal protocol verifier to get a working implementation \cite{wang98}. While a valid way to manage complexity, reducing complexity is preferable, especially in storage systems where correctness is paramount.
+
 Farsite \cite{bolosky,adya}\cite{douceur01}\cite{douceur02}
 
 \subsection{Wide-area file systems}
