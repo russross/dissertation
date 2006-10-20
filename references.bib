@@ -80,6 +80,9 @@
 @String{lisa97 = "Proceedings of the 11th Systems Administration
                  Conference (LISA~'97)"}
 
+@String{linuxexpo98 = "Proceedings of the 4th Annual Linux Expo
+                 (LinuxExpo~'98)"}
+
 @String{mobicomp94 = "Proceedings of the IEEE Workshop on Mobile
                  Computing Systems and Applications"}
 
@@ -200,10 +203,19 @@
 
 @String{ukuug90 = "Proceedings of the Summer UKUUG Conference"}
 
-@String{usenixannual00 = "Proceedings of the 2000 USENIX Annual
-                 Technical Conference"}
+@String{usenix95 = "Proceedings of the USENIX 1995 Technical
+                 Conference"}
+
+@String{usenix96 = "Proceedings of the USENIX 1996 Annual Technical
+                 Conference"}
+
+@String{usenix00 = "Proceedings of the 2000 USENIX Annual Technical
+                 Conference"}
 
 @String{usenixsummer85 = "Proceedings of the USENIX Summer 1985
+                 Conference"}
+
+@String{usenixsummer90 = "Proceedings of the USENIX Summer 1990
                  Conference"}
 
 @String{usenixsummer94 = "Proceedings of the USENIX Summer 1994
@@ -216,9 +228,6 @@
                  Technical Conference"}
 
 @String{usenixwinter94 = "Proceedings of the USENIX Winter 1994
-                 Technical Conference"}
-
-@String{usenixwinter95 = "Proceedings of the USENIX Winter 1995
                  Technical Conference"}
 
 @String{vldb81 = "Proceedings of the 7th International Conference on
@@ -286,6 +295,8 @@
 @String{collegepark = "College Park, Maryland"}
 
 @String{coppermountain = "Copper Mountain Resort, Colorado"}
+
+@String{durham = "Durham, North Carolina"}
 
 @String{elmau =  "Elmau, Germany"}
 
@@ -580,6 +591,14 @@
   year =         "2000",
 }
 
+@PhdThesis{burrows,
+  author =       "Michael Burrows",
+  title =        "Efficient Data Sharing",
+  school =       "University of Cambridge Computer Laboratory",
+  year =         "1988",
+  month =        dec,
+}
+
 @Misc{callaghan,
   author =       "B. Callaghan and B. Pawlowski and P. Staubach",
   title =        "{NFS} Version 3 Protocol Specification",
@@ -752,7 +771,17 @@
   month =        oct,
 }
 
-@TechReport{ganger,
+@InProceedings{ganger94,
+  author =       "Gregory R. Ganger and Yale N. Patt",
+  title =        "Metadata Update Performance in File Systems",
+  booktitle =    osdi94,
+  pages =        "49--60",
+  year =         "1994",
+  address =      monterey,
+  month =        nov,
+}
+
+@TechReport{ganger03,
   author =       "Gregory R. Ganger and John D. Strunk and Andrew J.
                  Klosterman",
   title =        "Self-* {S}torage: Brick-based Storage with Automated
@@ -1017,6 +1046,19 @@
   year =         "1997",
   number =       "TR3022",
   month =        oct,
+}
+
+@InProceedings{kazar,
+  author =       "Michael L. Kazar and Bruce W. Leverett and Owen T.
+                 Anderson and Vasilis Apostolides and Beth A. Bottos and
+                 Sailesh Chutani and Craig Everhart and W. Anthony Mason
+                 and Shu-Tsui Tu and Edward R. Zayas",
+  title =        "{DEcorum} File System Architectural Overview",
+  booktitle =    usenixsummer90,
+  pages =        "151--164",
+  year =         "1990",
+  address =      anaheim,
+  month =        jun,
 }
 
 @InProceedings{keleher,
@@ -1401,7 +1443,7 @@
   author =       "Drew Roselli and Jacob R. Lorch and Thomas E.
                  Anderson",
   title =        "A Comparison of File System Workloads",
-  booktitle =    usenixannual00,
+  booktitle =    usenix00,
   pages =        "41--54",
   year =         "2000",
   address =      sandiego,
@@ -1523,17 +1565,30 @@
   month =        apr,
 }
 
-@InProceedings{seltzer,
+@InProceedings{seltzer95,
   author =       "Margo Seltzer and Keith A. Smith and Hari Balakrishnan
                  and Jacqueline Chang and Sara McMains and Venkata
                  Padmanabhan",
   title =        "File System Logging Versus Clustering: {A} Performance
                  Comparison",
-  booktitle =    usenixwinter95,
+  booktitle =    usenix95,
   pages =        "249--264",
   year =         "1995",
   address =      neworleans,
   month =        jan,
+}
+
+@InProceedings{seltzer00,
+  author =       "Margo I. Seltzer and Gregory R. Ganger and M. Kirk
+                 McKusick and Keith A. Smith and Craig A. N. Soules and
+                 Christopher A. Stein",
+  title =        "Journaling Versus Soft Updates: Asynchronous Meta-data
+                 Protection in File Systems",
+  booktitle =    usenix00,
+  pages =        "71--84",
+  year =         "2000",
+  address =      sandiego,
+  month =        jun,
 }
 
 @InProceedings{shapiro,
@@ -1557,6 +1612,17 @@
   number =       "3",
   pages =        "172--180",
   month =        mar,
+}
+
+@InProceedings{schroeder,
+  author =       "Michael D. Schroeder and David K. Gifford and Roger M.
+                 Needham",
+  title =        "A Caching File System for a Programmer's Workstation",
+  booktitle =    sosp85,
+  pages =        "25--34",
+  year =         "1985",
+  address =      orcasisland,
+  month =        dec,
 }
 
 @InProceedings{sobti,
@@ -1612,6 +1678,17 @@
   month =        jun,
 }
 
+@InProceedings{sweeney,
+  author =       "Adam Sweeney and Doug Doucette and Wei Hu and Curtis
+                 Anderson and Mike Nishimoto and Geoff Peck",
+  title =        "Scalability in the {XFS} File System",
+  booktitle =    usenix96,
+  pages =        "1--14",
+  year =         "1996",
+  address =      sandiego,
+  month =        jan,
+}
+
 @InProceedings{thekkath,
   author =       "Chandramohan A. Thekkath and Timothy Mann and Edward
                  K. Lee",
@@ -1633,6 +1710,16 @@
   number =       "1",
   pages =        "35--55",
   month =        jan,
+}
+
+@InProceedings{tweedie,
+  author =       "Stephen Tweedie",
+  title =        "Journaling the {L}inux ext2fs Filesystem",
+  booktitle =    linuxexpo98,
+  pages =        "25--29",
+  year =         "1998",
+  address =      durham,
+  month =        may,
 }
 
 @InProceedings{vilayannur,
