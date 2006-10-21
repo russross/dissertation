@@ -1,8 +1,6 @@
 \chapter{Background}
 
-Storage systems have been studied and documented extensively in the systems literature. One could argue that everything worth doing has been done, or alternatively one could assert that the continuing research is evidence that everyone has failed so far, with the truth probably residing somewhere between these two extremes. Storage is an essential component of most systems, though, and the requirements placed on them are almost as various as the solutions that have been proposed.
 
-In this chapter I survey the most important and widely known storage systems, with an emphasis on those that are relevent to service clusters and similar in design to Envoy. I describe some of the major design tradeoffs that emerge and identify the characteristics of service clusters that make existing systems unsuitable or less than ideal for this emerging environment as I justify the need for another storage system.
 
 \section{Commodity computing}
 
@@ -38,7 +36,7 @@ Xen \cite{barham}
 Live migration \cite{clark} \cite{sapuntzakis02}
 Terra \cite{garfinkel}
 VMWare
-vMatrix
+vMatrix \cite{awadallah}
 IBM Managed Hosting
 
 \subsection{XenoServers}
@@ -86,7 +84,7 @@ Other client-server systems addressed the problem in different ways. The Andrew 
 
 The Sprite team observed that---despite the popularity of such systems---most applications do not explicitly account for inconsistencies introduced by the file system, so loosening consistency guarantees in favor of performance gains is a dangerous tradeoff. They sacrificed some performance for full cache consistency by disabling caching for files under contention \cite{baker91,nelson,welch}. Since concurrent access is relatively rare \cite{kistler}, this did not pose a significant problem for overall performance.
 
-In all distributed file systems that permit sharing, there must either be a canonical version of the file (or block \cite{mcgregor}) or some way to reconcile conflicting updates \cite{kistler}. In the former case, some participant is usually nominated as the owner of a particular file through a lease \cite{gray98}, token passing \cite{burrows}, or some other scheme. Any other host wanting access to the latest version must coordinate through the owner. Ownership may go to the host that provides storage, the one actively using the file, or a third manager host that connects the two \cite{blaze,keleher}. In Envoy, ownership goes to an active user, which then acts as a synchronous server to other users. Unlike Sprite, the principle user can continue to cache the file locally and share its cache with other concurrent users.
+In all distributed file systems that permit sharing, there must either be a canonical version of the file (or block \cite{mcgregor}) or some way to reconcile conflicting updates \cite{kistler}. In the former case, some participant is usually nominated as the owner of a particular file through a lease \cite{gray89}, token passing \cite{burrows,mann}, or some other scheme. Any other host wanting access to the latest version must coordinate through the owner. Ownership may go to the host that provides storage, the one actively using the file, or a third manager host that connects the two \cite{blaze,keleher}. In Envoy, ownership goes to an active user, which then acts as a synchronous server to other users. Unlike Sprite, the principle user can continue to cache the file locally and share its cache with other concurrent users.
 
 Another possibility is to disallow write sharing. The Cedar file system \cite{schroeder} makes all shared files immutable, and turns the problem into one of versioning \cite{gifford}. Venti takes this a step further by storing all file versions permanently and addressing them by a hash of their contents \cite{quinlan}. In workstation environments, it is possible for storage capacity to grow faster than storage is consumed, making this a feasible system. A less drastic approach is to permit snapshots \cite{hitz}, then recognize that historic versions are read-only and do not need cache coordination \cite{warfield}. Envoy employs this dichotomy between active and read-only file versions, implementing cache coordination only for mutable objects. It does not coalesce identical read-only objects like Venti, though it could be extended to do so using a lazy, asynchronous process.
 

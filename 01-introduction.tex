@@ -1,15 +1,18 @@
 \chapter{Introduction}
 
-This dissertation presents the design and implementation of a distributed file system. The design is motivated by the requirements of a new environment that emerges at the intersection of two trends: the renaissance of machine virtualization as a tool for hardware management, and the increasing use of commodity hardware and software for problems at the high end of the computation spectrum. 
+This dissertation presents the design and implementation of a distributed file system. The design is motivated by the requirements of a new environment that emerges at the intersection of three trends: the renaissance of machine virtualization as a tool for hardware management, the increasing use of commodity hardware and software for server applications, and the emergence of computation as a commodity service.
 
-\section{Motivation}
+Providing computing services for hire is nothing new, but previous offerings have always been on a limited scale, or restricted to a specific type of application. Web and email hosting services are commonplace, and numerous hosted computing frameworks have been proposed \cite{amir,vahdat,tullmann} and commercially implemented \cite{amazon}, but these require using a specific distributed framework or middleware that introduces a ``semantic bottleneck'' between the application and the hosting environment \cite{roscoe}.
 
-* Trends: commodity hardware 
-* Storage for specific environments
-* Storage driven by practical realities
-* Competing goals: speed vs reliability, etc.
-* POSIX is limited: extend with snapshots, forks, etc.
-* VMs
+Using virtual machines as basic deployment units gives applications access to standard tools and operating systems, and lets them move more easily from a local testing environment to a remote host, or between competing hosting providers. The XenoServers project \cite{reed} defines many of the components necessary for a public computing platform, including a high performance virtual machine monitor that runs on commodity hardware \cite{barham}.
+
+In this dissertation, I propose that platforms for providing computation as a commodity service should be built on clusters of commodity hardware with user applications managed at the virtual machine level. Designing for clusters instead of individual nodes introduces an element of scale at the implementation level that platform providers can exploit to reduce costs, support a wider range of applications, and foster an ecosystem of intermediate service providers.
+
+Previous work on XenoServers \cite{kotsovinos} proposed a service deployment model that highlighted the inadequecy of current storage solutions for such an environment. Managers must be able to migrate running services to balance load and make efficient use of hardware resources, so storage cannot be tied to a specific host. Transferring entire operating system images for every service instance would be costly, a problem that can be solved by providing template images with well-known software distributions that applications can customize at the deployment site. An extra dimension of scale is also introduced, as many independent services may run on a single machine. A storage system designed with these constraints in mind can take advantage of expected redundancy to save disk space and decrease deployment time \cite{warfield,pfaff}.
+
+Storage systems are normally measured by their performance, but their suitability to the environment they serve is equally important. If clusters of untrusted virtual machines are to succeed as a commodity computation platform, they must be served by a storage system optimized for the expected workload and with adequate features to make management practical.
+
+The thesis of this disseration is that clusters hosting virtual machines provide a useful platform for commodity computation, and a file system optimized for that environment can provide critical management features along with file system images limited in scale not by the degree of image sharing, but by the degree of runtime contention.
 
 \section{Contributions}
 
