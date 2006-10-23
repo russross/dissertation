@@ -21,7 +21,7 @@ Partition cloning \cite{rauch}
 
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
 
-\subsection{The GRID}
+\subsection{GRID}
 \cite{zhao}
 
 \subsection{Hosted services}
@@ -80,7 +80,7 @@ If local file systems can be characterized by how they manage disk head motion, 
 
 The Sun Network File System (NFS) was the first widely-used file system for sharing files across hosts \cite{sandberg}. NFS serves many clients from a single server, which hosts the persistent and canonical version of a file. Cache policy is unspecified, with no explicit support from the server. Clients generally cache files in memory and periodically check with the server to detect updates from other clients that would invalidate the cache entry. Thus an update made by one client is only detected by another when the first has sent the update to the server and the second has checked for an update, prompting clients to send a constant stream of \texttt{stat} requests to check for updates, but leaving them with no way to hasten a delayed update from another client. An update to the protocol helped this somewhat by performing implicit \texttt{stat} requests and including the results with common operations \cite{pawlowski,callaghan}, but the fundamental problem remained as most clients still delay writes to the server.
 
-Other client-server systems addressed the problem in different ways. The Andrew File System (AFS) \cite{satyanarayanan85,howard} and its successor Coda \cite{satyanarayanan90} use the client's disk as a persistent cache with close-to-open semantics. In this scheme, the cache is validated at file open time, and changes forwarded to the server at file close time. To reduce validity checks, a client can be given a \emph{callback}, meaning that it can assume the file is current unless explicitly notified by the server. These changes improved scalability by reducing the load on the server, but they still left open the possibility of conflicting updates on multiple clients.
+Other client-server systems addressed the problem in different ways. The Andrew File System (AFS) \cite{satyanarayanan85,howard} use the client's disk as a persistent cache with close-to-open semantics. In this scheme, the cache is validated at file open time, and changes forwarded to the server at file close time. To reduce validity checks, a client can be given a \emph{callback}, meaning that it can assume the file is current unless explicitly notified by the server. These changes improved scalability by reducing the load on the server, but they still left open the possibility of conflicting updates on multiple clients. Coda addresses conflict resolution directly and allows clients to continue operating when disconnected from the network, opening up access to mobile users \cite{satyanarayanan90,mummert}
 
 The Sprite team observed that---despite the popularity of such systems---most applications do not explicitly account for inconsistencies introduced by the file system, so loosening consistency guarantees in favor of performance gains is a dangerous tradeoff. They sacrificed some performance for full cache consistency by disabling caching for files under contention \cite{baker91,nelson,welch}. Since concurrent access is relatively rare \cite{kistler}, this did not pose a significant problem for overall performance.
 
@@ -93,7 +93,7 @@ Where snapshot systems typically use copy-on-write to transparently combine old 
 DFS \cite{kazar}
 NFSv4
 %Alpine \cite{brown}
-Harp \cite{liskov}
+%Harp \cite{liskov}
 
 \subsection{Serverless file systems}
 
@@ -101,41 +101,40 @@ While creative caching can alleviate the problem somewhat, all client-server arc
 
 In xFS, the traditional roles of a server are split and distributed to the clients to yield a serverless architecture \cite{wang93,anderson95b}. Hosts can act as clients, managers that coordinate data placement, and/or storage servers that provide disk space, similar to the file system of the earlier LOCUS distributed operating system \cite{walker}. Cache coherency is achieved through an explicit consistency protocol where conflicting clients are detected and managed.
 
-In addition, the xFS team observed that modern networks make retrieval from a peer's cache faster than from a disk \cite{dahlin94b}, so sharing and coordinating cache across hosts can yield benefits over discrete local caches. The resulting protocol was so complex that the team had to employ a formal protocol verifier to get a working implementation \cite{wang98}. While a valid way to manage complexity, reducing complexity through design is generally preferable, especially in storage systems where correctness is paramount.
+In addition, the xFS team observed that modern networks make retrieval from a peer's cache faster than from a disk \cite{dahlin94b}, so sharing and coordinating cache across hosts can yield benefits over discrete local caches \cite{dahlin94a}. The resulting protocol was so complex that the team had to employ a formal protocol verifier to get a working implementation \cite{wang98}. While a valid way to manage complexity, reducing complexity through design is generally preferable, especially in storage systems where correctness is paramount.
 
-Farsite \cite{bolosky,adya}\cite{douceur01}\cite{douceur02}
+Farsite targets a similar environment, but assumes that participating machines are not trusted \cite{adya}. This requires encrypting data and using complex Byzantine agreement protocols instead of trusting hosts that have been assigned management roles. It also calls for a higher replication factor to guard against malicious attacks as well as hardware failures, and makes cache sharing between hosts impractical \cite{dahlin94a}. These restrictions are imposed by the environment, again highlighting the importance of matching storage design to the expected conditions.
 
 The downside of having workstations double as servers is that the server function is not completely isolated from the other activities of the workstation. Runtime activity may be less predictable than on a dedicated server because server load is normally determined by the aggregate activity of many clients instead of that of a single user, and a user may also switch a workstation off without notice. The same trends that lead to excess capacity in workstations make dedicated servers cheap and powerful, without the additional complexity of a heterogeneous management environment. Despite numerous studies \cite{bolosky,douceur99,douceur01} showing feasibility and systems developed and tested \cite{adya,walker}, no serverless file system has seen widespread use for general-purpose computing.
 
-Caching:
-\cite{dahlin94a}
-Low bandwidth \cite{muthitacharoen}.
-
-Disk layout:
-Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off. AutoRAID \cite{wilkes95}.
+While Envoy has similar goals for serving a location-independent file hierarchy to many untrusted clients, putting it in a trusted cluster environment changes the assumptions significantly. Hardware virtualization allows malicious clients to coexist on hardware with trusted server processes, and the complexity of Byzantine failure models can be avoided. Managed hardware also means that replications factors can be planned around hardware failure rates and load balancing without worrying about hosts switching off frequently. The Farsite team found that nearly half of all consumed storage involved duplicate files, and created a procedure to combine them \cite{douceur02}. Envoy could benefit from a similar procedure, but reduces the need by promoting file system forking as a management tool and using copy-on-write to avoid creating many of the duplicates in the first place.
 
 \subsection{Wide-area file systems}
 
-Prospero \cite{neuman}
-Oceanstore and Pond \cite{kubiatowicz,rhea}
+Carrying the idea of distributed file systems to the logical extreme leads to global file systems, running on hosts throughout the world and serving millions of clients located anywhere.
 
-The Echo distributed file system \cite{birrell93} was designed to provide a single, global namespace that was accessible anywhere and perfectly coherent. It uses write-behind caching for files and directories with ordering constraints to preserve consistency even in the presence of crashes \cite{mann}, and employs a token-passing scheme to manage cache coherency. The top levels of the namespace are hosted on the DNS, with a link to a specific server. From there, servers host branches of the tree with further links to additional servers. Replication is done at the server level with primary and secondary servers that are synchronized. It died when the OS that hosted it wasn't ported to newer hardware (another reason to use commodity systems).
+Echo starts toward this goal with a single, global namespace that is accessible from anywhere with consistent caching \cite{birrell93,mann}. The top levels of the namespace are hosted on the DNS, with each name linking to the root of a hierarchy of servers managing a specific branch of the namespace. Replication is done at the server level with primary and secondary servers that are synchronized.
 
-Ficus \cite{popek}
+Pangaea \cite{saito02b} also uses a widely-dispersed network of trusted servers, but positions replicas dynamically to increase availability and reduce latency. Each object is managed independently and replicas can be created or moved in response to demand \cite{saito02a}.
 
-\subsection{Peer-to-peer file systems}
-
-Pasta \cite{moreton}
-Pangaea \cite{saito02}
-\cite{stein02}
-JetFile \cite{gronvall}
+Relying on trusted servers restricts the audience for a wide-area file system to large organizations or service providers. Peer-to-peer systems use donated resources on large numbers of widely-dispersed machines. Pasta \cite{moreton} and Eliot \cite{stein02} are built on distributed hash tables that map object IDs to hosts in the network. , though locating files by hashes of their contents, and like JetFile \cite{gronvall} they are backed by immutable objects
 
 For file distribution, read-only file systems \cite{fu} and bittorrent, etc.
 
 To be reliable you need lots of replicas \cite{rabin}, probably too many \cite{blake}.
 
-%\subsection{Mobile computing support}
-\cite{kim}\cite{mummert}\cite{sobti}
+Disk layout:
+Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off. AutoRAID \cite{wilkes95}.
+
+Prospero \cite{neuman}
+Oceanstore and Pond \cite{kubiatowicz,rhea}
+
+Fluid Replication \cite{kim}
+Segank: distributed mobile storage system \cite{sobti}
+Ficus \cite{popek}
+
+
+%Optimizing for bandwidth consumpion \cite{muthitacharoen}
 
 \subsection{Clusters}
 
