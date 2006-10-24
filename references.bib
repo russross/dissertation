@@ -83,11 +83,22 @@
 @String{icdcs02 = "Proceedings of 22nd IEEE International Conference on
                  Distributed Computing Systems (ICDCS~2002)"}
 
+@String{infocom05 = "Proceedings of the 24th Annual Joint Conference of
+                 the IEEE Computer and Commications Societies
+                 (INFOCOM~2005)"}
+
+@String{iptps05 = "Proceedings of the 4th International Workshop on
+                 Peer-to-Peer Systems (IPTPS~'05)"}
+
 @String{lisa97 = "Proceedings of the 11th Systems Administration
                  Conference (LISA~'97)"}
 
 @String{linuxexpo98 = "Proceedings of the 4th Annual Linux Expo
                  (LinuxExpo~'98)"}
+
+@String{middleware01 = "Proceedings of the 18th IFIP/ACM International
+                 Conference on Distributed Systems Platforms
+                 (Middleware~2001)"}
 
 @String{mobicomp94 = "Proceedings of the IEEE Workshop on Mobile
                  Computing Systems and Applications"}
@@ -121,10 +132,17 @@
 @String{osdi06 = "Proceedings of the 7th Symposium on Operating Systems
                  Design and Implementation (OSDI~'06)"}
 
+@String{p2pecon03 = "Proceedings of the 1st Workshop on Economics of
+                 Peer-to-Peer Systems"}
+
 @String{repdata90 = "Proceedings of the First Workshop on the Management
                  of Replicated Data"}
 
 @String{sigcomm98 = "Proceedings of the ACM SIGCOMM~'98 Conference on
+                 Applications, Technologies, Architectures, and
+                 Protocols for Computer Communication"}
+
+@String{sigcomm01 = "Proceedings of the ACM SIGCOMM~'01 Conference on
                  Applications, Technologies, Architectures, and
                  Protocols for Computer Communication"}
 
@@ -293,6 +311,8 @@
 
 @String{austin = "Austin, Texas"}
 
+@String{berkeley = "Berkeley, California"}
+
 @String{boulder = "Boulder, Colorado"}
 
 @String{boltonlanding = "Bolton Landing, New York"}
@@ -321,9 +341,13 @@
 
 @String{elmau =  "Elmau, Germany"}
 
+@String{heidelberg = "Heidelberg, Germany"}
+
 @String{honolulu = "Honolulu, Hawaii"}
 
 @String{houston = "Houston, Texas"}
+
+@String{ithaca = "Ithaca, New York"}
 
 @String{kolding = "Kolding, Denmark"}
 
@@ -338,6 +362,8 @@
 @String{london = "London, United Kingdom"}
 
 @String{madison = "Madison, Wisconsin"}
+
+@String{miami =  "Miami, Florida"}
 
 @String{monterey = "Monterey, California"}
 
@@ -503,7 +529,7 @@ year = {2006},
 
 @InProceedings{awadallah,
   author =       "Amr A. Awadallah and Mendel Rosenblum",
-  title =        "The {vMatrix}: {A} Network of Virtual Machine Monitors
+  title =        "The v{M}atrix: {A} Network of Virtual Machine Monitors
                  for Dynamic Content Distribution",
   booktitle =    wcw02,
   year =         "2002",
@@ -700,6 +726,15 @@ year = {2006},
   month =        may,
 }
 
+@InProceedings{cohen,
+  author =       "Bram Cohen",
+  title =        "Incentives Build Robustness in {B}it{T}orrent",
+  booktitle =    p2pecon03,
+  year =         "2003",
+  address =      berkeley,
+  month =        jun,
+}
+
 @InProceedings{corbato,
   author =       "F. J. Corbató and V. A. Vyssotsky",
   title =        "Introduction and Overview of the Multics System",
@@ -708,6 +743,17 @@ year = {2006},
   year =         "1965",
   volume =       "27",
   month =        jun,
+}
+
+@InProceedings{dabek,
+  author =       "Frank Dabek and M. Frans Kaashoek and David Karger and
+                 Robert Morris and Ion Stoica",
+  title =        "Wide-Area Cooperative Storage with {CFS}",
+  booktitle =    sosp01,
+  pages =        "202--215",
+  year =         "2001",
+  address =      lakelouis,
+  month =        oct,
 }
 
 @InProceedings{dahlin94a,
@@ -924,6 +970,17 @@ year = {2006},
   pages =        "288--298",
 }
 
+@InProceedings{gkantsidis,
+  author =       "Christos Gkantsidis and Pablo Rodriguez",
+  title =        "Network Coding for Large Scale Content Distribution",
+  booktitle =    infocom05,
+  year =         "2005",
+  pages =        "2235--2245",
+  volume =       "4",
+  address =      miami,
+  month =        mar,
+}
+
 @InProceedings{gray81,
   author =       "Jim N. Gray",
   title =        "The Transaction Concept: Virtues and Limitations",
@@ -1015,7 +1072,7 @@ year = {2006},
 
 @InProceedings{hartman99,
   author =       "John H. Hartman and Ian Murdock and Tammo Spalink",
-  title =        "The {Swarm} Scalable Storage System",
+  title =        "The {S}warm Scalable Storage System",
   booktitle =    icdcs99,
   month =        jun,
   year =         "1999",
@@ -1073,7 +1130,7 @@ year = {2006},
   author =       "Hui-I Hsiao and David J. DeWitt",
   title =        "Chained Declustering: {A} New Availability Strategy
                  for Multiprocessor Database Machines",
-  number =       "CS TR 854",
+  number =       "CS~TR~854",
   institution =  "University of Wisconsin, Madison",
   month =        jun,
   year =         "1989",
@@ -1114,7 +1171,7 @@ year = {2006},
                  Anderson and Vasilis Apostolides and Beth A. Bottos and
                  Sailesh Chutani and Craig Everhart and W. Anthony Mason
                  and Shu-Tsui Tu and Edward R. Zayas",
-  title =        "{DEcorum} File System Architectural Overview",
+  title =        "{DE}corum File System Architectural Overview",
   booktitle =    usenixsummer90,
   pages =        "151--164",
   year =         "1990",
@@ -1187,7 +1244,7 @@ year = {2006},
   author =       "Evangelos Kotsovinos and Tim Moreton and Ian Pratt and
                  Russ Ross and Keir Fraser and Steven Hand and Tim
                  Harris",
-  title =        "Global-scale Service Deployment in the {XenoServer}
+  title =        "Global-scale Service Deployment in the {X}eno{S}erver
                  Platform",
   booktitle =    worlds04,
   year =         "2005",
@@ -1418,7 +1475,7 @@ year = {2006},
 @InProceedings{pike90,
   author =       "Rob Pike and Dave Presotto and Ken Thompson and Howard
                  Trickey",
-  title =        "{Plan 9} from {B}ell {L}abs",
+  title =        "Plan~9 from {B}ell {L}abs",
   booktitle =    ukuug90,
   pages =        "1--9",
   year =         "1990",
@@ -1429,7 +1486,7 @@ year = {2006},
 @InProceedings{pike92,
   author =       "Rob Pike and Dave Presotto and Ken Thompson and Howard
                  Trickey and Phil Winterbottom",
-  title =        "The Use of Name Spaces in {Plan 9}",
+  title =        "The Use of Name Spaces in {P}lan~9",
   booktitle =    sigops92,
   pages =        "72--76",
   year =         "1992",
@@ -1439,7 +1496,7 @@ year = {2006},
 
 @Manual{9man,
   author =       "Rob Pike",
-  title =        "Plan 9 Programmer’s Manual, Volume 1",
+  title =        "Plan~9 Programmer’s Manual, Volume~1",
   organization = "Bell Laboratories",
   address =      "Murray Hill, New Jersey",
   year =         "1995",
@@ -1454,6 +1511,17 @@ year = {2006},
   year =         "1990",
   address =      houston,
   month =        nov,
+}
+
+@InProceedings{pouwelse,
+  author =       "J. A. Pouwelse and P. Garbacki and D. H. J. Epema and
+                 H. J. Sips",
+  title =        "The {B}ittorrent {P2P} File-Sharing System:
+                 Measurements and Analysis",
+  booktitle =    iptps05,
+  year =         "2005",
+  address =      ithaca,
+  month =        feb,
 }
 
 @InProceedings{quinlan,
@@ -1475,6 +1543,17 @@ year = {2006},
   number =       "2",
   pages =        "335--348",
   month =        apr,
+}
+
+@InProceedings{ratnasamy,
+  author =       "Sylvia Ratnasamy and Paul Francis and Mark Handley and
+                 Richard Karp and Scott Shenker",
+  title =        "A Scalable Content-Addressable Network",
+  booktitle =    sigcomm01,
+  pages =        "161--172",
+  year =         "2001",
+  address =      sandiego,
+  month =        aug,
 }
 
 @InProceedings{rauch,
@@ -1504,7 +1583,7 @@ year = {2006},
 @InProceedings{rhea,
   author =       "Sean Rhea and Patrick Eaton and Dennis Geels and Hakim
                  Weatherspoon and Ben Zhao and John Kubiatowicz",
-  title =        "Pond: The {OceanStore} Prototype",
+  title =        "Pond: The {O}cean{S}tore Prototype",
   booktitle =    fast03,
   pages =        "1--14",
   year =         "2003",
@@ -1542,6 +1621,17 @@ year = {2006},
   year =         "1991",
   address =      pacificgrove,
   month =        oct,
+}
+
+@InProceedings{rowstron,
+  author =       "Antony Rowstron and Peter Druschel",
+  title =        "Pastry: Scalable, Decentralized Object Location, and
+                 Routing for Large-Scale Peer-to-Peer Systems",
+  booktitle =    middleware01,
+  pages =        "329--350",
+  year =         "2001",
+  address =      heidelberg,
+  month =        nov,
 }
 
 @InProceedings{ruemmler,
@@ -1590,8 +1680,8 @@ year = {2006},
 @InProceedings{sandberg,
   author =       "Russel Sandberg and David Goldberg and Steve Kleiman
                  and Dan Walsh and Bob Lyon",
-  title =        "Design and Implementation of the {S}un {N}etwork
-                 {F}ilesystem",
+  title =        "Design and Implementation of the {S}un Network
+                 Filesystem",
   booktitle =    usenixsummer85,
   pages =        "119--130",
   year =         "1985",
@@ -1790,9 +1880,21 @@ year = {2006},
                  and H. Schwarzbauer and T. Taylor and I. Rytina and M.
                  Kalla and L. Zhang and V. Paxson",
   title =        "Stream Control Transmission Protocol",
-  howpublished = "RFC 2960",
+  howpublished = "RFC~2960",
   month =        oct,
   year =         "2000",
+}
+
+@InProceedings{stoica,
+  author =       "Ion Stoica and Robert Morris and David Karger and
+                 Frans Kaashoek and Hari Balakrishnan",
+  title =        "Chord: {A} Scalable Peer-to-Peer Lookup Service for
+                 Internet Applications",
+  booktitle =    sigcomm01,
+  pages =        "149--160",
+  year =         "2001",
+  address =      sandiego,
+  month =        aug,
 }
 
 @InProceedings{sweeney,
@@ -1831,7 +1933,7 @@ year = {2006},
 
 @InProceedings{tullmann,
   author =       "Patrick Tullmann and Jay Lepreau",
-  title =        "Nested {Java} Processes: {OS} Structure for Mobile
+  title =        "Nested {J}ava Processes: {OS} Structure for Mobile
                  Code",
   booktitle =    sigops98,
   pages =        "111--117",
@@ -1940,7 +2042,7 @@ year = {2006},
 
 @Article{welch,
   author =       "Brent B. Welch",
-  title =        "Measured Performance of Caching in the {Sprite}
+  title =        "Measured Performance of Caching in the {S}prite
                  Network File System",
   year =         "1991",
   journal =      cs,
@@ -1979,7 +2081,19 @@ year = {2006},
   month =        sep,
 }
 
-@InProceedings{zhao,
+@TechReport{zhao01,
+  author =       "Ben Y. Zhao and John Kubiatowicz and Anthony D.
+                 Joseph",
+  title =        "Tapestry: An Infrastructure for Fault-tolerant
+                 Wide-area Location and Routing",
+  institution =  "Computer Science Division, University of California at
+                 Berkeley",
+  year =         "2001",
+  number =       "UCB/CSD-01-1141",
+  month =        apr,
+}
+
+@InProceedings{zhao04,
   author =       "Ming Zhao and Jian Zhang and Renato Figueiredo",
   title =        "Distributed File System Support for Virtual Machines
                  in Grid Computing",
