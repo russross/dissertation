@@ -40,7 +40,7 @@ vMatrix \cite{awadallah}
 IBM Managed Hosting
 
 \subsection{XenoServers}
-\cite{kotsovinos}
+\cite{kotsovinos04a,kotsovinos04b}
 
 Ventana \cite{pfaff}
 
@@ -87,7 +87,7 @@ Another possibility is to disallow write sharing. The Cedar file system \cite{sc
 
 A less drastic approach is to permit snapshots \cite{hitz}, then mark historic versions as read-only with no requirement for cache coordination \cite{warfield}. Envoy employs this dichotomy between active and read-only file versions, implementing cache management only for mutable objects. It does not coalesce identical read-only objects like Venti or Farsite \cite{douceur02}. It could be extended to do so using a lazy, asynchronous process, but it reduces the need by promoting file system forking with copy-on-write as a management tool to avoid creating many of the duplicates in the first place.
 
-Where snapshot systems typically use copy-on-write to transparently combine old data with new, some systems allow explicit stacking of file systems. Spring \cite{khalidi} allows file systems to be layered with optionally synchronized updates as a mechanism for extending functionality by layering in new features. Plan~9 \cite{pike90} allows any file system mount to be layered over another and their contents combined to give each user a custom view of local and remote file systems \cite{pike92}. The copy-on-write NFS server I developed for the XenoServers project \cite{kotsovinos} allowed layering instructions to be put in files, where the server would immediately notice them and reconfigure the user's view of the file system. These systems can be used as a way to fork a file system, by sharing the common base image and capturing changes in a private layer. Over time this can lead to complex hierarchies of layers, and such systems rely on the semantics of their backing file systems. Envoy can be used in conjunction with a stacking layer, but it already provides explicit support for snapshots and file system forks.
+Where snapshot systems typically use copy-on-write to transparently combine old data with new, some systems allow explicit stacking of file systems. Spring \cite{khalidi} allows file systems to be layered with optionally synchronized updates as a mechanism for extending functionality by layering in new features. Plan~9 \cite{pike90} allows any file system mount to be layered over another and their contents combined to give each user a custom view of local and remote file systems \cite{pike92}. The copy-on-write NFS server I developed for the XenoServers project \cite{kotsovinos04b} allowes layering instructions to be put in files, where the server immediately notices them and reconfigures the user's view of the file system. These systems can be used as a way to fork a file system, by sharing the common base image and capturing changes in a private layer. Over time this can lead to complex hierarchies of layers, and such systems rely on the semantics of their backing file systems. Envoy can be used in conjunction with a stacking layer, but it already provides explicit support for snapshots and file system forks.
 
 \subsection{Serverless file systems}
 
@@ -111,17 +111,15 @@ Carrying the idea of distributed file systems to the logical extreme leads to gl
 
 Relying on trusted servers restricts the audience for a wide-area file system to large organizations and service providers who can maintain widely-dispursed networks. Peer-to-peer systems use resources volunteered by participants on large numbers of machines.
 
-The simplest systems are read-only file distribution schemes. Bittorrent tracks all clients with a central manager, but data blocks are transferred mainly between clients \cite{cohen,pouwelse}, which request blocks they have not yet received from peers that have already downloaded them. Avalanche \cite{gkantsidis} uses network coding to decrease the incidence of ``rare'' blocks that make it difficult for clients to complete the last steps of a file download. Both systems feature capacity that grows with the number of users, without consuming excessive bandwidth at the server.
+The simplest systems are read-only file distribution schemes. Bittorrent tracks all clients with a central manager, but data blocks are transferred mainly between clients \cite{cohen,pouwelse}, which request blocks they have not yet received from peers that have already downloaded them. Avalanche \cite{gkantsidis} uses network coding to decrease the incidence of ``rare'' blocks that make it difficult for clients to complete the last steps of a file download. Both systems feature capacity that grows with the number of users, without consuming excessive bandwidth at the server. Such systems are mainly useful for sharing the cost of distributing static content with those who benefit from it, and not for general-purpose storage needs.
 
-Distributed hash tables provide a 
+Distributed hash tables (DHTs) such as CAN \cite{ratnasamy}, Pastry \cite{rowstron01b}, Chord \cite{stoica}, and Tapestry \cite{zhao01} provide distributed lookup services on peer-to-peer networks, and have been used as the basis for wide-area file systems. CFS \cite{dabek} and PAST \cite{rowstron01a} implement read-only systems using content-based addressing, similar to Venti \cite{quinlan}, but using an underlying DHT to locate object replicas. Other systems implement mutable file systems over similar substrates, storing data blocks, files, or content-based fragments \cite{rabin81} as immutable objects distributed across the network. Pasta \cite{moreton} stores metadata in special index blocks, each of which is associated with an asymmetric cryptographic key. The key is used to locate the index block (instead of using a hash of the contents as for normal data blocks) and to protect changes to it, allowing the index to change but retain a unique, static ID. Eliot \cite{stein02} stores metadata outside the immutable substrate, creating a seperate, writable system that references the read-only data indexed by the DHT. Ivy \cite{muthitacharoen02} stores all user changes to the user's log, which is then made available to others through the DHT, and each user consults as many logs as necessary to construct a coherent view of the file system.
 
-Pasta \cite{moreton} and Eliot \cite{stein02} are built on distributed hash tables that map object IDs to hosts in the network. , though locating files by hashes of their contents, and like JetFile \cite{gronvall} they are backed by immutable objects
+Peer-to-peer file systems all suffer from the transience of users. Volunteered resources can be withdrawn without notice, and high levels of replication are required to ensure accessibility and availability \cite{blake,rabin89}. Latency is also high in the wide area, so further replication and caching is necessary to make performance acceptable. OceanStore \cite{kubiatowicz} was designed as a global network of smaller, highly-connected \emph{pools} that cooperate closely, with additional clustering of files that are regularly accessed together. The prototype, called Pond \cite{rhea}, uses Tapestry to organize virtual resources (data and managers), but it also forms localized \emph{rings} of participants to manage Byzantine agreement without the high latency typical of DHTs. The common element of these approaches is that they use tiered systems to reclaim some of the benefits of locality while still providing a global service.
 
-CFS \cite{dabek}
+Envoy has some structural parallels with these systems. While latency between machines in a cluster is much lower, Envoy still caches data on disk and in memory near the client. Locality is pursued at the machine level to aggregate the storage requirements of a set of virtual machines, with data ultimately replicateed and spread throughout the cluster as storage objects. The relationship of this work to global storage systems is more complicated than a passing architectural resemblence, however. Envoy and the storage clusters it serves are based on commercial resource provision that locates computational resources near storage and fast network access. Instead of trying to hide the distance between users and data, service clusters share the goal of XenoServers \cite{reed} to move computation to a resource-rich environment. As a basic platform, service clusters backed by Envoy storage form the components of global service networks, including storage services.
 
-DHTs: CAN \cite{ratnasamy}, Pastry \cite{rowstron}, Chord \cite{stoica}, Tapestry \cite{zhao01}
 
-To be reliable you need lots of replicas \cite{rabin}, probably too many \cite{blake}.
 
 % TODO: fix this section
 
@@ -133,14 +131,13 @@ Pangaea \cite{saito02b} also uses a widely-dispersed network of trusted servers,
 Disk layout:
 Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off. AutoRAID \cite{wilkes95}.
 
-Prospero \cite{neuman}
-Oceanstore and Pond \cite{kubiatowicz,rhea}
+%Prospero \cite{neuman}
 
 Fluid Replication \cite{kim}
 Segank: distributed mobile storage system \cite{sobti}
 Ficus \cite{popek}
 
-
+%JetFile \cite{gronvall}
 %Optimizing for bandwidth consumpion \cite{muthitacharoen}
 
 \subsection{Clusters}

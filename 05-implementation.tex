@@ -42,7 +42,7 @@ With Linux as the client operating system of choice, a few prominent options wer
 
 \subsubsection{NFS version 3}
 
-The NFS protocol is popular, simple, well-understood, and has a robust implementation. Most of the complexity is implemented in the client drivers, so servers can be quite simple. I also had experience with the protocol after implemented a stackable, copy-on-write file system (CoWNFS) for the XenoServers deployment project \cite{kotsovinos}.
+The NFS protocol is popular, simple, well-understood, and has a robust implementation. Most of the complexity is implemented in the client drivers, so servers can be quite simple. I also had experience with the protocol after implemented a stackable, copy-on-write file system (CoWNFS) for the XenoServers deployment project \cite{kotsovinos04b}.
 
 For user mode servers generally and Envoy in particular, however, the stateless model of NFS complicates implementation. File handles assigned by the server and given to the client are expected to be immutable and always available (there are no explicit open and close operations), making it difficult to maintain pairings between active files and the envoy instances that own them. With transparent copy-on-write, these handles must either be cached indefinitely or inherently tied to the name of the file. Changing territory boundaries makes caching impractical, and allowing for higher-level directories to be renamed makes the latter difficult to make robust.
 
