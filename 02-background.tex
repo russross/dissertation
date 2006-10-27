@@ -1,8 +1,7 @@
 \chapter{Background}
 
-
-
 \section{Commodity computing}
+
 
 Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
 
@@ -24,6 +23,7 @@ TranSend was written for and the Inktomi search engine adapted to a layered clus
 \subsection{GRID}
 \cite{zhao04}
 
+\subsection{Utility computing}
 \subsection{Hosted services}
 
 \section{Virtualization}
@@ -93,7 +93,7 @@ Where snapshot systems typically use copy-on-write to transparently combine old 
 
 While creative caching can alleviate the problem somewhat, all client-server architectures have inherent scaling problems. As a single point of contact for all clients, a server's load grows in proportion to the number of clients, and it also represents a single point of failure. In addition, the duties of a server tend to make it unsuitable for other uses, so such an architecture calls for a dedicated server. As workstations have grown in power, harnessing their excess capacity to cooperate on large problems has become increasingly attractive \cite{anderson95a}.
 
-In xFS, the traditional roles of a server are split and distributed to the clients to yield a serverless architecture \cite{wang93,anderson95b}. Hosts can act as clients, managers that coordinate data placement, and/or storage servers that provide disk space, similar to the file system of the earlier LOCUS distributed operating system \cite{walker}. Cache coherency is achieved through an explicit consistency protocol where conflicting client requests are detected and managed.
+In xFS, the traditional roles of a server are split and distributed to the clients to yield a serverless architecture \cite{anderson95b}. Hosts can act as clients, managers that coordinate data placement, and/or storage servers that provide disk space, similar to the file system of the earlier LOCUS distributed operating system \cite{walker}. Cache coherency is achieved through an explicit consistency protocol where conflicting client requests are detected and managed.
 
 In addition, the xFS team observed that modern networks make retrieval from a peer's cache faster than from a disk \cite{dahlin94b}, so sharing and coordinating cache across hosts can yield benefits over discrete local caches \cite{dahlin94a}. The resulting protocol was so complex that the team had to employ a formal protocol verifier to get a working implementation \cite{wang98}. While a valid way to manage complexity, reducing complexity through design may be preferable, especially in storage systems where correctness is paramount.
 
@@ -101,13 +101,26 @@ Farsite also targets a workstation environment, but assumes that participating m
 
 The downside of having workstations double as servers is that the server function is not completely isolated from the other activities of the workstation. Runtime activity may be less predictable than on a dedicated server. Server load is normally determined by the aggregate activity of many clients instead of that of a single user, and a user may also switch a workstation off without notice. While a server can also fail unexpectedly, administration generally focuses on making this an infrequent event. The same trends that lead to excess capacity in workstations make dedicated servers cheap and powerful, without the additional complexity of a heterogeneous management environment. Despite numerous studies \cite{bolosky,douceur99,douceur01} showing feasibility and systems developed and tested \cite{adya,walker}, no serverless file system has seen widespread use for general-purpose computing.
 
-While Envoy has similar goals for serving a location-independent file hierarchy to many untrusted clients, putting it in a trusted cluster environment changes the assumptions significantly. Hardware virtualization allows malicious clients to coexist on hardware with trusted server processes, and the complexity of Byzantine failure models can be avoided. Managed hardware also means that replications factors can be planned around hardware failure rates and load balancing without worrying about hosts switching off frequently.
+While Envoy has similar goals for serving a location-independent file hierarchy to many untrusted clients, putting it in a trusted cluster environment changes the assumptions significantly. Hardware virtualization allows malicious clients to coexist on hardware with trusted server processes, and the complexity of Byzantine failure models can be avoided. Managed hardware also means that replication factors can be planned around hardware failure rates and load balancing without worrying about hosts switching off frequently.
 
 \subsection{Wide-area file systems}
 
-Carrying the idea of distributed file systems to the logical extreme leads to global file systems, running on hosts throughout the world and serving millions of clients located anywhere. Latency and available bandwidth become major concerns in this environment, and the inability to trust hosts forces widely-distributed file systems---as was true with Farsite in a smaller setting---to focus mainly on managing replicas for availability and accessibility.
+Carrying the idea of distributed file systems to the logical extreme leads to global file systems, running on hosts throughout the world and serving millions of clients located anywhere. Latency and available bandwidth become major concerns in this environment, and the inability to trust hosts forces widely-distributed file systems---as was true with Farsite in a smaller setting---to focus mainly on managing replicas for availability and reliability.
 
-\subsubsection{Peer-to-peer storage}
+\subsubsection{Systems with servers}
+
+Ficus \cite{guy} and Echo \cite{birrell93} link servers together to form a single, global file hierarchy, with transparent navigation between the discrete volumes that make up the system. In Echo, entire volumes are replicated in tightly-synchronized groups with one \emph{primary} server and one or more \emph{standby} servers. A token-passing scheme allows clients to cache files locally but still maintain global consistency \cite{mann}. Ficus relaxes the synchonization requirements in favor of optimistic concurrency, where conflicts must be resolved after being detected. Volume replicas are loosely synchronized, and may hold copies of only a subset of the files logically contained in the volume. Because of the loose synchronization, updates can be made to any file that has at least one replica available \cite{popek}. This permits continued operation in the face of network partitions or other failures, similar to the use of the persistent cache in Coda \cite{kistler}.
+
+An early version of xFS \cite{wang93} also follows a two-tier model, where clusters of nearby hosts work together and share a single \emph{consistency server}. The consistency server acts as a proxy for the group when communicating in the wide area, and as a coordinator for operations within the cluster. Requests are served from the cache of a local host when possible, and forwarded to a remote cluster when necessary. Consistency is maintained through tokens that permit local caching for multiple readers or a single writer. To reduce the state that must be tracked, tokens cover entire groups of files.
+
+JetFile \cite{gronvall} and Pangaea \cite{saito02a} rely on pervasive replication with little overall structure. JetFile  uses specialized servers for a few metadata functions, but most operations happen directly between clients. In both systems clients maintain replicas of all files they are interested in, and optimistic concurrency control permits disconnected operation. They differ in how updates are propogated. Pangaea maintains a replica graph for each file and pushes updates to other clients \cite{saito02b}, while JetFile makes extensive use of IP multicast to locate replicas and announce changes, and clients pull updates when required. When conflicting updates are detected in either system, the versions must be reconciled explicitly, generally using a last-writer-wins policy.
+
+% Fluid Replication \cite{kim} 2002
+% Segank: distributed mobile storage system \cite{sobti} 2004
+% Optimizing for bandwidth consumpion \cite{muthitacharoen}
+% Prospero \cite{neuman}
+
+\subsubsection{Peer-to-peer systems}
 
 Relying on trusted servers restricts the audience for a wide-area file system to large organizations and service providers who can maintain widely-dispursed networks. Peer-to-peer systems use resources volunteered by participants on large numbers of machines.
 
@@ -117,55 +130,50 @@ Distributed hash tables (DHTs) such as CAN \cite{ratnasamy}, Pastry \cite{rowstr
 
 Peer-to-peer file systems all suffer from the transience of users. Volunteered resources can be withdrawn without notice, and high levels of replication are required to ensure accessibility and availability \cite{blake,rabin89}. Latency is also high in the wide area, so further replication and caching is necessary to make performance acceptable. OceanStore \cite{kubiatowicz} was designed as a global network of smaller, highly-connected \emph{pools} that cooperate closely, with additional clustering of files that are regularly accessed together. The prototype, called Pond \cite{rhea}, uses Tapestry to organize virtual resources (data and managers), but it also forms localized \emph{rings} of participants to manage Byzantine agreement without the high latency typical of DHTs. The common element of these approaches is that they use tiered systems to reclaim some of the benefits of locality while still providing a global service.
 
-Envoy has some structural parallels with these systems. While latency between machines in a cluster is much lower, Envoy still caches data on disk and in memory near the client. Locality is pursued at the machine level to aggregate the storage requirements of a set of virtual machines, with data ultimately replicateed and spread throughout the cluster as storage objects. The relationship of this work to global storage systems is more complicated than a passing architectural resemblence, however. Envoy and the storage clusters it serves are based on commercial resource provision that locates computational resources near storage and fast network access. Instead of trying to hide the distance between users and data, service clusters share the goal of XenoServers \cite{reed} to move computation to a resource-rich environment. As a basic platform, service clusters backed by Envoy storage form the components of global service networks, including storage services.
+Envoy has some structural parallels with these systems. While latency between machines in a cluster is much lower, Envoy still caches data on disk and in memory near the client. Locality is pursued at the machine level to aggregate the storage requirements of a set of virtual machines, with data ultimately replicated and spread throughout the cluster as storage objects.
 
-
-
-% TODO: fix this section
-
-Echo starts toward this goal with a single, global namespace that is accessible from anywhere with consistent caching \cite{birrell93,mann}. The top levels of the namespace are hosted on the DNS, with each name linking to the root of a hierarchy of servers managing a specific branch of the namespace. Replication is done at the server level with primary and secondary servers that are synchronized.
-
-Pangaea \cite{saito02b} also uses a widely-dispersed network of trusted servers, but positions replicas dynamically to increase availability and reduce latency. Each object is managed independently and replicas can be created or moved in response to demand \cite{saito02a}.
-
-
-Disk layout:
-Zebra \cite{hartman93} is network RAID \cite{patterson}, and Swarm \cite{hartman99} isn't far off. AutoRAID \cite{wilkes95}.
-
-%Prospero \cite{neuman}
-
-Fluid Replication \cite{kim}
-Segank: distributed mobile storage system \cite{sobti}
-Ficus \cite{popek}
-
-%JetFile \cite{gronvall}
-%Optimizing for bandwidth consumpion \cite{muthitacharoen}
+The relationship of the present work to global storage systems is more complicated than a passing architectural resemblence, however. Envoy and the service clusters that host it are designed for commercial providers that locate computational resources near storage and fast network access. Instead of trying to hide the distance between users and data, service clusters share the goal of XenoServers \cite{reed} to move computation to a resource-rich environment. As a basic platform, service clusters backed by Envoy storage form the building blocks of global service networks, including storage services.
 
 \subsection{Clusters}
 
-If local file systems are mainly concerned with disk layout, client-server and serverless systems with cache management, and wide-area systems with replica placement, cluster storage systems seem to focus on reducing the overhead that results from constant hardware turnover. Clusters aggregate the power of many individual nodes to yield a system that is more reliable and more capable than any standalone component, but with the large number of components involved the failure of individual parts becomes commonplace. The cluster as a while cannot depend on any specific host for critical functions, because the failure of that host would result in the failure of the entire cluster, which would be an unacceptable waste of the whole cluster while waiting for a repair.
+The path from local file systems to wide-area file systems is generally progressive, with concerns about cache management, trust, latency, replica placement, and reliability growing at each step. Clusters have a curious mixture of characteristics compared to the other systems described here, and the demands put on the storage system reflect this. They resemble the workstation groups that use serverless file systems, but the group of host is trusted and centrally managed more like an individual machine. They can scale to thousands or tens of thousands of nodes, but are connected by high-speed networks with redundant components.
 
+Because of their high component count, clusters experience node failure regularly. 
 
+feeble attempts:
+Layered clustering in Cuckoo, aggregate NFS servers \cite{klosterman} 2002
+Mirage aggregates multiple NFS servers into a single, virtual server \cite{baker02}.
 
+\subsubsection{Storage layers}
 
-
-Layered clustering in Cuckoo allows NFS servers to be combined into a cluster system \cite{klosterman}, spreading load, etc. Mirage uses a similar approach to aggregate multiple NFS servers into a single, virtual server \cite{baker02}.
+AutoRAID \cite{wilkes95} (appliace)
+Zebra \cite{hartman93} is network RAID \cite{patterson}
+Swarm \cite{hartman99} generic logged striped storage.
 Petal \cite{lee95,lee96}
 Frangipani \cite{thekkath}
-highly concurrent storage controllers \cite{amiri} 2000
-Self-* Storage \cite{ganger03}
-Google file system \cite{ghemawat}
-Lustre \cite{lustre}
-Parallax \cite{warfield}
-FAB \cite{frolund,saito04,ji}
 Ursa Minor \cite{abd-el-malek} 2005
-Ceph \cite{weil} 2006
 
-\subsubsection{Storage area networks}
-
-\cite{burns}. Bandwidth can become a problem as scale grows \cite{hospodor}, requiring careful architecture choices.
+\subsubsection{Object systems}
 
 Network-attached secure disks (NASD) \cite{gibson97,gibson98a}
-
 Network-attached storage (NetAPP) \cite{hitz}
+file systems for SANS \cite{burns}
+highly concurrent storage controllers \cite{amiri} 2000
+Bandwidth can become a problem as scale grows \cite{hospodor}, requiring careful architecture choices.
+
+\subsubsection{Other systems}
+
+Lustre \cite{lustre}
+Google file system \cite{ghemawat}
+Self-* Storage \cite{ganger03}
+FAB \cite{frolund,saito04,ji}
+Ceph \cite{weil} 2006
+
+\subsubsection{Virtual machines}
+
+CoWNFS \cite{kotsovinos04b}
+GRID VMs \cite{zhao04}
+Parallax \cite{warfield}
+Ventana \cite{pfaff}
 
 \section{Summary}
