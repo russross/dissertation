@@ -75,7 +75,7 @@ In distributed systems or even local RAID arrays \cite{patterson}, higher-order 
 
 If local file systems can be characterized by how they manage disk head motion, distributed file systems are dominated by concerns of data placement and cache management. For a single host, cache management is easy. The OS has a monopoly on the disk and can reconcile any concurrent requests directly. Complications are mainly concerned with deciding when to commit writes to disk to ensure durability in the face of a system crash. Distributed systems must also consider consistency between caches on multiple machines. If a cache delivers an out-of-date version of a file, the application may be led to produce incorrect results.
 
-The Sun Network File System (NFS) was the first widely-used file system for sharing files across hosts \cite{sandberg}. NFS serves many clients from a single server, which hosts the persistent and canonical version of a file. Cache policy is unspecified, with no explicit support from the server. Clients generally cache reads and writes in memory and check with the server before relying on old cache entries (typically in the range of 10s of seconds). Thus an update made by one client is only detected by another when the first has sent the update to the server and the second has checked for an update. Clients can send a constant stream of \texttt{stat} requests to check for updates, but they cannot hasten a delayed update from another client, so they can never be assured of having the latest version of a file. An update to the protocol helped reduce traffic somewhat by performing implicit \texttt{stat} requests and including the results with common operations \cite{pawlowski,callaghan}, but the fundamental problem remained as clients still delay writes to the server. The latest update, NFSv4, includes features to improve cache management by \emph{delegating} complete control of individual files to clients and \emph{revoking} the delegation when other clients seek concurrent access.
+The Sun Network File System (NFS) was the first widely-used file system for sharing files across hosts \cite{sandberg}. NFS serves many clients from a single access point (typically a server or a dedicated storage appliance \cite{hitz}), which hosts the persistent and canonical version of a file. Cache policy is unspecified, with no explicit support from the server. Clients generally cache reads and writes in memory and check with the server before relying on old cache entries (typically in the range of 10s of seconds). Thus an update made by one client is only detected by another when the first has sent the update to the server and the second has checked for an update. Clients can send a constant stream of \texttt{stat} requests to check for updates, but they cannot hasten a delayed update from another client, so they can never be assured of having the latest version of a file. An update to the protocol helped reduce traffic somewhat by performing implicit \texttt{stat} requests and including the results with common operations \cite{pawlowski,callaghan}, but the fundamental problem remained as clients still delay writes to the server. The latest update, NFSv4, includes features to improve cache management by \emph{delegating} complete control of individual files to clients and \emph{revoking} the delegation when other clients seek concurrent access.
 
 Other client-server systems addressed the problem in different ways. The Andrew File System (AFS) \cite{satyanarayanan85,howard} uses the client's disk as a persistent cache with close-to-open semantics. In this scheme, the cache is validated at file open time, and changes forwarded to the server at file close time. To reduce validity checks at file open time, a client can be given a \emph{callback}, meaning that it can assume the file is current unless explicitly notified by the server. These changes improved scalability by enlarging the effective cache size on clients and reducing the load on the server, but they still left open the possibility of conflicting updates by multiple clients. Coda extended AFS to explore the problem of conflict resolution, opening up access to mobile users and allowing clients to continue operating when disconnected from the network \cite{satyanarayanan90,mummert}. DEcorum went the other way, extending AFS to strengthen cache consistency using tokens, as well as interopperate better with existing file systems and reduce recovery time after a crash \cite{kazar}.
 
@@ -134,39 +134,35 @@ Envoy has some structural parallels with these systems. While latency between ma
 
 The relationship of the present work to global storage systems is more complicated than a passing architectural resemblence, however. Envoy and the service clusters that host it are designed for commercial providers that locate computational resources near storage and fast network access. Instead of trying to hide the distance between users and data, service clusters share the goal of XenoServers \cite{reed} to move computation to a resource-rich environment. As a basic platform, service clusters backed by Envoy storage form the building blocks of global service networks, including storage services.
 
-\subsection{Clusters}
+\subsection{Cluster storage systems}
 
-The path from local file systems to wide-area file systems is generally progressive, with concerns about cache management, trust, latency, replica placement, and reliability growing at each step. Clusters have a curious mixture of characteristics compared to the other systems described here, and the demands put on the storage system reflect this. They resemble the workstation groups that use serverless file systems, but the group of host is trusted and centrally managed more like an individual machine. They can scale to thousands or tens of thousands of nodes, but are connected by high-speed networks with redundant components.
+The path from local file systems to wide-area file systems is generally progressive, with concerns about cache management, trust, latency, replica placement, and reliability growing at each step. Clusters have networks with low latency and high bandwidth, and large numbers of trusted, centrally-managed hosts. Their mixture of characteristics from the largest and smallest of systems reflects their popularity as replacements for traditional, monolithic supercomputer architectures.
 
-Because of their high component count, clusters experience node failure regularly. 
+With a large number of redundant components, clusters have the potential to be highly reliable (in the aggregate) with abundant bandwidth. One of the principal drivers of cluster storage systems is avoiding bottlenecks. While this is important in all systems, the vast aggregate disk and network bandwidth available to a large cluster makes it easy to overwhelm any single component \cite{hospodor}. In addition, the opportunity cost of wasted resources is potentially very high, so cluster systems must make good use of the combined storage capacity and I/O bandwidth available from the array of component machines.
 
-feeble attempts:
-Layered clustering in Cuckoo, aggregate NFS servers \cite{klosterman} 2002
-Mirage aggregates multiple NFS servers into a single, virtual server \cite{baker02}.
+\subsubsection{Storage layers}\label{sec:storage-layer-systems}
 
-\subsubsection{Storage layers}
+A common approach for cluster storage systems is to divide the problem into two distinct layers: one that manages the physical disks, balancing load and capacity and handling the addition and loss of disks, and a second layer that builds a file system above an abstract block- or object-level interface provided by the first.
 
-AutoRAID \cite{wilkes95} (appliace)
-Zebra \cite{hartman93} is network RAID \cite{patterson}
-Swarm \cite{hartman99} generic logged striped storage.
-Petal \cite{lee95,lee96}
-Frangipani \cite{thekkath}
-Ursa Minor \cite{abd-el-malek} 2005
+Zebra \cite{hartman93} stripes data across multiple storage servers in a networked version of RAID \cite{patterson}, but uses a single file manager to coordinate metadata. Zebra is based on the Sprite LFS implementation, and clients cache data and metadata the same as they would in Sprite. The file manager assumes the role of a standard file server, but all log operations are striped and clients direct log operations directly to the storage servers. Swarm \cite{hartman99} removes the file manager to present a standalone layer that exports striped logs to clients, which can be used to implement local file systems or other high-level services.
 
-\subsubsection{Object systems}
+Petal \cite{lee95,lee96} pools storage devices to export sparse virtual block devices to clients. All persistent state is maintained on the servers, with global state updated using a distributed agreement protocol that tolerates node failures. By caching a small amount of metadata, clients can direct most requests directly to the relevant storage server. Petal maintains a global map of servers for each virtual device, with optional chained declustering for redundancy. Chained declustering \cite{hsiao} allows simple load redistribution when nodes fail and makes catastrophic failures more likely to damage a few virtual disks extensively than criple many virtual disks with small corruptions.
 
-Network-attached secure disks (NASD) \cite{gibson97,gibson98a}
-Network-attached storage (NetAPP) \cite{hitz}
+Object-based storage systems \cite{mesnier} provide an object-level interface to storage. Instead of exporting virtual disks to clients, they manage storage as collections of objects with attributes, which generally correspond directly to files and directories. Network-attached secure disks (NASD) drop storage servers and embed management functions directly in the storage device to save costs \cite{gibson97,gibson98a}. Metadata is controlled by a seperate server, They require a seperate metadata manager to from data access for shared storage, but cryptographic techniques make metadata operations largely asynchronous so most synchronous communications are directly between clients and the storage devices. 
+
+FAB \cite{frolund,saito04} refines the ideas found in Petal and introduces the idea of \emph{storage bricks}---dedicated storage modules made from commodity components that can be combined to form a storage pool. FAB randomly assigns each data segment to a set of storage bricks and uses majority voting to manage replicas. This allows it to tolerate failures and add new bricks without pausing and temporarily ignore overloaded servers. It also supports fast snapshot operations without a centralized coordinator \cite{ji}.
+
+The Self-* Storage project aims to extend brick-based storage to automate many aspects of configuration and management of storage in order to reduce administrative hassle and costs \cite{ganger03}. Like the AutoRAID storage device \cite{wilkes95}, the Ursa Minor prototype \cite{abd-el-malek} focuses on optimizing data layout and failure tolerance for different workloads and requirements. Using a unified infrastructure it supports multiple storage policies and can convert existing data while still operating normally.
+
+These systems are all complementary to the goals of Envoy. Indeed, the Envoy prototype uses a primitive and under-specified object-storage layer on the assumption that a production system would be built using a direct application of much of the research described here. Envoy is designed to assume a reliable and performant storage layer, and builds a complete distributed file system above it.
+
+\subsubsection{File systems}
+
 file systems for SANS \cite{burns}
-highly concurrent storage controllers \cite{amiri} 2000
-Bandwidth can become a problem as scale grows \cite{hospodor}, requiring careful architecture choices.
-
-\subsubsection{Other systems}
-
+Frangipani \cite{thekkath}
 Lustre \cite{lustre}
+GPFS \cite{schmuck} 2002
 Google file system \cite{ghemawat}
-Self-* Storage \cite{ganger03}
-FAB \cite{frolund,saito04,ji}
 Ceph \cite{weil} 2006
 
 \subsubsection{Virtual machines}

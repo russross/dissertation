@@ -110,7 +110,7 @@ An object ID is considered a globally unique name for that object. When replicat
 
 \subsubsection{Open problems}
 
-The mapping of object IDs to specific storage servers is not defined in this work. Numerous strategies are available for distributing objects across the cluster, including random distribution, chained declustering, partitioning based on object ID ranges, co-locating objects created together, etc. For the purposes of this dissertation, I assert that an independent storage layer is viable and reasonable, but I do not discuss a specific system in detail. Other object storage systems of varying levels of sophistication could be substituted for the stub I describe here. The emphasis of this dissertation is on the envoy layer as implemented on top of the object layer.
+The mapping of object IDs to specific storage servers is not defined in this work. Numerous strategies are available for distributing objects across the cluster, including random distribution, chained declustering, partitioning based on object ID ranges, co-locating objects created together, etc. For the purposes of this dissertation, I assert that an independent storage layer is viable and reasonable, but I do not discuss a specific system in detail. In a production system, storage systems such as those described in \secref{sec:storage-layer-systems} would be appropriate. The emphasis of this dissertation is on the envoy layer as implemented on top of the storage layer.
 
 \subsection{Envoy layer}
 
