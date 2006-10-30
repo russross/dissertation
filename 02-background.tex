@@ -146,7 +146,9 @@ A common approach for cluster storage systems is to divide the problem into two 
 
 Zebra \cite{hartman93} stripes data across multiple storage servers in a networked version of RAID \cite{patterson}, but uses a single file manager to coordinate metadata. Zebra is based on the Sprite LFS implementation, and clients cache data and metadata the same as they would in Sprite. The file manager assumes the role of a standard file server, but all log operations are striped and clients direct log operations directly to the storage servers. Swarm \cite{hartman99} removes the file manager to present a standalone layer that exports striped logs to clients, which can be used to implement local file systems or other high-level services.
 
-Petal \cite{lee95,lee96} pools storage devices to export sparse virtual block devices to clients. All persistent state is maintained on the servers, with global state updated using a distributed agreement protocol that tolerates node failures. By caching a small amount of metadata, clients can direct most requests directly to the relevant storage server. Petal maintains a global map of servers for each virtual device, with optional chained declustering for redundancy. Chained declustering \cite{hsiao} allows simple load redistribution when nodes fail and makes catastrophic failures more likely to damage a few virtual disks extensively than criple many virtual disks with small corruptions.
+Petal \cite{lee95,lee96} pools storage devices to export sparse virtual block devices to clients. All persistent state is maintained on the servers, with global state updated using a distributed agreement protocol that tolerates node failures. By caching a small amount of metadata, clients can direct most requests directly to the relevant storage server. Petal maintains a global map of servers for each virtual device, optionally using chained declustering for redundancy. Chained declustering \cite{hsiao} allows simple load redistribution when nodes fail and makes catastrophic failures more likely to damage a few virtual disks extensively than criple many virtual disks with small corruptions.
+
+Frangipani \cite{thekkath} builds a file system over a Petal virtual disk. It takes advantage of the large, sparse address space to simplify data structures, with large regions reserved for inodes, allocation bitmaps, logs, small blocks, and large blocks. As with most layered systems, the physical layout is not determined by the virtual layout, so many of the layout strategies of local file systems are inapplicable \cite{stein05}. Instead, the layout of files is simple, with up to 16 4~KB blocks for small files spilling into one of $2^24$ large blocks for files up to 1~TB. File systems can be shared by multiple clients; a distributed lock manager coordinates caching and prevents corruption from concurrent access.
 
 Object-based storage systems \cite{mesnier} provide an object-level interface to storage. Instead of exporting virtual disks to clients, they manage storage as collections of objects with attributes, which generally correspond directly to files and directories. Network-attached secure disks (NASD) drop storage servers and embed management functions directly in the storage device to save costs \cite{gibson97,gibson98a}. Metadata is controlled by a seperate server, They require a seperate metadata manager to from data access for shared storage, but cryptographic techniques make metadata operations largely asynchronous so most synchronous communications are directly between clients and the storage devices. 
 
@@ -154,16 +156,19 @@ FAB \cite{frolund,saito04} refines the ideas found in Petal and introduces the i
 
 The Self-* Storage project aims to extend brick-based storage to automate many aspects of configuration and management of storage in order to reduce administrative hassle and costs \cite{ganger03}. Like the AutoRAID storage device \cite{wilkes95}, the Ursa Minor prototype \cite{abd-el-malek} focuses on optimizing data layout and failure tolerance for different workloads and requirements. Using a unified infrastructure it supports multiple storage policies and can convert existing data while still operating normally.
 
-These systems are all complementary to the goals of Envoy. Indeed, the Envoy prototype uses a primitive and under-specified object-storage layer on the assumption that a production system would be built using a direct application of much of the research described here. Envoy is designed to assume a reliable and performant storage layer, and builds a complete distributed file system above it.
+Storage layers are complementary to the goals of Envoy. Indeed, the Envoy prototype's primitive storage layer is a stub intended to be replaced by a system much like those described here. Envoy assumes a reliable and performant storage layer, and builds a complete distributed file system optimized for large numbers of untrusted virtual machines above it.
 
 \subsubsection{File systems}
 
-file systems for SANS \cite{burns}
-Frangipani \cite{thekkath}
-Lustre \cite{lustre}
-GPFS \cite{schmuck} 2002
-Google file system \cite{ghemawat}
-Ceph \cite{weil} 2006
+Built on storage layers that can deliver parallel access to many disks, cluster file systems are left mainly with problem of managing metadata and maintaining cache consistency. Lustre \cite{lustre} follows model proposed by the NASD group \cite{gibson98a}, with clients contacting storage devices directly for object-level data access. Metadata is controlled by a centralized server with a failover replica.
+
+The Google File System \cite{ghemawat} focuses on a specific workload and drops the POSIX file system interface. It, too, splits metadata management from data storage, but is further optimized for large files with sequential reads and append-only writes. Random reads and writes are supported, but the overall emphasis is on high throughput rather than low latency. In this environment, data caching has little value and metadata is minimized by managing files as sequences of large, 64~MB chunks. Chunks are stored as normal files using a Linux file system on commodity hardware.
+
+Clusters are widely used as a replacement for supercomputers, and many cluster file systems are tuned to scientific-computing workloads. Like the Google environment, they often require high sustained throughput from large files. Unlike workstation environments where read-write sharing is rare, scientific computing makes frequent use of parallel processes writing to different parts of the same large file \cite{wang04}. GPFS \cite{schmuck} is optimized for large deployments where any centralized coordination point is unacceptable. Based on a block-level storage system, it supports a high degree of concurrency by replacing a centralized metadata manager with a distributed lock manager with byte-range locking, and using extensible hashing to support large directories that can be updated concurrently. In addition, it allows write sharing for non-conflicting metadata updates and pushes most of the communications burden for token revocation to the client triggering it, further reducing synchronous metadata operations in the lock manager.
+
+Ceph \cite{weil} is also tuned to scientific cluster workloads, but is based on object storage. It, too, distributes metadata management to avoid bottlenecks, but instead of using distributed locks and having clients directly modify metadata structures, it builds a distributed version of the metadata manager common in other object-based systems. Like Envoy, it divides management of the hierarchical namespace according to runtime activity, but it does so purely for load balancing within the distributed metadata service. Envoy, in contrast, delegates metadata management to the client dominating access to that part of the file system, and uses a time-based protocol to prioritize changes and promote stability (see \secref{sec:territory-management}).
+
+While Envoy is also built for clusters, it is designed for many independent clients with more traditional workloads, rather than large, scientific systems bringing the power of thousands of machines to bear on a single dataset. Envoy creates a single hierarchical namespace, but it is arranged as an administrative tree with discrete, client-level file systems as leaves. Envoy is optimized to manage large numbers of these images, with full administration of a private image being managed by the machine using it, and control of shared images being distributed among the clients according to runtime demand. In this way, Envoy---with its model of a cluster being host to more clients than machines---is largely complementary to the systems described here, which attempt to make the cluster act like a single, large machine.
 
 \subsubsection{Virtual machines}
 
@@ -171,5 +176,7 @@ CoWNFS \cite{kotsovinos04b}
 GRID VMs \cite{zhao04}
 Parallax \cite{warfield}
 Ventana \cite{pfaff}
+
+% file systems for SANS \cite{burns}
 
 \section{Summary}

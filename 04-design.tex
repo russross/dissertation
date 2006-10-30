@@ -283,7 +283,7 @@ The only other complication in this process is image forks, where multiple succe
 
 A few other corner cases are worth mentioning. The current version of an image can be deleted using the same procedure, but it must be made read-only or client access must be disallowed before gathering the list of object IDs (note that access is normally only forbidden when deleting starts, as the catalogs of predecessors and successors must be assembled as well as those of images marked for deleting). Otherwise, the normal procedure suffices, with the successor object catalog taken to be empty. The log of image forks also needs to account for deletes, so that entire trees of images can eventually be pruned back to the root if desired.
 
-\section{Territory management}
+\section{Territory management}\label{sec:territory-management}
 
 The Envoy file system model is based on the idea of presenting a single, large file tree connecting arbitrary images, but providing incentives to use it in ways that can be exploited to provide good performance and scalability. The service cluster model makes it simple to isolate control of the file system from the clients who use it, while still keeping synchronization logic and caching on the same machine most of the time. Providing a global namespace gives a great deal of flexibility, but inferring usage patterns and co-locating ownership of branches of the tree with the clients that use them yields short data paths and good performance.
 
