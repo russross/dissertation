@@ -2,13 +2,20 @@
 
 \section{Commodity computing}
 
-
-Similar idea as network appliances: \cite{sapuntzakis03}. SoftUDC: software-based data center \cite{kallahalla}. Utilification \cite{wilkes04}.
-
 \subsection{Network of workstations}
 Networks of workstations (NOW)\cite{anderson95a}
 
 \subsection{Clusters}
+
+Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
+
+Single owners, big tasks, focused on throughput, not per-node performance, have to manage the hardware and the software. Good for render farms, search engines, simulations, scientific computing, supercomputer stuff. Not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
+
+Google
+
+Beowulf clusters
+
+Supercomputer 500 list
 
 Embarassingly parallel problems
 
@@ -20,29 +27,67 @@ Partition cloning \cite{rauch}
 
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
 
-\subsection{GRID}
+\subsection{Grid}
+
+Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
+
+Volunteer projects
+
+Commercial and research projects
+
+PlanetLab
+
+\cite{foster}
+\cite{figueiredo03}
+
 \cite{zhao04}
 
 \subsection{Utility computing}
+
+Utilification \cite{wilkes04}.
+
 \subsection{Hosted services}
+
+Web services: Why are these attractive? Many of the same reasons commodity computation is desirable: simple way to outsource IT work, continuous upgrades, accessible from anywhere. We want all these things but more general purpose; web services should be built on service clusters, letting providers specialize even more.
+
+email, payroll, tax prep
+
+Storage outsourcing makes sense \cite{ng}.
+
+\subsubsection{Replacing the machine room}
+
+Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
+
+Similar idea as network appliances: \cite{sapuntzakis03}.
+
+SoftUDC: software-based data center \cite{kallahalla}.
 
 \section{Virtualization}
 
+Resource virtualization makes it possible to put familiar tools and interfaces in new environments without substantial modifications. Virtual machine abstractions allow standard operating systems to share hardware even when they are designed to assume exclusive control. Virtual disk abstractions provide a block interface like that of a standard disk, but without tying it directly to a single piece of hardware. Virtualization is used for a variety of reasons, but the relevant purpose here is for resource management and sharing.
+
 \subsection{Virtual machine monitors}
-IBM System/370 \cite{gum}
-Disco
-Denali
-Xen \cite{barham}
-Live migration \cite{clark} \cite{sapuntzakis02}
-Terra \cite{garfinkel}
-VMWare
-vMatrix \cite{awadallah}
-IBM Managed Hosting
+
+IBM VM/370 \cite{gum} first virtualized hardware to support legacy code without modification. Modern commercial systems like VMWare \cite{vmware} and Microsoft Virtual Server \cite{microsoftvm} are often used for similar purposes, allowing standard operating systems to run unmodified as guests in new environments. While this allows access to a wide range of guest software, it comes at a performance cost on some hardware, including the standard x86 platform, which was not designed with virtualization in mind.
+
+Virtual machine monitors (VMM) work by imposing a thin software layer between the operating system and the bare hardware. Unlike emulators or simulators, VMMs allow code to execute directly on the hardware whenever possible. Certain operations break the illusion of isolation, however, particularly those involving I/O, memory protection, and interrupt management. The VMM must intercept these operations and simulate the intended effect. If the hardware does not allow the VMM to directly intercept such operations, it must do so using software means, such as code scanning or partial emulation. The overhead of such virtualization techniques is highest when I/O is common, such as in server applications.
+
+The Xen hypervisor \cite{barham} uses \emph{paravirtualization}, where the operating system is explicitly ported to the hypervisor environment. This does not affect userspace applications, whose I/O operations are already virtualized by the operating system, so unmodified binaries can still be used with the modified operating system. This does not provide support for legacy systems, but it does support modern commodity systems that have been ported, making it suitable as a host for a managed platform like the one proposed here. Recent updates to the x86 platform support full hardware virtualization, allowing unported systems to run as well.
+
+Denali \cite{whitaker02} is also designed to support deployment of untrusted services on shared hardware, but it breaks binary compatibility to support a narrow range of services in large numbers. While suitable for some types of utility computing, it is not flexible enough for general-purpose commodity computation. Similarly, Terra \cite{garfinkel} takes the problem in a different direction by securing guest services using hardware extensions to provide a trusted environment.
+
+Virtualization allows a commodity computation platform to isolate hosted services from each other and allow them to be managed without requiring explicit cooperation at the application level. Multiple guest operating systems can run on the same hardware, and virtual machines can be migrated transparently to balance load, co-locate related services, or free a machine for servicing \cite{clark}. Virtual machines can even be frozen and migrated to remote sites \cite{sapuntzakis02}, a deployment strategy used by vMatrix \cite{awadallah} to migrate and replicate internet services.
+
+The IBM zSeries \cite{ibmzseries} platform provides a managed hosting environment for paravirtualized Linux, but it does so on specialized mainframe hardware. The availability of fast, secure virtualization for cheap commodity hardware opens up the possibility of applying these techniques to a general-purpose computing platform for public use.
 
 \subsection{XenoServers}
-\cite{kotsovinos04a,kotsovinos04b}
 
-Ventana \cite{pfaff}
+A public computing platform requires more than just hosting technology. The XenoServers project \cite{reed,kotsovinos04a} explored the infrastructure required to host network services on a public computing platform. The Xen hypervisor started as part of the XenoServers project, which motivated its emphasis on performance over compatibility with legacy code. XenoSearch \cite{spence} allows servers to be located and selected based on connectivity requirements as well as availability, an important factor for network services.
+
+Lots in common---generally complementary. Service clusters are the ideal platform for XenoServers. XenoServers lacks a storage story, and its layout is too much like PlanetLab---a few servers here and there, with the bonus of making some money on the side. All the benefits of scale need big clusters and specialization.
+
+\cite{kotsovinos04b}
+
 
 \section{Storage systems}
 
@@ -166,14 +211,18 @@ The Google File System \cite{ghemawat} focuses on a specific workload and drops 
 
 Clusters are widely used as a replacement for supercomputers, and many cluster file systems are tuned to scientific-computing workloads. Like the Google environment, they often require high sustained throughput from large files. Unlike workstation environments where read-write sharing is rare, scientific computing makes frequent use of parallel processes writing to different parts of the same large file \cite{wang04}. GPFS \cite{schmuck} is optimized for large deployments where any centralized coordination point is unacceptable. Based on a block-level storage system, it supports a high degree of concurrency by replacing a centralized metadata manager with a distributed lock manager with byte-range locking, and using extensible hashing to support large directories that can be updated concurrently. In addition, it allows write sharing for non-conflicting metadata updates and pushes most of the communications burden for token revocation to the client triggering it, further reducing synchronous metadata operations in the lock manager.
 
-Ceph \cite{weil} is also tuned to scientific cluster workloads, but is based on object storage. It, too, distributes metadata management to avoid bottlenecks, but instead of using distributed locks and having clients directly modify metadata structures, it builds a distributed version of the metadata manager common in other object-based systems. Like Envoy, it divides management of the hierarchical namespace according to runtime activity, but it does so purely for load balancing within the distributed metadata service. Envoy, in contrast, delegates metadata management to the client dominating access to that part of the file system, and uses a time-based protocol to prioritize changes and promote stability (see \secref{sec:territory-management}).
+Many commercial solutions use dedicated storage area networks (SAN) to connect hosts with storage devices over a high-speed switching fabric. As with most of the systems described here, SANs let clients connect directly to storage devices and rely on a seperate layer to mediate sharing and form a file system. Storage Tank \cite{menon} uses manually-configured partitions of the namespace to distribute control between metadata servers and relies on the block-based interface provided by SANs, but the overall structure is similar to systems like GPFS.
 
-While Envoy is also built for clusters, it is designed for many independent clients with more traditional workloads, rather than large, scientific systems bringing the power of thousands of machines to bear on a single dataset. Envoy creates a single hierarchical namespace, but it is arranged as an administrative tree with discrete, client-level file systems as leaves. Envoy is optimized to manage large numbers of these images, with full administration of a private image being managed by the machine using it, and control of shared images being distributed among the clients according to runtime demand. In this way, Envoy---with its model of a cluster being host to more clients than machines---is largely complementary to the systems described here, which attempt to make the cluster act like a single, large machine.
+Ceph \cite{weil06} is also tuned to scientific cluster workloads, but is based on object storage. It, too, distributes metadata management to avoid bottlenecks, but instead of using distributed locks and having clients directly modify metadata structures, it builds a distributed version of the metadata manager common in other object-based systems. It handles the problem of heavy write sharing by augmenting the POSIX interface to allow weakened consistency semantics. Like Envoy, it divides management of the hierarchical namespace according to runtime activity, but it does so purely for load balancing within the distributed metadata service \cite{weil04}. Envoy, in contrast, delegates metadata management to the client dominating access to that part of the file system, and uses a time-based protocol to prioritize changes and promote stability (see \secref{sec:territory-management}).
 
-\subsubsection{Virtual machines}
+While Envoy is also built for clusters, it is designed for many independent clients with more traditional workloads, rather than large, scientific systems bringing the power of thousands of machines to bear on a single dataset. Envoy creates a single hierarchical namespace, but it is arranged as an administrative tree with discrete, client-level file systems as leaves. Envoy is optimized to manage large numbers of these images, with full administration of a private image being managed by the machine using it, and control of shared images being distributed among the clients according to runtime demand. In this way, Envoy---with its model of a cluster being host to more clients than machines---is largely complementary to the systems described here, which attempt to make the cluster act like a single, large machine. Instead of centralizing metadata management and then introducing distribution schemes to overcome the limitations of centralization, Envoy partitions the namespace according to runtime demand and distributes metadata control to the clients, or more precisely to a secure virtual machine hosted on the same node as the client.
+
+\subsection{Virtual machines}
+
+
 
 CoWNFS \cite{kotsovinos04b}
-GRID VMs \cite{zhao04}
+GRID VMs \cite{zhao04} \cite{figueiredo01}
 Parallax \cite{warfield}
 Ventana \cite{pfaff}
 

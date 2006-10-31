@@ -73,6 +73,12 @@
 @String{hpdc98 = "Proceedings of the 7th IEEE International Symposium on
                  High-Performance Distributed Computing"}
 
+@String{hpdc01 = "Proceedings of the 10th IEEE International Symposium
+                 on High-Performance Distributed Computing"}
+
+@String{hpdc03 = "Proceedings of the 12th IEEE International Symposium
+                 on High-Performance Distributed Computing"}
+
 @String{hpdc04 = "Proceedings of the 13th IEEE International Symposium
                  on High-Performance Distributed Computing"}
 
@@ -87,6 +93,9 @@
 
 @String{icdcs02 = "Proceedings of 22nd IEEE International Conference on
                  Distributed Computing Systems (ICDCS~2002)"}
+
+@String{icdcs03 = "Proceedings of 23nd IEEE International Conference on
+                 Distributed Computing Systems (ICDCS~2003)"}
 
 @String{infocom05 = "Proceedings of the 24th Annual Joint Conference of
                  the IEEE Computer and Commications Societies
@@ -142,6 +151,9 @@
 
 @String{repdata90 = "Proceedings of the First Workshop on the Management
                  of Replicated Data"}
+
+@String{sc04 =   "Proceedings of the 2004 ACM/IEEE Conference on
+                 Supercomputing (SC~'04)"}
 
 @String{sigcomm98 = "Proceedings of the ACM SIGCOMM~'98 Conference on
                  Applications, Technologies, Architectures, and
@@ -291,6 +303,8 @@
 
 @String{ibmrd =  "IBM Journal of Research and Development"}
 
+@String{ibmsystems = "IBM Systems Journal"}
+
 @String{ieeecm = "IEEE Communications Magazine"}
 
 @String{ieeecomputer = "IEEE Computer"}
@@ -390,7 +404,11 @@
 
 @String{perth =  "Perth, Australia"}
 
+@String{pittsburgh = "Pittsburgh, Pennsylvania"}
+
 @String{portland = "Portland, Oregon"}
+
+@String{providence = "Providence, Rhode Island"}
 
 @String{riorico = "Rio Rico, Arizona"}
 
@@ -467,9 +485,9 @@
 
 @Misc{amazon,
   key =          "Amazon",
-  month =        oct,
+  month =        nov,
   year =         "2006",
-  title =        "Amazon Web Services",
+  title =        "Amazon {W}eb {S}ervices",
   howpublished = "\biburl{http://aws.amazon.com/}",
 }
 
@@ -677,6 +695,18 @@ year = {2006},
   month =        nov,
 }
 
+@InProceedings{bugnion,
+  author =       "Edouard Bugnion and Scott Devine and Mendel
+                 Rosenblum",
+  title =        "Disco: Running Commodity Operating Systems on Scalable
+                 Multiprocessors",
+  booktitle =    sosp97,
+  pages =        "27--37",
+  year =         "1997",
+  address =      saintmalo,
+  month =        oct,
+}
+
 @PhdThesis{burns,
   author =       "Randal C. Burns",
   title =        "Data Management in a Distributed File System for
@@ -696,7 +726,7 @@ year = {2006},
 @Misc{callaghan,
   author =       "B. Callaghan and B. Pawlowski and P. Staubach",
   title =        "{NFS} Version 3 Protocol Specification",
-  howpublished = "RFC 1813",
+  howpublished = "RFC~1813",
   month =        jun,
   year =         "1995",
 }
@@ -840,6 +870,39 @@ year = {2006},
   year =         "2005",
   address =      sardinia,
   month =        jun,
+}
+
+@InProceedings{figueiredo01,
+  author =       "Renato J. Figueiredo and Nirav H. Kapadia and José A.
+                 B. Fortes",
+  title =        "The {PUNCH} Virtual File System: Seamless Access to
+                 Decentralized Storage Services in a Computational
+                 Grid",
+  booktitle =    hpdc01,
+  year =         "2001",
+  address =      sanfran,
+  month =        aug,
+}
+
+@InProceedings{figueiredo03,
+  author =       "Renato J. Figueiredo and Peter A. Dinda and José A.
+                 B. Fortes",
+  title =        "A Case for Grid Computing on Virtual Machines",
+  booktitle =    icdcs03,
+  pages =        "550--559",
+  year =         "2003",
+  address =      providence,
+  month =        may,
+}
+
+@Book{foster,
+  editor =       "Ian Foster and Carl Kesselman",
+  title =        "The {G}rid 2: Blueprint for a New Computing
+                 Infrastructure",
+  publisher =    "Morgan Kaufmann",
+  year =         "2003",
+  edition =      "2nd",
+  month =        nov,
 }
 
 @InProceedings{fox,
@@ -1166,6 +1229,14 @@ year = {2006},
   year =         "1989",
 }
 
+@Misc{ibmzseries,
+  key =          "IBM",
+  title =        "Linux on {IBM} {S}ystem z",
+  howpublished = "\biburl{http://www.ibm.com/servers/eservers/zseries/os/linux/}",
+  month =        nov,
+  year =         "2006",
+}
+
 @TechReport{ji,
   author =       "Minwen Ji",
   title =        "Instant Snapshots in a Federated Array of Bricks",
@@ -1337,9 +1408,9 @@ year = {2006},
 @Misc{lustre,
   key =          "Lustre",
   title =        "Lustre",
-  month =        oct,
+  month =        nov,
   year =         "2006",
-  howpublished = "\texttt{http://www.lustre.org/}",
+  howpublished = "\biburl{http://www.lustre.org/}",
 }
 
 @Article{mann,
@@ -1378,6 +1449,18 @@ year = {2006},
   month =        aug,
 }
 
+@Article{menon,
+  author =       "Jai Menon and David Pease and Robert Rees and Linda
+                 Duyanovich and Bruce Hillsberg",
+  title =        "{IBM} Storage Tank---{A} Heterogeneous Scalable {SAN}
+                 File System",
+  journal =      ibmsystems,
+  year =         "2003",
+  volume =       "42",
+  number =       "2",
+  pages =        "250--267",
+}
+
 @Article{mesnier,
   author =       "Michael Mesnier and Gregory R. Ganger and Erik
                  Riedel",
@@ -1388,6 +1471,14 @@ year = {2006},
   number =       "8",
   pages =        "84--90",
   month =        aug,
+}
+
+@Misc{microsoftvm,
+  key =          "Microsoft",
+  title =        "Microsoft {V}irtual {S}erver",
+  howpublished = "\biburl{http://www.microsoft.com/windowsserversystem/virtualserver/}",
+  month =        nov,
+  year =         "2006",
 }
 
 @InProceedings{moreton,
@@ -1949,6 +2040,16 @@ year = {2006},
   month =        mar,
 }
 
+@InProceedings{spence,
+  author =       "David Spence and Tim Harris",
+  title =        "Xeno{S}earch: Distributed Resource Discovery in the
+                 {X}eno{S}erver Open Platform",
+  booktitle =    hpdc03,
+  year =         "2003",
+  address =      seattle,
+  month =        jun,
+}
+
 @Misc{spring,
   author =       "Tom Spring",
   title =        "{PCWorld.com} interview with {E}ric {S}chmidt: Three
@@ -2081,6 +2182,16 @@ year = {2006},
   month =        dec,
 }
 
+@Misc{vmware,
+  key =          "VMWare",
+  author =       "S. Devine and E. Bugnion and M. Rosenblum",
+  title =        "Virtualization System Including a Virtual Machine
+                 Monitor for a Computer With a Segmented Architecture",
+  howpublished = "US Patent 6397242",
+  month =        oct,
+  year =         "1998",
+}
+
 @TechReport{waldo,
   author =       "Jim Waldo and Geoff Wyant and Ann Wollrath and Sam
                  Kendall",
@@ -2147,7 +2258,18 @@ year = {2006},
   month =        jun,
 }
 
-@InProceedings{weil,
+@InProceedings{weil04,
+  author =       "Sage A. Weil and Kristal T. Pollack and Scott A.
+                 Brandt and Ethan L. Miller",
+  title =        "Dynamic Metadata Management for Petabyte-scale File
+                 Systems",
+  booktitle =    sc04,
+  year =         "2004",
+  address =      pittsburgh,
+  month =        nov,
+}
+
+@InProceedings{weil06,
   author =       "Sage A. Weil and Scott A. Brandt and Ethan L. Miller
                  and Darrell D. E. Long and Carlos Maltzahn",
   title =        "Ceph: {A} Scalable, High-Performance Distributed File
@@ -2169,7 +2291,19 @@ year = {2006},
   volume =       "3",
 }
 
-@InProceedings{whitaker,
+@InProceedings{whitaker02,
+  author =       "Andrew Whitaker and Marianne Shaw and Steven D.
+                 Gribble",
+  title =        "Scale and Performance in the {D}enali Isolation
+                 Kernel",
+  booktitle =    osdi02,
+  pages =        "195--210",
+  year =         "2002",
+  address =      boston,
+  month =        dec,
+}
+
+@InProceedings{whitaker04,
   author =       "Andrew Whitaker and Richard S. Cox and Steven D.
                  Gribble",
   title =        "Using Time Travel to Diagnose Computer Problems",

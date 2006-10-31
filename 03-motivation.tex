@@ -18,8 +18,6 @@ Finally, I do not propose a complete solution. Instead, I argue for the essentia
 
 Services are harder to package as commodities than goods. The quality of oil, the purity of precious metals, the strength of steel, and the composition of building materials can all be objectively measured. Compatibility with standards, quality of workmanship, energy consumption, and feature sets make consumer electronic devices comparable, and even food can be graded and compared, at least at the level of basic ingredients. Services can also be commodities, but only when competing offerings can be compared on price and quality, and when customers can move freely between providers without prohibitive lock-in effects.
 
-This section starts by defining computation as a service amenable to commoditization, then explores how this proposal relates to existing platforms and projects with similar goals.
-
 \subsection{Flexible commodity computation}
 
 Commodity computing describes a range of systems for exploiting the cheap and plentiful computing power available in commodity PCs. Instead of building expensive, specialty servers to tackle complex problems, commercial users and researchers are increasingly harnessing the power of many smaller, cheaper machines to achieve the same end. Because of the massive economies of scale in the PC market, the aggregate power that can be had from a group of cheap PCs is much greater than what the equivalent funds could purchase in more powerful, specialized server hardware.
@@ -29,47 +27,6 @@ Efforts to use commodity hardware for large computation tasks are orthogonal to 
 \emph{Utility computing}, also called \emph{on-demand computing}, describes the business model of providing computing services and charging based on use of resources. This may apply to specialized services such as databases or web hosting platforms, or to any service where usage is metered and clients pay based on what they use rather than the capabilities that are available. By itself, utility computing answers only part of the problem. Customers are isolated from the fixed costs, risk of component failure, and administrative expenses associated with hardware ownership, but they may be restricted in the range of services offered or applications accommodated. Just as early mainframes required customized software development and incurred porting costs with each new iteration or change of vendor, utility computing systems subject clients to the tools and infrastructure requirements of their hosts.
 
 \emph{Flexible commodity computation} is to a form of utility computing that allows standard commodity operating systems and tools as well as customized services to be deployed quickly and cheaply, where the basic environment provides commodity operating systems and tools rather than a specialized platform. Deployment costs are proportional to how far a client deviates from a standard, commodity environment, e.g., a standard Linux distribution, rather than the total amount of software their application requires to operate. By providing standard tools and standard environments, one flexible commodity computation service can be swapped for another without significant barriers such as porting costs and deployment costs, making computation itself a fungible commodity that can be used for a wide range of tasks, large and small.
-
-\subsection{Commodity clusters}
-
-Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
-
-Single owners, big tasks, focused on throughput, not per-node performance, have to manage the hardware and the software. Good for render farms, search engines, simulations, scientific computing, supercomputer stuff. Not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
-
-\subsubsection{Google}
-\subsubsection{Beowulf clusters}
-\subsubsection{Supercomputer 500 list}
-
-\subsection{The GRID}
-
-Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
-
-\subsubsection{Volunteer projects}
-\subsubsection{Commercial and research projects}
-\subsubsection{PlanetLab}
-
-\subsection{Web services}
-
-Why are these attractive? Many of the same reasons commodity computation is desirable: simple way to outsource IT work, continuous upgrades, accessible from anywhere. We want all these things but more general purpose; web services should be built on service clusters, letting providers specialize even more.
-
-\subsubsection{Thin clients}
-\subsubsection{Mobile clients}
-
-Mobile users \cite{demers}
-
-\subsubsection{Hosted services}
-
-email, payroll, tax prep
-
-Storage outsourcing makes sense \cite{ng}.
-
-\subsection{XenoServers}
-
-Lots in common---generally complementary. Service clusters are the ideal platform for XenoServers. XenoServers lacks a storage story, and its layout is too much like PlanetLab---a few servers here and there, with the bonus of making some money on the side. All the benefits of scale need big clusters and specialization.
-
-\subsection{Replacing the machine room}
-
-Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
 
 \section{Service containers}
 
@@ -187,7 +144,7 @@ Containing and restricting clients is only one side of the struggle in service c
 
 Clients also vary in their longevity. Short-lived tasks will only thrive as part of the commodity computation ecosystem if they are cheap enough and can be deployed quickly enough to be competitive with the end-user owned and managed equivalents. Services that are tied to human activity may need to accommodate a human's impatience and short attention span. Interactive services or those that respond to other external conditions may need to expand over multiple instances in response to changing conditions, only to shut down excessive instances when a spike in demand subsides. These scenarios require a lightweight deployment mechanism that can rapidly produce not only standard base images, but also forked copies of custom file system images produced by clients. Forking running virtual machines is beyond the scope of this work, but file system support for the process is essential and relevant.
 
-Long-lived clients have their own requirements, which must also be addressed in the storage system. Reliability can be considered a basic requirement of general-purpose storage systems, but additional support for backups and historical snapshots is also crucial especially for long-lived tasks. Runtime snapshots give a stable version of a changing file system image that can be backed up offline, used for reverting changes, examined for debugging purposes, or analyzed for forensic purposes after a service has been compromised \cite{king,whitaker}. Only clients can determine the right tradeoff between the extra storage costs invoked by snapshots (which retain files that would otherwise be deleted) and the convenience of a detailed history, so Envoy must allow each client to dictate its own snapshot policy.
+Long-lived clients have their own requirements, which must also be addressed in the storage system. Reliability can be considered a basic requirement of general-purpose storage systems, but additional support for backups and historical snapshots is also crucial especially for long-lived tasks. Runtime snapshots give a stable version of a changing file system image that can be backed up offline, used for reverting changes, examined for debugging purposes, or analyzed for forensic purposes after a service has been compromised \cite{king,whitaker04}. Only clients can determine the right tradeoff between the extra storage costs invoked by snapshots (which retain files that would otherwise be deleted) and the convenience of a detailed history, so Envoy must allow each client to dictate its own snapshot policy.
 
 Envoy must be able to provide a private, bootable image for each service that launches. Platforms for embarassingly parallel problems and other homogeneous service platforms can install basic software at each node and rely on a shared file system only for shared data. The profile of service clusters admits this possibility for starting the virtual machine manager and other administrative software, but individual services cannot be tied to a specific machine. Even the possibility of supplying a range of standard base images on each node and using a stacking file system to export virtual private images falls apart as clients fork highly-customized images, leading to inconsistency and excessive management complexity. A better solution is to require that the storage system be able to supply globally accessible images and location transparency, but do so in a way that accommodates the common case (many private images used by a individual services that migrate infrequently) with good performance. The convenience of global accessibility and transparent mobility must not cost much when it is not used much.
 
