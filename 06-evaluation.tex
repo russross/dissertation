@@ -1,38 +1,32 @@
 \chapter{Evaluation}\label{cha:evaluation}
+
 synthetic workloads are a hard problem \cite{ganger95}
+
 \section{Experimental setup}
 
 \subsection{Test machines}
 
 \subsection{Benchmarks}
 
-\subsubsection{Bonnie}
-\subsubsection{Postmark}
-
 \subsubsection{Linux source tree}
 untar -- write test
 tar > /dev/null -- read test
 rsync -- 2nd read test
-find
 
-On druid-1 (local envoy control, local storage is master, druid \& skiing storage)
-results-untar-same-machine.txt
+\subsubsection{Bonnie}
 
-
-
-\section{Baseline performance}
+\section{Performance}
 
 If the goal is to get stuff as local as possible, quantify the benefits of achieving that.
 
-\subsection{Comparisons}
+\subsection{Architectural costs}
 
-ext3
 userspace nfs
-kernel nfs
 userspace 9p
-envoy same VM
-envoy same machine
-envoy remote machine
+envoy local dom0
+envoy local domU
+envoy remote dom0
+envoy remote domU
 
 cache: cold vs warm vs hot
 
@@ -43,20 +37,44 @@ cache: cold vs warm vs hot
 \item persistent cache: cold, warm, hot, disabled
 \end{itemize}
 
-\section{Fancy features}
-\subsection{Snapshots}
-\subsection{Lease migration}
-\subsection{2-way contention: owner verses remote host performance}
-Performance gains from rebalancing (besides load balancing).
+\subsection{Fancy features}
+\subsubsection{Forks}
+\subsubsection{Snapshots}
+\subsubsection{Lease migration}
+\subsubsection{2-way contention: owner verses remote host performance}
+i.e., what's to be gained by rebalancing (besides load balancing). isn't this covered by the baseline stuff?
 
 \section{Scaling}
+\subsection{Independence of private images}
 \subsection{Degredation of a single host with many clients}
 Shared image, and also private images on one machine
-\subsection{Independence of private images}
-\subsection{Loading the storage layer}
+
+\section{Dynamic behavior}
+
+Test dynamic territory management
+
+\subsection{Example scenarios}
+
+shared image with (independent) home directories
+
+2 log files in one directory
+
+producer-consumer
+
+\subsection{Sharing application}
+distcc or something else that shares in a complex but predictable fashion
+
+\subsection{Synthetic workloads}
+
+probabalistic traffic driven to overlapping areas
 
 \section{Case studies}
+
 \subsection{Service deployment}
-\subsection{Quantifying sharing (FC3 upgrade, install services, etc.)}
+show sharing: boot one VM from cold cache, boot another based on same template
+
+\subsection{Quantifying sharing}
+
+SUSE10 upgrade, install services, etc.
 
 \section{Summary}

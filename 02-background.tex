@@ -2,10 +2,19 @@
 
 \section{Commodity computing}
 
-\subsection{Network of workstations}
-Networks of workstations (NOW)\cite{anderson95a}
+Commoditization relates to computing in two distinct ways, both of which are relevant here. The first is the general consolidation of PC hardware into a series of commodity parts, which are cheap enough and powerful enough to take over many applications that were the domain of specialized ``big-iron'' hardware in the past. The second is the push to offer computation as a service instead of as a product, where billing is based on work done rather than on hardware and software delivered. This dissertation proposes using clusters of commodity hardware as a platform for offering commodity computation services.
 
-\subsection{Clusters}
+\subsection{Commodity big iron}
+
+The scale of the PC market ensures that the best the semiconductor market has to offer is available for PCs. The difference between cheap commodity hardware and expensive mainframes and supercomputers is in scalability, reliability, and manageability. High-end equipment is designed to offer high bandwidth on buses and I/O channels and to scale with highly-parallel configurations. Redundant components mask some classes of faults, and others can be isolated and repaired without interrupting the operation of unaffected components. While these features could be offered in commodity machines, they add too much cost to be worthwhile in environments where service interruption is more annoying than expensive.
+
+\subsubsection{Networks of workstations}
+
+The proposal for Networks of Workstations was an early argument for using networks of smaller computers for large problems instead of seeking parallelism through specialized hardware \cite{anderson95a}. While individual components are less performant, the aggregate capacity of a large collection of machines is immense. Commodity disks may be slow, but accessing them in parallel yields high bandwidth as well as high capacity. Reliability and fault tolerance can be designed as a property of the combined system, rather than being engineered into individual hardware components. This has the advantage of transferring the expense from a per-unit manufacturing overhead to a one-time cost in the software design.
+
+\subsubsection{Clusters}
+
+Parallel computing has been studied and used for many years as a way to scale beyond the fastest available processors \cite{amdahl}.
 
 Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
 
@@ -27,7 +36,14 @@ Partition cloning \cite{rauch}
 
 TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
 
-\subsection{Grid}
+\subsection{Computation for hire}
+
+\subsubsection{Replacing the machine room}
+
+Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
+
+
+\subsubsection{Grid}
 
 Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
 
@@ -44,11 +60,11 @@ electricity/running costs are higher than capitol costs, so value is dubious
 
 \cite{zhao04}
 
-\subsection{Utility computing}
+\subsubsection{Utility computing}
 
 Utilification \cite{wilkes04}.
 
-\subsection{Hosted services}
+\subsubsection{Hosted services}
 
 Web services: Why are these attractive? Many of the same reasons commodity computation is desirable: simple way to outsource IT work, continuous upgrades, accessible from anywhere. We want all these things but more general purpose; web services should be built on service clusters, letting providers specialize even more.
 
@@ -56,9 +72,6 @@ email, payroll, tax prep
 
 Storage outsourcing makes sense \cite{ng}.
 
-\subsubsection{Replacing the machine room}
-
-Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
 
 Similar idea as network appliances: \cite{sapuntzakis03}.
 
