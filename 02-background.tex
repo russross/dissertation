@@ -12,33 +12,25 @@ The scale of the PC market ensures that the best the semiconductor market has to
 
 The proposal for Networks of Workstations was an early argument for using networks of smaller computers for large problems instead of seeking parallelism through specialized hardware \cite{anderson95a}. While individual components are less performant, the aggregate capacity of a large collection of machines is immense. Commodity disks may be slow, but accessing them in parallel yields high bandwidth as well as high capacity. Reliability and fault tolerance can be designed as a property of the combined system, rather than being engineered into individual hardware components. This has the advantage of transferring the expense from a per-unit manufacturing overhead to a one-time cost in the software design.
 
+PCs have encroached on the workstation market and the two terms are largely synonymous now. The same trends that prevailed in the mid~90s for workstations continue today, however. Switched networks lead to aggregate bandwidth that scales with the number of hosts. Single-threaded performance on cheap PCs is a significant fraction of that on the fastest server hardware. Disks continue to grow in capacity, but their performance improves at a muct slower rate. Performance is best scaled through parallelism, so a collection of many machines has the potential to outperform even the fastest single controller or collection of disks attached to a single machine.
+
 \subsubsection{Clusters}
 
-Parallel computing has been studied and used for many years as a way to scale beyond the fastest available processors \cite{amdahl}.
+While workstations in an organization can be profitably pooled for large jobs, clusters are specially built for that purpose and eliminate the workstation role from a node's list of duties. The basic principles behind clusters were laid down in the 1960s \cite{amdahl}, but the power and affordability of recent commodity hardware have made brought clusters to renewed prominence. The same hardware used in high-street PCs powers some of the most powerful computing sites in the world \cite{top500}.
 
-Clusters have mainly been confined to solving ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems such as search engines, scientific computing, data mining, and other parallel computing.
+Dedicated clusters have a few advantages over more loosely-organized structures. Nodes are typically housed in a controlled environment with redundant power supplies, network links, and cooling equipment. While many clusters grow incrementally, they are still relatively homogenous, being built from batches of identical hardware. They are also professionally managed and monitored, with central control over all resources.
 
-Single owners, big tasks, focused on throughput, not per-node performance, have to manage the hardware and the software. Good for render farms, search engines, simulations, scientific computing, supercomputer stuff. Not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
+As parallel computing vehicles, clusters are mainly used for large ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems that can be neatly decomposed into discrete tasks. Google has been prominent among commercial users of commodity clusters, and their search engine architucture is an example of a highly-parallel task. The search index can be cloned to serve many concurrent transactions, and partitioned to split processing for a single query over multiple nodes \cite{barroso}. Scientific workloads, simulations, and graphics rendering farms are all characterized by repetitive computations over huge data sets, and are similarly well-suited to cluster implementation. Beowulf is a popular system specifically designed for addressing these kinds of tasks on clusters of commodity hardware running Linux or other Unix-like operating systems \cite{ridge}.
 
-Google
+These problems are generally large enough to warrant custom software solutions as well as dedicated hardware resources. Monitoring and management software for clusters usually assumes that the application is trusted and cooperative. Systems like TranSend \cite{fox} and CARD \cite{anderson97} require application software to be divided into discrete units that the monitoring software can direct. Migrating tasks from node to node and compensating for failed nodes requires cooperation from the application, or interaction with a transaction interface that exposes application semantics.
 
-Beowulf clusters
-
-Supercomputer 500 list
-
-Embarassingly parallel problems
-
-CARD for cluster monitoring\cite{anderson97}
-
-Fast crash recovery verses redundancy\cite{baker94}
-
-Partition cloning \cite{rauch}
-
-TranSend was written for and the Inktomi search engine adapted to a layered cluster platform for scalable, homogeneous network services. Services composed of a few distinct types of actors could be managed by a common platform that provided monitoring and allocation of the component parts over the cluster. This type of platform exemplifies many of the advantages of clusters for network services, including load balancing, incremental scaling, fault tolerance, and high availability, but the implementation was limited to ``embarassingly parallel'' problems with trusted components and a custom state management system backed by a commercial SAN \cite{fox}. The authors were able to demonstrate that scalability was limited more by bandwidth into the cluster than by communication within it or coordination overhead.
+For some classes of problems, clusters dominate as the architecture of choice, with clusters of commodity hardware increasingly winning over clusters of specialized hardware. This disseration does not seek to supplant them for parallel tasks, but rather to extend their advantages into other problem domains. While clusters are a sound choice for problems requiring the dedicated effort of thousands of machines, they can be an equally viable platform for problems too small to require the undivided attention of even a single node. Clusters are normally built and located for a specific user and a specific task, but they can also be built where conditions are best, perhaps near network interconnect points or where cheap resources abound or a favorable regulatory environment exists; strategic choices can give vendors competive advantages. All the advantages of scale can be brought to bear on small and medium-sized problems, not just on the largest of tasks.
 
 \subsection{Computation for hire}
 
 \subsubsection{Replacing the machine room}
+
+Clusters not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
 
 Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
 
@@ -234,7 +226,7 @@ While Envoy is also built for clusters, it is designed for many independent clie
 
 \subsection{Virtual machines}
 
-
+Multi-Service Storage Architecture \cite{bacon}
 
 CoWNFS \cite{kotsovinos04b}
 GRID VMs \cite{zhao04} \cite{figueiredo01}
