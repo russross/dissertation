@@ -6,7 +6,7 @@ Commoditization relates to computing in two distinct ways, both of which are rel
 
 \subsection{Commodity big iron}
 
-The scale of the PC market ensures that the best the semiconductor market has to offer is available for PCs. The difference between cheap commodity hardware and expensive mainframes and supercomputers is in scalability, reliability, and manageability. High-end equipment is designed to offer high bandwidth on buses and I/O channels and to scale with highly-parallel configurations. Redundant components mask some classes of faults, and others can be isolated and repaired without interrupting the operation of unaffected components. While these features could be offered in commodity machines, they add too much cost to be worthwhile in environments where service interruption is more annoying than expensive.
+The scale of the PC market ensures that the best the semiconductor market has to offer is available for PCs. The difference between cheap commodity hardware and expensive mainframes and supercomputers is in scalability, reliability, and manageability. High-end equipment is designed to offer high bandwidth on buses and I/O channels and to scale through highly-parallel configurations. Redundant components mask some classes of faults, and others can be isolated and repaired without interrupting the operation of unaffected components. While these features could be offered in commodity machines, they add too much cost to be worthwhile in environments where service interruption is more annoying than expensive.
 
 \subsubsection{Networks of workstations}
 
@@ -20,22 +20,41 @@ While workstations in an organization can be profitably pooled for large jobs, c
 
 Dedicated clusters have a few advantages over more loosely-organized structures. Nodes are typically housed in a controlled environment with redundant power supplies, network links, and cooling equipment. While many clusters grow incrementally, they are still relatively homogenous, being built from batches of identical hardware. They are also professionally managed and monitored, with central control over all resources.
 
-As parallel computing vehicles, clusters are mainly used for large ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems that can be neatly decomposed into discrete tasks. Google has been prominent among commercial users of commodity clusters, and their search engine architucture is an example of a highly-parallel task. The search index can be cloned to serve many concurrent transactions, and partitioned to split processing for a single query over multiple nodes \cite{barroso}. Scientific workloads, simulations, and graphics rendering farms are all characterized by repetitive computations over huge data sets, and are similarly well-suited to cluster implementation. Beowulf is a popular system specifically designed for addressing these kinds of tasks on clusters of commodity hardware running Linux or other Unix-like operating systems \cite{ridge}.
+As parallel computing vehicles, clusters are mainly used for large ``embarrassingly parallel''\footnote{See \url{http://en.wikipedia.org/wiki/Embarrassingly_parallel}} problems that can be neatly decomposed into discrete tasks. Google has been prominent among commercial users of commodity clusters, and their search engine architucture is an example of a highly-parallel task. The search index can be cloned to serve many concurrent transactions, and partitioned to split processing for a single query over multiple nodes \cite{barroso03}. Scientific workloads, simulations, and graphics rendering farms are all characterized by repetitive computations over huge data sets, and are similarly well-suited to cluster implementation. Beowulf is a popular system specifically designed for addressing these kinds of tasks on clusters of commodity hardware running Linux or other Unix-like operating systems \cite{ridge}.
 
-These problems are generally large enough to warrant custom software solutions as well as dedicated hardware resources. Monitoring and management software for clusters usually assumes that the application is trusted and cooperative. Systems like TranSend \cite{fox} and CARD \cite{anderson97} require application software to be divided into discrete units that the monitoring software can direct. Migrating tasks from node to node and compensating for failed nodes requires cooperation from the application, or interaction with a transaction interface that exposes application semantics.
+These problems are generally large enough to warrant custom software solutions as well as dedicated hardware resources. Management software for clusters usually assumes that the application is trusted and cooperative. Systems like TranSend \cite{fox} and CARD \cite{anderson97} require application software to be divided into discrete units that the monitoring software can direct. Migrating tasks from node to node and compensating for failed nodes requires cooperation from the application, or interaction with a transaction interface that exposes application semantics. Beowulf \cite{ridge} is a lower-level toolkit, providing libraries of useful tools for building a custom cluster application.
 
-For some classes of problems, clusters dominate as the architecture of choice, with clusters of commodity hardware increasingly winning over clusters of specialized hardware. This disseration does not seek to supplant them for parallel tasks, but rather to extend their advantages into other problem domains. While clusters are a sound choice for problems requiring the dedicated effort of thousands of machines, they can be an equally viable platform for problems too small to require the undivided attention of even a single node. Clusters are normally built and located for a specific user and a specific task, but they can also be built where conditions are best, perhaps near network interconnect points or where cheap resources abound or a favorable regulatory environment exists; strategic choices can give vendors competive advantages. All the advantages of scale can be brought to bear on small and medium-sized problems, not just on the largest of tasks.
+For some classes of problems, clusters dominate as the architecture of choice, with clusters of commodity hardware increasingly winning over clusters of specialized hardware. This disseration does not seek to supplant them for inherently parallel tasks, but rather to extend their advantages into other problem domains. While clusters are a sound choice for problems requiring the dedicated effort of thousands of machines, they can be an equally viable platform for problems too small to require the undivided attention of even a single node. Clusters are normally built and located for a specific user and a specific task, but they can also be built where conditions are best, perhaps near network interconnect points or where cheap resources abound or a favorable regulatory environment exists; strategic choices can give vendors competive advantages. All the advantages of scale can be brought to bear on small and medium-sized problems, not just on the largest of tasks.
 
 \subsection{Computation for hire}
 
+Computer hardware is cheap enough that most organizations can afford to buy systems with sufficient power for their needs. However, because of the complexity of managing computer systems and the ongoing operating and maintenance costs, this is not always the best way to proceed. Numerous avenues exist for clients wanting to hire computation services instead of owning and managing their own hardware and software.
+
 \subsubsection{Replacing the machine room}
 
-Clusters not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
+The primary motivation for outsourcing computation as considered here is to reduce or eliminate the role of the machine room. Dedicated server hardware comes with expenses that may outweigh the benefits of local ownership and control.
 
-Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere. Cheaper, better connected, no more hardware worries, less staff.
+The most obvious costs are direct: physical space required, electricity consumed, and heat produced. Commodity hardware is cheap enough that these runtime costs may exceed the capital cost of the hardware over its service lifetime \cite{barroso05}. Hardware must either be located at a company site, where appropriate facilities must be installed and network connectivity hired, or at a dedicated hosting facility, where managing it is more complicated and may require sending staff to a remote location.
 
+Maintaining servers also requires qualified staff, another significant expense. The skills required to manage computer systems are often unrelated to the core mission of an organization, forcing them to develop a sizable technical staff to support operations that have little to do with technology. Running a parallel group outside an organizations's core expertise may lead to additional inefficiencies.
 
-\subsubsection{Grid}
+These costs are even less palatable when the computation facilities are only needed intermittently. Unpredictable demand may force planning based on peak requirements, but many costs are are fixed and do not drop during periods of low demand.
+
+\subsubsection{Hosted services}
+
+Some services are generic enough to be hosted remotely by specialized providers. Basic applications like email, payroll management, web hosting, and other common services have already attracted commercial interest. Hosting them locally would bring all the negative aspects of managing an on-site machine room, while adding little or no value over using a remote provider.
+
+Hosted software eliminates the need for the client to buy or manage dedicated hardware, and the application is managed by specialists who can ammortize fixed costs over a large customer base. Upgrades do not require work from the client, making it practical to keep all customers synchronized and further reduce support costs. Unpredictable demand from many clients can become predictable in the aggregate, allowing more efficient hardware use.
+
+The same arguments apply to storage outsourcing \cite{ng}, for those wishing to hire storage while retaining local control of applications. Multi-site backups, capacity planning, and other domain-specific concerns can be turned over to a specialist, leaving local staff to focus on the problems unique to the organization.
+
+Hosted services fit well with the present proposal, which takes the concept a step further by splitting management of hardware from management of software. In the service cluster model, service providers could focus entirely on their applications, leaving hardware management to a dedicated cluster provider. Alternately, clients could hire software management services from one vendor and hardware hosting directly from another, isolating the specific value offered by a software vendor from the basic operating costs that all software requires.
+
+\subsubsection{Utility computing}
+
+Utilification \cite{wilkes04}.
+
+\subsubsection{Grid computing}
 
 Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
 
@@ -45,29 +64,20 @@ Commercial and research projects
 
 PlanetLab
 
-electricity/running costs are higher than capitol costs, so value is dubious
+electricity/running costs are higher than capitol costs, so value for general use is dubious, great when you need huge capacity for limited time
 
 \cite{foster}
 \cite{figueiredo03}
 
 \cite{zhao04}
 
-\subsubsection{Utility computing}
+\subsubsection{wrap up}
 
-Utilification \cite{wilkes04}.
+Clusters not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
 
-\subsubsection{Hosted services}
-
-Web services: Why are these attractive? Many of the same reasons commodity computation is desirable: simple way to outsource IT work, continuous upgrades, accessible from anywhere. We want all these things but more general purpose; web services should be built on service clusters, letting providers specialize even more.
-
-email, payroll, tax prep
-
-Storage outsourcing makes sense \cite{ng}.
+Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere.
 
 
-Similar idea as network appliances: \cite{sapuntzakis03}.
-
-SoftUDC: software-based data center \cite{kallahalla}.
 
 \section{Virtualization}
 
@@ -94,6 +104,11 @@ A public computing platform requires more than just hosting technology. The Xeno
 Lots in common---generally complementary. Service clusters are the ideal platform for XenoServers. XenoServers lacks a storage story, and its layout is too much like PlanetLab---a few servers here and there, with the bonus of making some money on the side. All the benefits of scale need big clusters and specialization.
 
 \cite{kotsovinos04b}
+
+Similar idea as network appliances: \cite{sapuntzakis03}.
+
+SoftUDC: software-based data center \cite{kallahalla}.
+
 
 
 \section{Storage systems}
