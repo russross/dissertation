@@ -52,32 +52,21 @@ Hosted services fit well with the present proposal, which takes the concept a st
 
 \subsubsection{Utility computing}
 
-Utilification \cite{wilkes04}.
+Application hosting is most practical for widely-used services, where few differences exist between clients. The proposal in this dissertation is a form of utility computing, where hardware resources are made available for custom applications, at a cost related to resource consumption. Utility computing refers to a range of computing models, with the common characteristic of on-demand resource provision. Hosted services, as described above, and grid computing, as described below, fall under the umbrella of utility computing.
+
+Existing work focuses mainly on large applications where abundant resources are needed, but not necessarily over a long enough period to justify building a suitable hardware solution. An example is rendering feature-length animated films, which requires vast computing power and complex interactions, but only until the project is finished. Vendors with sufficient resources can manage them like batch processing on early mainframes, assigning hardware to a series of applications that have been suitably prepared for the environment \cite{wilkes04}. HP's Utility Data Center (UDC) \cite{kallahalla} uses virtualization to manage services, much like the service clusters described in \charef{cha:motivation}, but focuses on large projects that can be adapted to the UDC environment.
+
+The Collective project also uses virtualization to isolate services, and proposes turning the desktop PCs of an organization into a pool of utility computing hosts \cite{sapuntzakis03}. End users treat interactive applications and services as virtual appliances that can be instantiated on a local PC. This allows specialized staff to manage desktop software as well as machine-room applications, with desktop PCs acting somewhat like terminals for managed software, but terminals that host their own resources. In some sense, this is the reverse of other utility computing environments; it delivers managed software services to local hardware instead of offering hosted hardware to run client applications.
 
 \subsubsection{Grid computing}
 
-Similar to clusters, but focused on harvesting cycles from a huge area. Big, parallel problems, complex setup, custom tools. Mainly for CPU-intensive jobs.
+Grid computing \cite{foster} seeks to combine resources in the wide area to provide on-demand computation. Utility computing is named after basic utilities like power, water, and sewer service, offering a common service to many clients according to their needs. Grid computing styles itself after power grids, which provide a meshed infrastructure to match power producers with consumers across the boundaries of a single utility.
 
-Volunteer projects
+Pooling the resources of many organizations has the potential to put vast resources at the disposal of clients, but it also introduces new problems. Unlike the cluster environments typical of utility computing, grid applications must communicate over the wide area with its low bandwidth and high latency. This makes the grid model most suitable for highly parallel CPU-intensive jobs, which can be parceled into discrete units and distributed to remote nodes. Moving from a single, trusted management environment makes security considerations more complex as well.
 
-Commercial and research projects
+Grid computing requires special middleware, though using virtual machines to support more general-purpose clients has been proposed \cite{figueiredo03,zhao04}. Even then, poor connectivity makes it slow and expensive to transfer large data sets or share data extensively between nodes. The distribution model of grid computing makes it poorly suited to interactive applications or those that require close cooperation between nodes.
 
-PlanetLab
-
-electricity/running costs are higher than capitol costs, so value for general use is dubious, great when you need huge capacity for limited time
-
-\cite{foster}
-\cite{figueiredo03}
-
-\cite{zhao04}
-
-\subsubsection{wrap up}
-
-Clusters not helpful for low-volume stuff that still needs a server. email, payroll, calendar, game server.
-
-Hosted services are usually about the vendor: what can they do to drive business their way and keep it. Instead of picking the most lucrative services and offering them in full, how can we get rid of the machine room altogether and outsource the entire computational environment. This isn't about getting rid of desktops, it's more about database-driven apps, network services, computationally intensive tasks, and sporadic/intermittent demands. Most stuff that runs in the back room would be better on a service cluster somewhere.
-
-
+Existing utility computing solutions do little to address the needs of an organization with a relatively small computing infrastructure hoping to stay out of the hardware management business. A few applications can be outsourced to a service provider, and large jobs can be run on hired hardware, but these systems are only applicable to a small subset of the applications running in a typical organization's machine room. To achieve the scale necessary to make an offering profitable, vendors have focused on hosting widely-used applications and projects that are already large. This differs from the current proposal, which aims to make hosted computation a commodity service practical for a wider range of client applications.
 
 \section{Virtualization}
 
@@ -99,17 +88,11 @@ The IBM zSeries \cite{ibmzseries} platform provides a managed hosting environmen
 
 \subsection{XenoServers}
 
-A public computing platform requires more than just hosting technology. The XenoServers project \cite{reed,kotsovinos04a} explored the infrastructure required to host network services on a public computing platform. The Xen hypervisor started as part of the XenoServers project, which motivated its emphasis on performance over compatibility with legacy code. XenoSearch \cite{spence} allows servers to be located and selected based on connectivity requirements as well as availability, an important factor for network services.
+A public computing platform requires more than just hosting technology. The XenoServers project \cite{reed,kotsovinos04a} explored the infrastructure required to host network services on a public computing platform. The Xen hypervisor started as part of the XenoServers project, which motivated its emphasis on performance over compatibility with legacy code. Application binaries can run without modification in a paravirtualized system, so the modifications Xen requires only affect the operating system.
 
-Lots in common---generally complementary. Service clusters are the ideal platform for XenoServers. XenoServers lacks a storage story, and its layout is too much like PlanetLab---a few servers here and there, with the bonus of making some money on the side. All the benefits of scale need big clusters and specialization.
+The XenoServers project also addresses the problem of helping clients find a suitable host \cite{spence}. Network services may have specific connectivity requirements, especially when being deployed for use by a small group or an individual. For example, a game server connecting a group of players requires low latency to support real-time interaction. To support a large number of hosting providers, XenoServers also defines the infrastructure for billing through a trusted third party.
 
-\cite{kotsovinos04b}
-
-Similar idea as network appliances: \cite{sapuntzakis03}.
-
-SoftUDC: software-based data center \cite{kallahalla}.
-
-
+This dissertation is not directly linked to the XenoServers project, but it is related. XenoServers provides much of the general framework for public computing, but it does not specify the architecture for hosts beyond the use of the Xen hypervisor. In this work I propose using clusters of commodity hardware as the basis for public computing, and I offer a storage system suitable for that environment. The Envoy file system proposed here also supports the deployment strategy we described as part of the XenoServers project \cite{kotsovinos04b}.
 
 \section{Storage systems}
 
