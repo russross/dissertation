@@ -47,3 +47,7 @@ Instead of trying to automate installations, Envoy offers lightweight operations
 Storage systems have been studied and documented extensively in the systems literature. One could argue that everything worth doing has been done, or alternatively one could assert that the continuing research is evidence that everyone has failed so far, with the truth probably residing somewhere between these two extremes. Storage is an essential component of most systems, though, and the requirements placed on them are almost as various as the solutions that have been proposed.
 
 In this chapter I survey the most important and widely known storage systems, with an emphasis on those that are relevent to service clusters and similar in design to Envoy. I describe some of the major design tradeoffs that emerge and identify the characteristics of service clusters that make existing systems unsuitable or less than ideal for this emerging environment as I justify the need for another storage system.
+
+\section{Denali and Terra}
+
+Denali \cite{whitaker02} is also designed to support deployment of untrusted services on shared hardware, but it breaks binary compatibility to support a narrow range of services in large numbers. While suitable for some types of utility computing, it is not flexible enough for general-purpose commodity computation. Terra \cite{garfinkel} also addresses a different problem by securing guest services using hardware extensions to provide a trusted environment.
