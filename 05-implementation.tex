@@ -123,6 +123,14 @@ Because all requests cross the virtual network device between a client VM and th
 
 \section{Storage service}
 
+% The storage layer is implemented in two parts, called the top and bottom halves.
+% 
+% The bottom half is implemented in the storage daemon hosted on each physical server. While the storage daemon instances form a collective pool of storage, they do not communicate directly with each other. At the local level, each storage manager is unaware of any global state, and responds blindly to incoming requests from the envoy layer. Instances do not attempt to balance load, resolve conflicting requests, or create redundancy, nor do they monitor which object IDs they considered valid. Instead, they provide a thin, simple storage service for numbered objects with attributes.
+% 
+% To make these servers more useful, the top half of the storage layer is implemented in the envoy daemon. It is responsible for mapping an object ID to the set of storage server instances that host the referent object. Combined with the persistent cache, the storage layer top half provides a simple procedural interface to the storage layer, where objects are named by unique IDs. The top half is responsible for creating and locating replicas, detecting and masking/recovering from failures, allocating new object IDs when needed, and reading and writing data and attributes.
+% 
+% An object ID is considered a globally unique name for that object. When replication is introduced, it is assumed that all replicas are given the same object ID. One object server from a replica group is nominated as the master; it is the only one to which \texttt{reserve} requests will be sent, and all servers within that replica group are bound by its allocations (although the servers themselves do not offer any enforcement mechanism). Object servers can participate in multiple replica groups, so the \texttt{reserve} procedure includes a parameter to indicate the ID space from which the allocation should come.
+
 The storage service implements the bottom half of the storage layer, which is essentially an independent, stateless object server. Each server that contributes storage space runs a single instance of the storage service to export an object-level interface.
 
 The storage layer is under-specified. It is an essential part of a complete Envoy implementation, but object management systems are not the subject of this dissertation, which instead focuses on building a complete distributed file system above an object-storage layer. The artifact described here is a stub, offering enough support to complete and test the file system build above it, but not enough for a production setup.

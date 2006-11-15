@@ -176,7 +176,7 @@ Envoy has some structural parallels with these systems. While latency between ma
 
 The relationship of the present work to global storage systems is more than just a passing architectural resemblance, however. Envoy and the service clusters that host it are designed for commercial providers that locate computational resources near storage and fast network access. Instead of trying to hide the distance between users and data, service clusters share the goal of XenoServers \cite{reed} to move computation to a resource-rich environment. As a basic platform, service clusters backed by Envoy storage can form the building blocks of global service networks, including storage services.
 
-\subsection{Cluster storage systems}
+\subsection{Cluster storage systems}\label{sec:cluster-storage-systems}
 
 The path from local file systems to wide-area file systems is generally progressive, with concerns about cache management, trust, latency, replica placement, and reliability growing at each step. Clusters have networks with low latency and high bandwidth, and large numbers of trusted, centrally-managed hosts. Their mixture of characteristics from the largest and smallest of systems partially explains their popularity as replacements for traditional, monolithic supercomputer architectures.
 
