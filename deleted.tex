@@ -79,3 +79,23 @@ Snapshots also serve another special purpose: they can be used as the root for a
 \section{Lease migrations are an optimization}
 
 Lease migrations work to optimise traffic patterns in the long term, but migrations are just that: an optimisation. They only help when there is heavy traffic or a long-term pattern, where caching can come into play. Frequent changes thrash the cache and disrupt normal operations. Migrations require coordination between envoys and may require halting normal file system traffic. We want infrequent lease changes that give good long-term behaviour rather than frequent changes that try to chase short-term trends. Since latency is short in a cluster, we don't lose all that much by going to a remote envoy for requests: this is a lot like conventional NFS servers now which seem to do just fine. One consequence of this is that lease migration operations can be straightforward and obvious without heavy optimisation, while still not hurting the overall system too much (Amdhal's law).
+
+\section{Image credentials}
+
+The credentials required to access a given directory are determined by the contents of files called \texttt{password} located in the administrative directories above the target directory. The access granted by each level is additive, i.e., permissions can only be added by a new \texttt{password} file, not taken away, and normally applies to all subdirectories that are siblings of the \texttt{password} file, not to the directory that contains it. The root of the entire tree is an exception, as its \texttt{password} file applies to the root directory as well as its descendents. The significance given to \texttt{password} files only applies to administrative directories. Once the boundary to an image has been crossed, all special names recognised in the administrative directories cease to have significance.
+
+The lowest level of access granted by a \texttt{password} file is read-only or read/write access to images. This allows clients to mount images and use them, but grants no access to the administrative directories. The next level up lets the client mount administrative directories to trigger and manage snapshots, but not create new images or manipulate other files in the administrative areas. The highest level of access permits these activities as well, giving clients the ability to manipulate lower-level \texttt{password} file as well. To fork an existing image, the user must also have read permission to the complete base image.
+
+Credentials can be restricted to grant access as a specific user name in the file system, or they can be mapped to any user within an image. The latter case is analogous to the \texttt{root} user in a Unix system, which can assume the identity of any other user within the same system.
+
+With this system, a few typical user types are expected:
+
+\begin{description}
+\item[Service managers] coordinate groups of client VMs that cooperate to form larger services. They create new boot images, set up shared volumes, and grant appropriate access to the individual participants.
+
+\item[Client owners] act like root users for a particular image. The client may create its own user names, but instead of registering them individually with the file system, the client owner uses its own credentials to authenticate them and grant them a name for the duration of the active session. Client owners may also manage their own snapshots.
+
+\item[Independent users] may be authorised by service managers to access individual shared volumes within their management domain, without granting them \emph{carte blanche} or putting them under the control of individual client owners. These free agents are guests in the images they visit, but their access may come high in the file tree giving them access to many images.
+\end{description}
+
+Other roles may be created with the system. The objective is to make it simple for individual users, allow clients to manage their own user base in shared setups, and allow restricted access to be granted by clients to other clients for sharing.
