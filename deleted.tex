@@ -99,3 +99,7 @@ With this system, a few typical user types are expected:
 \end{description}
 
 Other roles may be created with the system. The objective is to make it simple for individual users, allow clients to manage their own user base in shared setups, and allow restricted access to be granted by clients to other clients for sharing.
+
+\section{Storage layer}
+
+In a centrally controlled cluster, assigning ranges of object IDs to storage servers and picking master replicas is a job best accomplished by a centralised, possibly replicated server. Likewise, coordinating bulk transfers of objects between servers to accommodate new nodes or compensate for failed machines is much easier to manage from a single location than to manage using a distributed protocol. Such tasks would be light work even when controlling many machines, because the events that require coordination occur infrequently. Unlike peer-to-peer systems, managed clusters can trust individual nodes and avoid distributing tasks that are better handled by centralised services.

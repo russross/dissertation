@@ -38,9 +38,10 @@
 % ignore Overfull \vbox messages
 \vfuzz 2pt
 
-\clubpenalty=9999
-\widowpenalty=9999
-\interfootnotelinepenalty=9999
+\clubpenalty=10000
+\widowpenalty=10000
+\interfootnotelinepenalty=10000
+\brokenpenalty=10000
 
 % allow some extra space for paragraph breaking
 \setlength{\emergencystretch}{1em}
@@ -52,7 +53,7 @@
 \usepackage[
   bookmarks=true,
   linkbordercolor={0 0 1},
-  pagebackref=true,
+%  pagebackref=true,
   plainpages=false,
   pdfpagelabels=true,
   hypertexnames=false,
@@ -144,19 +145,11 @@
 % bibliography
 
 \clearpage
-%\singlespace
 \renewcommand{\bibname}{References}
 \addcontentsline{toc}{chapter}{\bibname}
 
-% hardcode the headers so they are not uppercase
-\makeatletter
-  \if@twoside
-    \lhead[\fancyplain{}{\sffamily\small\textsl{\bibname}}]{}
-    \rhead[]{\fancyplain{}{\sffamily\small\textsl{\bibname}}}
-  \else
-    \lhead[]{\fancyplain{}{\sffamily\small\textsl{\bibname}}}
-  \fi
-\makeatother
+% prevent the header from being uppercase
+\renewcommand{\MakeUppercase}[1]{#1}
 
 % define a url command for the bibliography that can split lines
 \DeclareUrlCommand\biburl{}
