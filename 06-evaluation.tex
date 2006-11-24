@@ -10,7 +10,9 @@ synthetic workloads are a hard problem \cite{ganger95}
 
 \subsubsection{Linux source tree}
 untar -- write test
+
 tar > /dev/null -- read test
+
 rsync -- 2nd read test
 
 \subsubsection{Bonnie}
@@ -21,37 +23,41 @@ If the goal is to get stuff as local as possible, quantify the benefits of achie
 
 \subsection{Architectural costs}
 
-userspace nfs
+userspace NFS
+
 userspace 9p
+
 envoy local dom0
+
 envoy local domU
+
 envoy remote dom0
+
 envoy remote domU
 
 cache: cold vs warm vs hot
 
-\begin{itemize}
-\item standard benchmarks verses userspace 9p. Postmark \cite{katcher}.
-\item same domain verses different domain verses different machine
-\item read/write verses metadata heavy
-\item persistent cache: cold, warm, hot, disabled
-\end{itemize}
-
 \subsection{Fancy features}
 \subsubsection{Forks}
+
+cheap and fast---these always happen from a read-only snapshot
+
 \subsubsection{Snapshots}
-\subsubsection{Lease migration}
-\subsubsection{2-way contention: owner verses remote host performance}
-i.e., what's to be gained by rebalancing (besides load balancing). isn't this covered by the baseline stuff?
+
+single territory, many territories
+
+untar the kernel while a bunch of snapshots happen and measure the impact
+
+\subsubsection{Territory migration}
 
 \section{Scaling}
 \subsection{Independence of private images}
-\subsection{Degredation of a single host with many clients}
+\subsection{Degradation of a single host with many clients}
 Shared image, and also private images on one machine
 
-\section{Dynamic behavior}
+\section{Dynamic behaviour}
 
-Test dynamic territory management
+Test dynamic territory management, less about performance than behaviour
 
 \subsection{Example scenarios}
 
@@ -66,7 +72,7 @@ distcc or something else that shares in a complex but predictable fashion
 
 \subsection{Synthetic workloads}
 
-probabalistic traffic driven to overlapping areas
+probabilistic traffic driven to overlapping areas
 
 \section{Case studies}
 
@@ -75,6 +81,10 @@ show sharing: boot one VM from cold cache, boot another based on same template
 
 \subsection{Quantifying sharing}
 
-SUSE10 upgrade, install services, etc.
+SUSE10 upgrade, install services
+
+compare image overlap
+
+boot two related images (one cold and other warm) and compare with the same test for identical images
 
 \section{Summary}
