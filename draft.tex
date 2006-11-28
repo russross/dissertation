@@ -6,7 +6,13 @@
 % font and encoding setup
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{sabon}
+
+% use sabon and helvetica, but stick to computer modern for typewriter
+%\usepackage{sabon}
+\usepackage{textcomp}
+\renewcommand{\rmdefault}{psb}
+\renewcommand{\sfdefault}{phv}
+\renewcommand{\ttdefault}{cmtt}
 
 % references
 \newcommand{\charef}[1]{Chapter~\ref{#1}}
