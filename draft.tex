@@ -105,10 +105,15 @@
 \include{summary}
 \include{acknowledgements}
 
-% table of contents
-
 \onehalfspace
+
+% table of contents
 \parskip 0pt plus 1pt
+
+% make space for long page numbers
+\makeatletter
+\renewcommand\@pnumwidth{2em}
+\makeatother
 
 \renewcommand\contentsname{Table of Contents}
 \tableofcontents
