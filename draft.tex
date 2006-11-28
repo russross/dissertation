@@ -20,6 +20,9 @@
 \usepackage{fancyhdr}
 \raggedbottom
 
+% put bibliography keys in the margin
+\usepackage{margbib}
+
 % put section numbers in the margin
 \makeatletter
 \def\@seccntformat#1{\protect\makebox[0pt][r]{\small\csname the#1\endcsname\quad}}
@@ -38,7 +41,7 @@
 \newcommand{\tabwidth}{.95\textwidth}
 
 % ignore Overfull \vbox messages
-\vfuzz 2pt
+% \vfuzz 2pt
 
 \clubpenalty=10000
 \widowpenalty=10000
@@ -156,7 +159,7 @@
 % define a url command for the bibliography that can split lines
 \DeclareUrlCommand\biburl{}
 
-\bibliographystyle{alpha}
+\bibliographystyle{author}
 \bibliography{references}
 
 \end{document}
