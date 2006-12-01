@@ -72,7 +72,7 @@ The Envoy prototype is implemented using the 9p protocol from the Plan~9 operati
 
 The 9p protocol is based around the thirteen messages listed in \tabref{tab:9p-messages}. Authentication is achieved through an arbitrary sequence of reads and writes to a special file handle established with the \texttt{auth} message, and after the server is satisfied the client can follow-up by attaching to a specific point in the file hierarchy. Access to the rest of the hierarchy is through \texttt{walk} messages that move new or existing file handles through the namespace, and normal operations that can then access files and directories through the associated file handles.
 
-\begin{table}[tp]
+\begin{table}[t]
 \begin{center}
 \begin{tabular}{>{\ttfamily}l|l}
 \textbf{\textrm{Message name}} & \textbf{Description} \\ \hline
@@ -135,7 +135,7 @@ The remainder of this section describes the protocol used by the storage servers
 
 The storage server protocol is implemented as an extension of the 9p protocol. It uses the same RPC mechanism and shares the same hand-shaking messages. Like 9p, it does not define an authentication protocol, but instead provides a framework for implementations to exchange credentials. In its intended setting, authentication could also be based solely on IP addresses, since the entire network is controlled and virtual machines can easily be prevented from spoofing their addresses. \tabref{tab:storage-messages} lists the messages unique to the storage server.
 
-\begin{table}[tp]
+\begin{table}[t]
 \begin{center}
 \begin{tabular}{>{\ttfamily}l|l}
 \textbf{\textrm{Message name}} & \textbf{Description} \\ \hline
@@ -223,7 +223,7 @@ For operations that require the synchronous cooperation of multiple envoy instan
 
 As with the storage service, the envoy service protocol is implemented as a series of extensions to 9p. The integration is closer at the envoy level, however, as forwarded transactions from remote clients use the standard 9p messages when appropriate, depending on the extensions listed in \tabref{tab:envoy-messages} for territory management and to handle operations that straddle territory boundaries.
 
-\begin{table}[tp]
+\begin{table}[t]
 \begin{center}
 \begin{tabular}{>{\ttfamily}l|l}
 \textbf{\textrm{Message name}} & \textbf{Description} \\ \hline
@@ -254,7 +254,7 @@ Unlike the stateless storage servers, envoy instances must track two main classe
 
 \subsubsection{Territories and claims}
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/territory-claims}
 \caption[A territory managed by a single envoy]{Territories are trees, and their boundaries (yellow squares) are defined by the territory root and the exits, which point to child territories owned by remote envoys. Claims (blue circles) represent individual storage objects, and within a territory they form a tree overlaying a subset of the territory, with leaves at each territory exit and at each active file or directory.}
@@ -267,7 +267,7 @@ Overlaid on the file tree within a territory is another tree of \emph{claims}, o
 
 \subsubsection{File handles}
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/file-handles}
 \caption[Managing file handles in local and remote envoys]{File handles for incoming connections are grouped and distinguished by the source, be it a client VM or a remote envoy. Each handle is tied to a specific claim in a local territory. A Client handle may also be forwarded to a remote envoy, in which case it is assigned an entry from the envoy's single remote file handle pool.}
@@ -380,7 +380,7 @@ Misaligned boundaries do not prevent correct behaviour, nor do they introduce a 
 
 Realigning territories requires careful coordination between multiple envoys. In addition to agreeing on new boundaries, state related to active file handles has to be migrated and updated. This includes both the territory owner's state and that of the envoys representing clients, which need to be directed to the new owner. \emph{Inflight} operations---those that have been initiated by a client but not completed---must also continue and succeed despite concurrent territory changes.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/grant-top-down}
 \caption[Types of territory migrations]{Territory migrations are always driven by the parent in the namespace tree, which can annex a neighbouring territory, cede territory to another envoy, or coordinates the transfer of a territory from one neighbour to another. For a child to initiate a transfer, it must send a \texttt{nominate} request to the parent, which then carries out the transfer.}
@@ -413,7 +413,7 @@ The prototype is designed to favour simplicity over other virtues in complex tra
 
 For some requests this will result in nothing more than a pause, while for others the immediate consequence is a failed result. The envoy may no longer recognise a file handle that has been transferred, and can do no more than send the request back to its originator to try again. Forwarding it as a special case would be an option, but a dangerous one. The message could still end up at the wrong place due to bad timing (and a second transfer of the target), it would involve just as many network round trips (originator to old owner to new owner vs.\ originator to old owner followed by originator to new owner), and the new owner would reject the request anyway as coming from the wrong owner (recall that remote file handles are associated with the client's envoy).
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/migrate-sync}
 \caption[Sequence of events in a territory migration]{The sequence of events when a client file request conflicts with a territory transfer.}

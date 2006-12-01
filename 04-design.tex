@@ -20,7 +20,7 @@ This work also assumes that other aspects of service-cluster management are prov
 
 Services access Envoy using a client-server file system interface. Each physical machine in the service cluster runs an administrative virtual machine that manages the storage processes for all services on that machine. These processes partition the local disk between a contribution to the shared storage pool and a local persistent cache as well as provide a standard interface allowing clients on the machine to access the file system. \figref{fig:single-machine} illustrates a typical machine. Client access to the system is restricted to a simple, well-understood client-server protocol, and a trusted server process acts as a proxy to the complete system \cite{shapiro}. Byzantine failure from clients is less of a problem, because they have a limited interface to the system and hold no trusted data.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/single-machine}
 \caption[Layout of Envoy services in a single machine]{Each physical machine has a single administrative VM that hosts the Envoy services. This VM exports a network file system protocol to other service VMs running on the same machine.}
@@ -31,7 +31,7 @@ The file system management processes join a cluster-wide service that is compris
 
 On top of the storage service is the envoy layer, which builds a hierarchical file system out of objects, coordinates access to files, provides authentication and access control services, manages caching, and exports a standard network file system interface for services to access.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/layers}
 \caption[The layers of the Envoy file system]{The envoy service coordinates access to provide a single, coherent view of the distributed file system. It relies on the storage service, which provides a repository of objects referenced by unique identifiers.}
@@ -44,7 +44,7 @@ In the remainder of this section I detail the functionality and requirements of 
 
 \figref{fig:client-server} depicts a commonly-used storage arrangement using a series of dedicated file servers to handle the needs of many clients. This architecture is successfully used in many settings, and, despite alternatives developed over the years, is still the dominant storage model in practical use.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/client-server}
 \caption[Machines served by a series of client-server file systems]{A popular storage solution for groups of clients involves a series of dedicated servers. Content on the servers is carefully managed to distribute storage demand and transaction load between the servers.}
@@ -90,7 +90,7 @@ The envoy layer forms a file system from the objects provided by the storage lay
 
 A single instance of the envoy service runs on each physical machine, and the global name hierarchy is divided among participating instances in the cluster. When a given instance takes responsibility for some part of the namespace, it is said to \emph{own} a \emph{territory} covering the relevant subtree of the hierarchy, as illustrated in \figref{fig:territory-structure}. All operations within local territories are handled locally. Storage objects may be cached locally both in memory and in the persistent cache, which is used exclusively for territories local to the machine.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/territory-structure}
 \caption[Territories partitioning the namespace tree]{Envoy's namespace is hierarchical, and participating machines claim branches of the tree as \emph{territories} to be managed locally. Branches within a territory can be split off into new territories to be managed by a other machines. The overall system structure is a federation of territories.}
@@ -137,7 +137,7 @@ Cache utilisation is most effective when clients on a single machine use file sy
 
 To summarise the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \figref{fig:hops}. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/hops}
 \caption[Network paths taken by typical file requests]{File system requests proceed from service VMs to the local envoy service. A request from a local territory may be filled by the local in-memory cache, the local disk cache, or by a single network hop to a storage server. A request for a foreign territory adds a single network hop in each case, as the local envoy acts as the client to a remote envoy.}
@@ -200,7 +200,7 @@ A few examples are illustrated in \figref{fig:image-credentials}:
 
 \item[(b)] An isolated client registers with a host and is given credentials granting full control over an empty administrative directory. In addition, credentials are supplied that let her fork several image templates, access that is equivalent to letting her mount those templates as a read-only user. She forks a Linux distribution and assumes root privileges over what is now a private image. After configuring the image, she forks it again to support two cooperative VMs. User accounts on her virtual machines access storage through the kernel, which uses her single set of master credentials to authenticate any arbitrary user, but mounts them as individual users with access limited according to Unix-style permission control.
 
-\begin{figure}[tp]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/image-credentials}
 \caption[File system images and credential files]{Credential files give clients control over access to images and assignment of user IDs. Within images, normal file system semantics govern access to individual files. (a)~This two-part access control lets cluster managers grant limited access to template images while giving clients control over their own branches of the namespace. Clients can use their own credentials or grant more limited control in their own hierarchies. (b)~Clients may use their own credentials to access images, (c)~create their own custom templates for resale along with shared data areas, or (d)~create a mixture of private images and shared images.}
