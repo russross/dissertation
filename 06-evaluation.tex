@@ -1,8 +1,32 @@
 \chapter{Evaluation}\label{cha:evaluation}
 
-synthetic workloads are a hard problem \cite{ganger95}
+Envoy is designed based on assumptions about a platform that does not yet exist. This limits how the system can be evaluated in two ways. The first is scalability. While common bottlenecks can be avoided and the architecture examined for potential scalability limitations, a system without a large-scale implementation can never be fully tested for issues that only appear at large scales. The best that can be achieved is to identify the most likely sources of problems and extrapolate the results of testing on a smaller scale. The architecture can also be evaluated against assumptions about the workloads it is intended to support, which leads to the second limitation. Workloads cannot be accurately forecast. Predicting and simulating client access patterns is a difficult problem even for existing environments \cite{ganger95}, and the problem is worse for service clusters because they are intended as a general purpose platform to support a wide range of existing and forthecoming computing workloads. The design and the evaluation must necessarily rely on assumptions about how the system will be used, and those assumptions limit the applicability of the results.
 
-\section{Experimental setup}
+In this chapter I evaluate the Envoy prototype with three principal goals: to measure the impact of design choices, including the overall architecture and cache layout, to test the scalability of the system, and to evaluate Envoy's ability to support the types of workloads expected in service clusters.
+
+\section{Methodology}
+
+What is this evaluation trying to prove?  What is it not trying to prove?
+
+1. Feasibility: why this isn't a crackpot design
+2. Scalability: why this should work for large systems
+3. Optimality: why this is a good design
+
+\subsection{Architecture}
+* validate the basic goals envoy tries to achieve
+* overheads of data paths, justify cache design and territory system
+* aggregate caching benefits and costs
+
+\subsection{Dynamic behavior}
+* does the dynamic algorithm work?
+* does it serve isolation clients
+* does it serve shared clients
+* what are the weaknesses
+
+\subsection{What's not covered}
+* scalability---I don't have a cluster to play with
+* workloads---I can't predict them
+* this is less file system evaluation, more overall system validation
 
 \subsection{Test machines}
 
@@ -19,7 +43,7 @@ rsync -- 2nd read test
 
 \section{Performance}
 
-If the goal is to get stuff as local as possible, quantify the benefits of achieving that.
+If the goal is to get stuff as local as possible, quantify the benefits of achieving that. Measure the overheads of data paths and cache decisions.
 
 \subsection{Architectural costs}
 
@@ -55,6 +79,17 @@ untar the kernel while a bunch of snapshots happen and measure the impact
 \subsection{Degradation of a single host with many clients}
 Shared image, and also private images on one machine
 
+\subsection{Service deployment}
+show sharing: boot one VM from cold cache, boot another based on same template
+
+\subsection{Quantifying sharing}
+
+SUSE10 upgrade, install services
+
+compare image overlap
+
+boot two related images (one cold and other warm) and compare with the same test for identical images
+
 \section{Dynamic behaviour}
 
 Test dynamic territory management, less about performance than behaviour
@@ -73,18 +108,5 @@ distcc or something else that shares in a complex but predictable fashion
 \subsection{Synthetic workloads}
 
 probabilistic traffic driven to overlapping areas
-
-\section{Case studies}
-
-\subsection{Service deployment}
-show sharing: boot one VM from cold cache, boot another based on same template
-
-\subsection{Quantifying sharing}
-
-SUSE10 upgrade, install services
-
-compare image overlap
-
-boot two related images (one cold and other warm) and compare with the same test for identical images
 
 \section{Summary}
