@@ -1,32 +1,55 @@
 \chapter{Evaluation}\label{cha:evaluation}
 
-Envoy is designed based on assumptions about a platform that does not yet exist. This limits how the system can be evaluated in two ways. The first is scalability. While common bottlenecks can be avoided and the architecture examined for potential scalability limitations, a system without a large-scale implementation can never be fully tested for issues that only appear at large scales. The best that can be achieved is to identify the most likely sources of problems and extrapolate the results of testing on a smaller scale. The architecture can also be evaluated against assumptions about the workloads it is intended to support, which leads to the second limitation. Workloads cannot be accurately forecast. Predicting and simulating client access patterns is a difficult problem even for existing environments \cite{ganger95}, and the problem is worse for service clusters because they are intended as a general purpose platform to support a wide range of existing and forthecoming computing workloads. The design and the evaluation must necessarily rely on assumptions about how the system will be used, and those assumptions limit the applicability of the results.
+Envoy is designed based on assumptions about a platform that does not yet exist. This limits how the system can be evaluated in two ways. The first is scalability. While common bottlenecks can be avoided and the architecture examined for potential scalability limitations, a system without a large-scale implementation can never be fully tested for issues that only appear at large scales. The best that can be achieved is to identify the most likely sources of problems and extrapolate the results of testing on a smaller scale. The architecture can also be evaluated against assumptions about the workloads it is intended to support, which leads to the second limitation: workloads cannot be accurately forecast. Predicting and simulating client access patterns is a difficult problem even for existing environments \cite{ganger95}, and the problem is amplified for service clusters. As a general purpose platform, service clusters are intended to support a wide range of existing workloads and to enable a flourishing ecosystem of computation services that create entirely new workloads. The design and the evaluation must necessarily rely on assumptions about how the system will be used, and those assumptions limit the applicability of the results.
 
-In this chapter I evaluate the Envoy prototype with three principal goals: to measure the impact of design choices, including the overall architecture and cache layout, to test the scalability of the system, and to evaluate Envoy's ability to support the types of workloads expected in service clusters.
+In this chapter I evaluate the Envoy prototype with three principal goals: to measure the impact of specific design choices, including the basic distributed organisation and cache layout, to assess the scalability of the system, and to evaluate Envoy's ability to support the types of workloads expected in service clusters.
 
 \section{Methodology}
+
+The absence of a realistically sized service cluster limits the scope of system-level testing and the usefulness of many application-level results. The performance side-effects of interacting components and the access patterns of different clients are particularly difficult to predict. The performance characteristics of the storage layer depend on design elements and implementation choices beyond the scope of this dissertation. These factors combined with the poor public availability of many comparable systems limit direct comparisons to previous work.
+
+Building and evaluating a prototype of the Envoy file system is not a futile exercise, however. The artefact may reveal little about real-world usage and behaviour, but measuring it can still do much to justify or condemn the design. The remainder of this section outlines assumptions about service clusters that influence the design, and how measurements of the prototype can quantify the efficacy of the design subject to those assumptions.
+
+\subsection{Overlapping data access}
+
+Cache systems are all built around the premise that a client request for data is a good indicator that it will be accessed again soon. Storing the most recently accessed data in faster storage allows many requests to be absorbed without consulting the primary repository. Coincidental traffic may be due to external factors, e.g., multiple people influenced by the same popular culture event request the same article from Wikipedia, or to structural factors, e.g., multiple clients booting the same Linux distribution access many of the same files, as well as to random overlap. Repetition is also standard within the context of a single client, where a small set of applications, configuration files, and data files tend to be used more than the rest. In addition, file system and application semantics create locality in access patterns by grouping files into directories that must be queried multiple times to complete common tasks.
+
+Envoy assumes that skewed access distributions will continue to be a feature of future workloads just as it is of current workloads. Furthermore, it uses template images to encourage implicit sharing between clients. Caching is managed at the machine level, with a single in-memory and on-disk pool for all of the clients hosted on that node. Client behaviour cannot always be predicted, but the tradeoffs of this cache model can be evaluated. \secref{sec:architectural-costs} compares the performance of the in-memory and on-disk caches with access to the uncached storage layer, and also discusses the cost of a single machine-level cache over per-client caching. These measurements compare the performance gains and losses that can be directly attributed to the cache model, and \secref{sec:quantifying-sharing} applies the results to the assumed model of implicit sharing between clients using the same template image.
+
+\subsection{Independent clients}
+
+* independent boot images, and dynamic transfers to keep them independent as much as possible
+* scalability
+
+\subsection{Sharing}
+
+* dynamic transfers--sharing should only happen when there is actual sharing
+* keep access to a single cache even when sharing--compare dist lock (flushing to storage layer when token is transferred) to the extra network hop using a single cache
+
+\subsection{scalability}
+
+* assumption is that it is scalable?  more of an argument than an evaluation: envoys don't interact unless they are sharing something (including a border), storage layer mostly consulted for writes(?), but number of spindles grows with the size of the cluster anyway
+* what is actually tested here to prove this?
+
+
+
 
 What is this evaluation trying to prove?  What is it not trying to prove?
 
 1. Feasibility: why this isn't a crackpot design
 2. Scalability: why this should work for large systems
-3. Optimality: why this is a good design
+3. Suitability: why this design matches the requirements
 
 \subsection{Architecture}
 * validate the basic goals envoy tries to achieve
 * overheads of data paths, justify cache design and territory system
 * aggregate caching benefits and costs
 
-\subsection{Dynamic behavior}
+\subsection{Dynamic behaviour}
 * does the dynamic algorithm work?
 * does it serve isolation clients
 * does it serve shared clients
 * what are the weaknesses
-
-\subsection{What's not covered}
-* scalability---I don't have a cluster to play with
-* workloads---I can't predict them
-* this is less file system evaluation, more overall system validation
 
 \subsection{Test machines}
 
@@ -45,7 +68,7 @@ rsync -- 2nd read test
 
 If the goal is to get stuff as local as possible, quantify the benefits of achieving that. Measure the overheads of data paths and cache decisions.
 
-\subsection{Architectural costs}
+\subsection{Architectural costs}\label{sec:architectural-costs}
 
 userspace NFS
 
@@ -79,16 +102,15 @@ untar the kernel while a bunch of snapshots happen and measure the impact
 \subsection{Degradation of a single host with many clients}
 Shared image, and also private images on one machine
 
-\subsection{Service deployment}
-show sharing: boot one VM from cold cache, boot another based on same template
-
-\subsection{Quantifying sharing}
+\subsection{Quantifying sharing}\label{sec:quantifying-sharing}
 
 SUSE10 upgrade, install services
 
 compare image overlap
 
 boot two related images (one cold and other warm) and compare with the same test for identical images
+
+show sharing: boot one VM from cold cache, boot another based on same template
 
 \section{Dynamic behaviour}
 
