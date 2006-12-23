@@ -133,7 +133,7 @@ The second design feature has a more complex impact on the aggregate cache capac
 
 Cache utilisation is most effective when clients on a single machine use file system images forked from a common template, and the more complete the template image the more likely it is that services will rely on common rather than custom-installed files. This fits nicely with the stated goals of flexible commodity computation, where both the host and the client gain from using the most popular commodity tools. The host by reducing client footprint and increasing capacity, and the client by reducing deployment costs and maximising performance through increased cache hits.
 
-\subsection{Data paths for typical requests}
+\subsection{Data paths for typical requests}\label{sec:data-paths}
 
 To summarise the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \figref{fig:hops}. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
 
