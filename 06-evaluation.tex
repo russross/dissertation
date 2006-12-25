@@ -10,30 +10,7 @@ The absence of a realistically sized service cluster limits the scope of system-
 
 Building and evaluating a prototype of the Envoy file system is not a futile exercise, however. The artefact may reveal little about real-world usage and behaviour, but measuring it can still do much to justify or condemn the design. The remainder of this section outlines assumptions about service clusters that influence the design, how the design reflects them, and how measuring the prototype helps to evaluate the decisions made.
 
-\subsection{Cache layout}
-
-% is this paragraph necessary?
-% Cache systems are all built around the premise that a client request for data is a good indicator that it will be accessed again soon. Storing the most recently accessed data in faster storage allows many requests to be absorbed without consulting the primary repository. Coincidental traffic may be due to external factors, e.g., multiple people influenced by the same popular culture event request the same article from Wikipedia, or to structural factors, e.g., multiple clients booting the same Linux distribution access many of the same files, as well as to random overlap. Repetition is also standard within the context of a single client, where a small set of applications, configuration files, and data files tend to be used more than the rest, and where tasks often require accessing the same data multiple times. In addition, file system and application semantics create locality in access patterns. Hierarchical file grouping leads to some directories being accessed frequently, and at a shorter time scale the file system interface leads to files being accessed repeatedly through a series of steps.
-
-Envoy assumes that skewed file access distributions will continue to be a feature of future workloads just as it is of current workloads. Furthermore, it uses template images to encourage implicit sharing between clients. Both factors call for caching, but the latter in particular 
-
-Caching is managed at the machine level, with a single in-memory and on-disk pool for all of the clients hosted on that node. Client behaviour cannot always be predicted, but the tradeoffs of this cache model can be evaluated. \secref{sec:architectural-costs} compares the performance of the in-memory and on-disk caches with access to the uncached storage layer, and also discusses the cost of a single machine-level cache over per-client caching. These measurements compare the performance gains and losses that can be directly attributed to the cache model, and \secref{sec:quantifying-sharing} applies the results to the assumed model of implicit sharing between clients using the same template image.
-
-* validate the basic goals envoy tries to achieve
-* overheads of data paths, justify cache design and territory system
-* aggregate caching benefits and costs
-
-\subsection{Scalability}
-
-* assumption is that it is scalable?  more of an argument than an evaluation: envoys don't interact unless they are sharing something (including a border), storage layer mostly consulted for writes(?), but number of spindles grows with the size of the cluster anyway
-* what is actually tested here to prove this?
-
-\subsection{Expected workloads}
-
-* does the dynamic algorithm work?
-* does it serve isolation clients
-* does it serve shared clients
-* what are the weaknesses
+\subsection{Evaluation goals}
 
 \subsubsection{Independent clients}
 
@@ -45,7 +22,31 @@ Caching is managed at the machine level, with a single in-memory and on-disk poo
 * dynamic transfers--sharing should only happen when there is actual sharing
 * keep access to a single cache even when sharing--compare dist lock (flushing to storage layer when token is transferred) to the extra network hop using a single cache
 
+\subsubsection{Scalability}
+
+* assumption is that it is scalable?  more of an argument than an evaluation: envoys don't interact unless they are sharing something (including a border), storage layer mostly consulted for writes(?), but number of spindles grows with the size of the cluster anyway
+* what is actually tested here to prove this?
+
+\subsubsection{Expected workloads}
+
+* does the dynamic algorithm work?
+* does it serve isolation clients
+* does it serve shared clients
+* what are the weaknesses
+
+
+Envoy assumes that skewed file access distributions will continue to be a feature of future workloads just as it is of current workloads. Furthermore, it uses template images to encourage implicit sharing between clients. Both factors call for caching, but the latter in particular makes caching at the machine level beneficial, since all clients hosted on a machine can inherit data from common image templates and profitably share a cache, even in the absense of any explicit relationship between the clients.
+
+Caching is managed at the machine level, with a single in-memory and on-disk pool for all of the clients hosted on that node. Client behaviour cannot always be predicted, but the tradeoffs of this cache model can be evaluated. \secref{sec:architectural-costs} compares the performance of the in-memory and on-disk caches with access to the uncached storage layer, and also discusses the cost of a single machine-level cache over per-client caching. These measurements compare the performance gains and losses that can be directly attributed to the cache model, and \secref{sec:quantifying-sharing} applies the results to the assumed model of implicit sharing between clients using the same template image.
+
+* validate the basic goals envoy tries to achieve
+* overheads of data paths, justify cache design and territory system
+* aggregate caching benefits and costs
+
+
 \subsection{Test environment}
+
+\subsubsection{Hardware}
 
 \subsubsection{Benchmarks}
 
@@ -59,7 +60,7 @@ rsync -- 2nd read test
 
 Bonnie: info about it
 
-\section{Private images}
+\section{Independent clients}
 
 Much of the complexity in distributed file system design is related to data sharing, but sharing is less common than individual clients accessing private data. A service derived from a standalone machine typically requires a private boot image, and lightweight fork operations in Envoy encourage the cloning of entire images for private use by related and unrelated service instances.
 
@@ -102,11 +103,11 @@ The NFS numbers are more confusing. This is probably due to the interactions bet
 
 \subsection{Architecture}\label{sec:architectural-costs}
 
+An important goal of the Envoy design is to localize data and metadata control when possible, and minimize the involvement of disinterested nodes when not possible. Private images are always controlled by the envoy instance on the same machine as the client using it, and territories in shared images are managed by the most active participant. Besides reducing collateral impact in a bid to improve scalability, localizing control and caching has direct performance benefits for clients.
+
 As described in \secref{sec:data-paths}, requests follow one of several paths to completion depending on whether or not the required data is cached and whether ownership is local or remote. The worst case for local or remote ownership is when the data must be retrieved from the storage layer. \figref{fig:envoy-cold} shows the results 
 
 \figref{fig:envoy-tar} uses the \texttt{tar} test to compare these different paths. \texttt{druid-0} hosts the envoy service that owns the data being read, and \texttt{druid-1} is a client on the same machine. Similarly, \texttt{skiing-0} hosts a remote envoy instance, and \texttt{skiing-1} is a client on the same machine. The first bar, labeled ``hot'', shows the time required to read a Linux source tree that is in the server's in-memory cache. The ``warm'' results read the data from the persistent cache, requiring validation with the storage layer but no data transfer, while ``cold'' results require transferring everything from the storage layer.
-
-
 
 userspace NFS
 
@@ -122,19 +123,15 @@ envoy remote domU
 
 cache: cold vs warm vs hot
 
-\subsection{Locality}
-
-An important goal of the Envoy design is to localize data and metadata control when possible, and minimize the involvement of disinterested nodes when not possible. Private images are always controlled by the envoy instance on the same machine as the client using it, and territories in shared images are managed by the most active participant. Besides reducing collateral impact in a bid to improve scalability, localizing control and caching has direct performance benefits for clients.
-
-%\figref{fig:} compares read performance
-
 If the goal is to get stuff as local as possible, quantify the benefits of achieving that. Measure the overheads of data paths and cache decisions.
+
+\subsubsection{Local impact}
+
+Independence of private images
 
 \subsection{Cache}
 
-
-\subsection{Independence of private images}
-\subsection{Quantifying sharing}\label{sec:quantifying-sharing}
+\subsubsection{Quantifying sharing}\label{sec:quantifying-sharing}
 
 SUSE10 upgrade, install services
 
@@ -144,26 +141,7 @@ boot two related images (one cold and other warm) and compare with the same test
 
 show sharing: boot one VM from cold cache, boot another based on same template
 
-\subsection{Fancy features}
-
-\subsubsection{Forks}
-
-cheap and fast---these always happen from a read-only snapshot
-
-\subsubsection{Snapshots}
-
-single territory
-
-untar the kernel while a bunch of snapshots happen and measure the impact
-
 \section{Shared images}
-
-
-\subsection{Fancy features}
-
-\subsubsection{Snapshots}
-
-snapshots with many territories
 
 \subsection{Territory migration}
 
@@ -185,5 +163,19 @@ producer-consumer
 
 \subsubsection{Sharing application}
 something that shares in a complex but predictable fashion
+
+\section{Image operations}
+
+\subsubsection{Forks}
+
+cheap and fast---these always happen from a read-only snapshot
+
+\subsubsection{Snapshots}
+
+single territory
+
+untar the kernel while a bunch of snapshots happen and measure the impact
+
+snapshots with many territories
 
 \section{Summary}
