@@ -38,3 +38,23 @@ set ylabel "seeks per second"
 
 set output "bonnie-seek.eps"
 plot 'bonnie-seek.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
+
+# druid-1 results
+
+set ylabel "kilobytes per second"
+set xtics
+unset key
+
+set output 'bonnie-druid1-read.eps'
+plot 'bonnie-druid1-read.dat' using 2:3:xticlabel(1) ti col
+
+set output 'bonnie-druid1-write.eps'
+plot 'bonnie-druid1-write.dat' using 2:3:xticlabel(1) ti col
+
+set output 'bonnie-druid1-rewrite.eps'
+plot 'bonnie-druid1-rewrite.dat' using 2:3:xticlabel(1) ti col
+
+set ylabel "seeks per second"
+
+set output 'bonnie-druid1-seek.eps'
+plot 'bonnie-druid1-seek.dat' using 2:3:xticlabel(1) ti col
