@@ -18,23 +18,27 @@ Envoy's success in achieving its stated goals is evaluated partly through argume
 
 Though efficient sharing is important, individual clients accessing unshared data dominates most workloads. Even when data sets overlap, time may divide access from different clients, effectively yielding exclusive access that is transferred from one client to the next over time. Envoy seeks to capture these patterns by subdividing territories to distribute file ownership and control, and by dynamically updating the boundaries over time in response to changing usage. When this is successful, or when access to was exclusive in the first place, Envoy resembles a simple client-server system serving files from an administrative virtual machine to a client virtual machine on the same host.
 
-Since one of Envoy's goals is to create this intra-host configuration whenever possible, the evaluation starts by considering system performance under this circumstance. Maximizing raw performance is not the focus of the prototype implementation, but comparing it to systems with a similar topology creates baseline expectations for a production system, and examining absolute performance figures helps confirm the sanity of the overall design.
+Since one of Envoy's goals is to create this intra-host configuration whenever possible, the evaluation starts by considering system performance under this circumstance. Maximising raw performance is not the focus of the prototype implementation, but comparing it to systems with a similar topology creates baseline expectations for a production system, and examining absolute performance figures helps confirm the sanity of the overall design.
 
-\secref{sec:independent-clients} evaluates the performance of Envoy as a file server within a single host. Composite performance numbers are compared to other client-server systems, and tests using different configurations help to demonstrate where performance costs are embedded in Envoy. In addition, performance for remote hosts is evaluated to show that the drive to localize traffic benefits performance as well as scalability.
+\secref{sec:independent-clients} evaluates the performance of Envoy as a file server within a single host. Composite performance numbers are compared to other client-server systems, and tests using different configurations help to demonstrate where performance costs are embedded in Envoy. In addition, performance for remote hosts is evaluated to show that the drive to localise traffic benefits performance as well as scalability.
 
 \subsubsection{Shared images}
 
-\secref{sec:shared-images} turns the evaluation to shared data. The emphasis of this section is not on performance---which is dependent largely on runtime topology as evaluated in \secref{sec:independent-clients} and the quality of the implementation---but rather on the behaviour of the system under shared workloads. In effect, \secref{sec:shared-images} evaluates Envoy's ability to localize traffic, and \secref{sec:independent-clients} explores the benefits and costs that result from its success or failure.
+\secref{sec:shared-images} turns the evaluation to shared data. The emphasis of this section is not on performance---which is dependent largely on runtime topology as evaluated in \secref{sec:independent-clients} and the quality of the implementation---but rather on the behaviour of the system under shared workloads. In effect, \secref{sec:shared-images} evaluates Envoy's ability to localise traffic, and \secref{sec:independent-clients} explores the benefits and costs that result from its success or failure.
 
 Some aspects of Envoy's dynamic behaviour cannot be adequately tested in the limited environment available for this evaluation. The Envoy design prizes simplicity and stability in the layout of territories, both to simplify testing and recovery, and to encourage cache sharing even in the presence of runtime conflicts. The latter goal is achieved by delaying territory transfers until traffic is clearly dominated by a remote participant or until a more slight imbalance has persisted for a longer period of time. Resisting change allows the cache on the owning host to serve all participants at the expense of a network hop from the remote client to the envoy. Rearranging boundaries more eagerly may reduce network hops, but it creates some migration latency and the new host may have to prime its cache before service can resume at full speed.
 
-While the parameters controlling dynamic behaviour can be configured, the ideal balance of stability and layout optimality can only be adequately determined with realistic workloads. Oscillating demand could be best handled by reacting quickly and varying the territory layout in lock-step with traffic changes, or being reluctant to change in order to maximize cache efficacy on one of the hosts may prove better. In the absense of a larger test system and realistic workloads to evaluate specific parameters, this evaluation relies on artificial traffic loads that can be controlled and varied to test the response of the system.
+While the parameters controlling dynamic behaviour can be configured, the ideal balance of stability and layout optimality can only be adequately determined with realistic workloads. Oscillating demand could be best handled by reacting quickly and varying the territory layout in lock-step with traffic changes, or being reluctant to change in order to maximise cache efficacy on one of the hosts may prove better. In the absence of a larger test system and realistic workloads to evaluate specific parameters, this evaluation relies on artificial traffic loads that can be controlled and varied to test the response of the system.
 
 \subsubsection{Scalability}
 
-Envoy's scalability is not evaluated directly. To do so convincingly would require a large cluster with a diverse client base, and direct testing on a reduced scale would prove little. The presumed scalability of the system depends on successfully localizing as much traffic as possible. If all requests are satisfied by the same physical machine that hosts the client, then a cluster's capacity to host clients grows linearly with the number of machines added to the system. If most requests are handled locally and neighbouring hosts are consulted mainly to resolve runtime conflicts, then scalability is limited primarily by the degree of runtime sharing. Envoy's goal of scalability is based on a design that attempts to approximate that limit.
+Envoy's scalability is not evaluated directly. To do so convincingly would require a large cluster with a diverse client base, and direct testing on a reduced scale would prove little. The presumed scalability of the system depends on successfully localising as much traffic as possible. If all requests are satisfied by the same physical machine that hosts the client, then a cluster's capacity to host clients grows linearly with the number of machines added to the system. If most requests are handled locally and neighbouring hosts are consulted mainly to resolve runtime conflicts, then scalability is limited primarily by the degree of runtime sharing. Envoy's goal of scalability is based on a design that attempts to approximate that limit.
 
 The storage layer is another source of traffic and inter-host dependence, but it is not fully specified in this work and cannot be evaluated fairly. A large persistent cache on each host reduces the direct load on the storage layer just as it did for AFS \cite{satyanarayanan85}, but by coupling storage nodes with clients hosts and using switched networking, the overall transaction capacity of the storage layer should scale with the number of hosts anyway, and the number of hosts limits the number of clients. The systems considered in \secref{sec:storage-layer-systems} have already demonstrated the scalability of similar storage architectures; conflict management and the coordination of metadata differentiate each system, but in Envoy that burden is not left to the storage layer.
+
+\subsubsection{Features}
+
+Rapid and inexpensive deployment of services requires support from the file system, and is one of the principal motivations for Envoy. The demands of a software ecosystem are difficult to predict, and Envoy's suitability for this environment is likewise difficult to assess. Features allowing rapid cloning and snapshots of file system images contribute to the flexibility of service clusters and are intended to promote the use of commodity software, but their actual impact in a production system is a matter of speculation. The speed with which images can be cloned and new services launched is measured in \secref{sec:image-operations}.
 
 \subsection{Test environment}
 
@@ -54,69 +58,96 @@ Bonnie: info about it
 
 \section{Independent clients}\label{sec:independent-clients}
 
-Much of the complexity in distributed file system design is related to data sharing, but sharing is less common than individual clients accessing private data. A service derived from a standalone machine typically requires a private boot image, and lightweight fork operations in Envoy encourage the cloning of entire images for private use by related and unrelated service instances.
+Much of the complexity in distributed file system design is related to data sharing, but sharing is less common than individual clients accessing private data. A service derived from a stand-alone machine typically requires a private boot image, and lightweight fork operations in Envoy encourage the cloning of entire images for private use by related and unrelated service instances.
 
-To succeed as a distributed file system on a large scale, Envoy must provide a useful service to isolated clients that obviates the need for additional storage services for most clients. While there is no technical or administrative distinction between private and shared images, Envoy's design and runtime behaviour under these two conditions can be evaluated seperately. This section focuses on Envoy's performance and behaviour in the absense of sharing.
+To succeed as a distributed file system on a large scale, Envoy must provide a useful service to isolated clients that obviates the need for additional storage services for most clients. While there is no technical or administrative distinction between private and shared images, Envoy's design and runtime behaviour under these two conditions can be evaluated separately. This section focuses on Envoy's performance and behaviour in the absence of sharing.
 
 \subsection{Performance}
 
-The prototype is not optimized, and absolute performance is not the focus of this evaluation. Nevertheless, it is helpful to establish baseline performance numbers to show that Envoy is viable as a file system. For context, the results are compared to \texttt{npfs}, a multi-threaded userspace 9p server, and \texttt{unfsd}, a single-threaded userspace NFS server. Userspace servers have additional overhead when compared to kernel implementations, but the penalty is assumed to be similar for all of the implementations tested. Standard benchmarks do a poor job of isolating the costs involved in Envoy's data paths, and most of the evaluation in this chapter eschews them in favor of more controlled tests, but this section starts with the Bonnie benchmark to provide some raw performance figures comparable to those from other systems.
+The prototype is not optimised, and absolute performance is not the focus of this evaluation. Nevertheless, it is helpful to establish baseline performance numbers to show that Envoy is viable as a file system. For context, the results are compared to \texttt{npfs}, a multi-threaded userspace 9p server, and \texttt{unfsd}, a single-threaded userspace NFS server. Userspace servers have additional overhead when compared to kernel implementations, but the penalty is assumed to be similar for all of the implementations tested. Standard benchmarks do a poor job of isolating the costs involved in Envoy's data paths, and most of the evaluation in this chapter eschews them in favour of more controlled tests, but this section starts with the Bonnie benchmark to provide some raw performance figures comparable to those from other systems.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/bonnie-druid1-write}
-\caption[Bonnie benchmark results for block writes]{Bonnie benchmark results for block writes on a 2GB dataset. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
+\caption[Bonnie benchmark results for block writes]{Bonnie benchmark results for block writes on a 2~GB dataset. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
 \label{fig:bonnie-druid1-write}
 \end{figure}
 
-\figref{fig:bonnie-druid1-write} shows the block write results of the Bonnie benchmark on a 2GB dataset. The four clusters show different client locations. druid-0 hosts the envoy that owns the territory for the Envoy results (displayed with and without the persistent cache enabled), and runs the server for the 9p and nfs results. druid-1 is a client VM on the same machine, skiing-0 the administrative VM on a remote machine (which also hosts an envoy instance), and skiing-1 is a client domain on the remote machine. Both druid-0 and skiing-0 host storage server instances with complete replicas of all storage objects.
+\figref{fig:bonnie-druid1-write} shows the block write results of the Bonnie benchmark on a 2~GB dataset. Envoy is competitive with the 9p and NFS servers, despite writing to two storage servers and the local persistent cache. Bonnie does not force a sync after writing, so this represents a conservative result for Envoy. When the write is complete, Envoy has flushed the data to two storage servers and can tolerate a node failure without loss, while the 9p and NFS servers both have a dirty cache on a single node with no replicas.
 
-Envoy's persistent cache creates a large penalty for writes, but this is a worst-case result. Data must be written twice since a storage instance is located on the same machine using the same hard drive, in addition to the storage replica on the skiing-0. Disabling the persistent cache boosts write performance considerably, putting it on par with the other servers. Writing it twice on two machines incurs some overhead, but it is acceptable for the simplistic storage server used in the prototype. 9p is generally a bit faster than NFS because of its simpler protocol and larger message size, but in this simple test waiting for the disk dominates all of the servers.
+For sustained writes, the disk is the primary bottleneck, as demonstrated by the result labelled \texttt{envoy-ls}, which has one of the two storage servers on the same machine as the envoy. In this case, data must be written twice using the same disk, once for the cache and a second time for the storage instance. In addition, the in-memory cache is split between the two functions, cutting its effective size in half. The \texttt{nocache} figure is an Envoy server with the persistent cache disabled, a change that has little effect in this test because the writes are performed in parallel on each node.
+
+Envoy nodes all host storage servers, and it is reasonable to assume that each node generates a similar amount of traffic on average. Storage is distributed throughout the cluster, so it is less likely that a node with a write-heavy client will also host storage for other write-heavy clients at the same time; \texttt{envoy-ls} represents a worst-case scenario rather than a common case.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/bonnie-druid1-read}
-\caption[Bonnie benchmark results for block reads]{Bonnie benchmark results for block reads on a 2GB dataset. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
+\caption[Bonnie benchmark results for block reads]{Bonnie benchmark results for block reads on a 2~GB dataset. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
 \label{fig:bonnie-druid1-read}
 \end{figure}
 
-\figref{fig:bonnie-druid1-read} shows the block read results from the same benchmark. The persistent cache does not incur a double-access penalty as in the write case, so it improves the results. All data is present in the persistent cache (though the dataset is too large for the in-memory cache), so the Envoy results are similar to the 9p results in this test. Disabling the persistent cache forces retrieval from the storage servers, and each request is randomly directed to one of the two replicas.
+\figref{fig:bonnie-druid1-read} shows the block read results from the same benchmark. Bonnie's test uses a single file, so the Envoy servers are reading data from a single file in the persistent cache. All of the tests except \texttt{nocache} involve transfers from a single file in one VM to a client in another VM, with similar overall results. As in the write tests, the results are dominated by disk speeds.
 
-The NFS numbers are more confusing. This is probably due to the interactions between the client-side cache and the server cache. The cache was flushed before each run by deleting all files and remounting the partition, the server processes were restarted, and clients were remounted, but each run of the benchmark executes a series of tests in succession without any explicit \texttt{sync} calls. The interaction of two levels of delayed write-back caching, particularly when both are part of the same buffer cache on druid-0, could explain the curious results. The behaviour of NFS is not the focus of this evaluation, however.
+With no persistent cache, Envoy must fetch each block from one of the storage servers. The prototype limits files to one outstanding transaction each, so parallelism is not exploited in this test, and requests are randomly distributed to the two storage servers, so neither ends up with a sequential read through the entire file. A more sophisticated storage layer would likely reduce the penalty of omitting the persistent cache, but in normal operation most data is expected to be in the persistent cache anyway.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\figwidth]{figures/bonnie-druid1-seek}
-\caption[Bonnie benchmark results for random seeks]{Bonnie benchmark results for random seeks on a 2GB dataset. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
-\label{fig:bonnie-druid1-seek}
+\includegraphics[width=\figwidth]{figures/bonnie-druid1-rewrite}
+\caption[Bonnie benchmark results for block re-writes]{Bonnie benchmark results for block re-writes on a 2~GB dataset. Each block in the dataset is read, modified, and written back in sequence. Results for Envoy, Envoy using a local storage server instance, Envoy with no persistent cache, a userspace 9p server, and a userspace NFS server are compared. Error bars show the standard deviation over ten runs.}
+\label{fig:bonnie-druid1-rewrite}
 \end{figure}
 
-\figref{fig:bonnie-druid1-seek} shows the results of the concurrent random seek test in Bonnie. Disabling the persistent cache helps Envoy because concurrent requests are randomly directed to two different disks, and the effective cache size is much larger. With no persistent cache, the memory on druid-0 and skiing-0 is used mostly by the storage server cache, but when the persistent cache is enabled, only druid-0 contributes memory and it is split between its storage instance and the persistent cache. The prototype only allows one outstanding request per storage object, so seek penalties are not significantly reduced by using two disks. NFS probably also benefits from combining the client-side cache with the server cache. In Envoy's intended environment, client cache sizes would be smaller and server caches larger to encourage sharing, but this benchmark only acts from a single client.
+Bonnie's re-write test reads the same file in sequence, writing back a change to each block as it is encountered, with results displayed in \figref{fig:bonnie-druid1-rewrite}. The Envoy results reflect the write penalty for a local storage server and the read penalty for no persistent cache, with no surprises. Envoy lags behind 9p in this test, probably because the read is done from the persistent cache, but the write requires each storage server to seek the correct position in the file for each write afterward. Unlike the write test, where the three disks work in parallel, this test forces a seek and read from one disk, followed by a seek and write to all three. For the second seek, the 9p server and the persistent cache are more likely to find the disk head in the right place than the storage servers, which omitted the first seek.
+
+The poor showing from NFS relative to 9p is due to an artifact in the test that interacts with the client-side cache. The rewrite test is preceded by the write test with no explicit sync. All of the re-write tests start with a dirty cache, but NFS adds the client's cache to that of the server, leaving more writes from the previous test that are billed to the current one.
+
+The results from testing with Bonnie show Envoy to be competent at serving files in a simple client-server configuration between two virtual machines. Results are comparable to a simple 9p or NFS server for operations on datasets larger than the in-memory cache size. In these tests, the speed of the disk appears to be the primary bottleneck, which is the expected result for basic operations. The remainder of this section explores the results in more detail to reveal the effect that the network and virtual machine architecture have on performance and how caching, both in-memory and on-disk, influences performance.
 
 \subsection{Architecture}\label{sec:architectural-costs}
 
-An important goal of the Envoy design is to localize data and metadata control when possible, and minimize the involvement of disinterested nodes when not possible. Private images are always controlled by the envoy instance on the same machine as the client using it, and territories in shared images are managed by the most active participant. Besides reducing collateral impact in a bid to improve scalability, localizing control and caching has direct performance benefits for clients.
+An important goal of the Envoy design is to localise data and metadata control when possible, and minimise the involvement of disinterested nodes when not possible. Private images are always controlled by the envoy instance on the same machine as the client using it, and territories in shared images are managed by the most active participant. Besides reducing collateral impact in a bid to improve scalability, localising control and caching has direct performance benefits for clients.
 
-As described in \secref{sec:data-paths}, requests follow one of several paths to completion depending on whether or not the required data is cached and whether ownership is local or remote. The worst case for local or remote ownership is when the data must be retrieved from the storage layer.
+As described in \secref{sec:data-paths}, requests follow one of several paths to completion depending on whether or not the required data is cached and whether ownership is local or remote. The impact of network and virtual machine layout is measured here, with four layouts. druid-0 is an administrative virtual machine that hosts all server processes, and owns all territories in the case of Envoy. skiing-0 is an administrative VM on a different machine, hosting Envoy server processes but no others. druid-1 and skiing-1 are client VMs on the two machines.
 
+For the 9p and NFS results, druid-0 acts as the server in all instances, and results are included for all four client locations. Envoy clients attach to their local envoy instance in each case, so for clients on skiing, all requests are forwarded on to the envoy instance running on druid-0.
 
-If the goal is to get stuff as local as possible, quantify the benefits of achieving that. Measure the overheads of data paths and cache decisions.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/arch-tar-hot}
+\caption[\texttt{tar} benchmark results with hot cache]{Time to \texttt{tar} the Linux kernel source tree with a hot cache over various data paths. NFS results are included for a hot client-side cache and for a hot server-side cache only (labelled nfs-warm). Error bars show the standard deviation over ten runs.}
+\label{fig:arch-tar-hot}
+\end{figure}
 
-\subsubsection{Local impact}
+\figref{fig:arch-tar-hot} shows the time required to \texttt{tar} the Linux kernel source tree from each client location with a hot cache. In each case, the file data is available from the buffer cache of druid-0, so the differences are largely due to network, protocol, and implementation overhead. The Envoy and 9p results show a significant difference between druid-0 and druid-1 results, which comes from the virtual network device that connects the two VMs. Much of this overhead could be eliminated through a Xen-specific transport between the VMs combined with optimisations in the 9p driver to eliminate data copying, as suggested in \secref{sec:data-paths-read}.
 
-Independence of private images
+Envoy is consistently slower in this test than in the Bonnie read test, which measured bulk operations from a single file. The \texttt{tar} test exercises metadata operations much more heavily, which exposes the overhead of a prototype-quality implementation of Envoy. For the skiing-0 and skiing-1 results, requests are considered and forwarded at the skiing-0 envoy instance, so overhead is inherent to the design. For druid-0 and druid-1, however, both 9p and Envoy are using the same protocol to deliver the same data across the same network paths, and the data is coming from the buffer cache in each instance. Optimisation of the prototype would probably result in something closer to parity between these results.
+
+The NFS results for druid-0 are an exception caused by the client-side cache. Because the client and server must compete for cache space, the cache is not sufficient to hold the file tree and disk access is required. While seemingly an unfair circumstance for the NFS results, this result is included to illustrate the benefit of shared caching. Allowing a larger unified cache on each host instead of having each client provide its own smaller cache reduces this kind of cache duplication and increases the effective cache space available cluster-wide. A second anomaly cause by the client-side cache is the result for skiing-0, where the entire file tree fits in the client-side cache. The displayed result is only applicable when the test is repeated within the 30-second window in which the Linux NFS client considers data valid. The test completes in an average of 22.38 seconds and makes this possible, but if a delay is introduced between each iteration, the average time nearly doubles to 44.05 as the cache entries are validated against the server.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/arch-tar-warm}
+\caption[\texttt{tar} benchmark results with a warm cache]{Time to \texttt{tar} the Linux kernel source tree from the persistent cache (for Envoy), with the in-memory cache cold for all servers. Error bars show the standard deviation over ten runs.}
+\label{fig:arch-tar-warm}
+\end{figure}
+
+\figref{fig:arch-tar-warm} supplements these results with the same tests with the in-memory cache flushed before each iteration. Data is resident in the persistent cache in the case of Envoy, so for each of the three servers the data is coming from the same disk. NFS suffers from the same double-buffering issue on druid-0, but otherwise its client-side cache proves very helpful for the metadata-intensive operations in this test. This is clearest in the jump to a remote machine, where 9p must consult a remote server for many operations that are absorbed by the client-side cache in NFS. If the optimisations already suggested prove insufficient, an approach like that of NFSv4---where a limited token-passing scheme lets clients access unshared files without fear of conflicts but reverts control of shared files to the server \cite{shepler}---may be useful for Envoy, allowing it to retain strong consistency guarantees while allowing local caching for unshared files. Testing with a representative workload on an optimised implementation of Envoy would better inform such a choice.
+
+These tests do show a clear performance benefit to coupling control of territories with the clients that use them, particularly in the difference between Envoy results for druid-1 and skiing-1. Comparing the two graphs also shows that Envoy is faster serving warm data controlled by the same machine than hot data from a remote machine, suggesting that territory boundaries can be relatively fluid without destroying performance.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/arch-rsync-tar-hot}
+\caption[\texttt{tar} and \texttt{rsync} benchmark results with a hot cache]{Time to read the Linux kernel source tree using \texttt{tar} and \texttt{rsync} after priming the in-memory cache with all file data. Error bars show the standard deviation over ten runs.}
+\label{fig:arch-rsync-tar-hot}
+\end{figure}
+
+\figref{fig:arch-rsync-tar-hot} compares using \texttt{tar} and \texttt{rsync} to read the Linux kernel source tree from cache using Envoy and 9p. \texttt{rsync} reads asynchronously from multiple files at one time, whereas \texttt{tar} reads one file to completion before starting the next. The increase in time required for both tests between druid-1 and skiing-1---which are the two important client locations---is quite consistent, inviting a cautious comparison between the two. Envoy sees a time increase of 88\% for \texttt{tar} and 85\% for \texttt{rsync}, while 9p sees 67\% for \texttt{tar} and 63\% for \texttt{rsync}. It appears that forwarding skiing-1 requests through the envoy on skiing-0 exacts an overhead of roughly 20\% compared to sending requests directly to druid-0.
+
+Envoy uses the 9p protocol to connect to clients, and it also uses an extended version of it between envoy instances. Comparisons between Envoy and a simple 9p server using similar data paths and cached results demonstrates that the 9p server is consistently faster, but performance degrades at a similar rate for both systems as obstacles are introduced to the data paths. The 9p server passes most requests directly to the file system, while Envoy is a more complex system that tracks additional state and offers more features. Nevertheless, the correlation between the two optimistically suggests that the Envoy prototype could optimised to a performance level close to that of the 9p server without introducing any architectural changes. A roughly 20\% overhead beyond network costs for remote transactions is imposed by the forwarding system, but this is a reasonable tradeoff for simplified recovery and transparent territory migrations that the Envoy architecture enables.
 
 \subsection{Cache}
 
-\subsubsection{Quantifying sharing}\label{sec:quantifying-sharing}
-
-SUSE10 upgrade, install services
-
-compare image overlap
-
-boot two related images (one cold and other warm) and compare with the same test for identical images
-
-show sharing: boot one VM from cold cache, boot another based on same template
 
 \section{Shared images}\label{sec:shared-images}
 
@@ -143,7 +174,7 @@ producer-consumer
 \subsubsection{Sharing application}
 something that shares in a complex but predictable fashion
 
-\section{Image operations}
+\section{Image operations}\label{sec:image-operations}
 
 \subsubsection{Forks}
 
@@ -156,5 +187,19 @@ single territory
 untar the kernel while a bunch of snapshots happen and measure the impact
 
 snapshots with many territories
+
+\subsubsection{Service deployment}
+
+Independence of private images
+
+Quantifying sharing
+
+SUSE10 upgrade, install services
+
+compare image overlap
+
+boot two related images (one cold and other warm) and compare with the same test for identical images
+
+show sharing: boot one VM from cold cache, boot another based on same template
 
 \section{Summary}
