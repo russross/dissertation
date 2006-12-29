@@ -46,6 +46,14 @@ Rapid and inexpensive deployment of services requires support from the file syst
 
 \subsubsection{Benchmarks}
 
+Bonnie is a benchmark designed to expose performance bottlenecks \cite{bray}. Bonnie is used in this evaluation to provide some baseline performance numbers and to compare Envoy with other file systems. The Linux driver for 9p was also tested using Bonnie, and that evaluation compares some of the performance characteristics of 9p with NFS \cite{hensbergen}. Some similar comparisons are made here, but the emphasis is on Envoy and its architecture rather than the 9p protocol and its driver.
+
+Bonnie runs in six phases, all involving a single file several times larger than the available memory. It starts by writing the file a character at a time, then it scans the file a block at a time, writing a change back to each block as it goes. The next pass reads the file a block at a time, then it rewrites it (without reading) using blocks, followed by a final pass reading the file a character at a time. Finally, it creates three child processes that seek randomly in the file in parallel.
+
+Bonnie does not exercise metadata operations, and the character operations test aspects of the system that are not relevant here. Bonnie also fails to flush all buffers to disk between tests, leading to possibly skewed results in some cases. Nevertheless, it provides a useful starting point in evaluating Envoy that allows comparisons with other published results.
+
+To further explore the design of Envoy, a more controlled test is necessary. The Linux 2.6.18 kernel source tree provides a large block of data that can be used for various tests. 
+
 Linux source tree: stats about it
 
 untar -- write test
