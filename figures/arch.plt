@@ -10,8 +10,8 @@ set style histogram errorbars lw 1 gap 1
 # errorbar width
 set bars 2
 
-# move the key out of the way
-#set key below
+# display color bar to left of key
+set key Left reverse
 
 # start the y axis at zero
 set yrange [0:*]
@@ -34,8 +34,13 @@ plot 'arch-tar-warm.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti 
 set output 'arch-rsync-hot.eps'
 plot 'arch-rsync-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
 
+set key left
+
 set output 'arch-rsync-tar-hot.eps'
 plot 'arch-rsync-tar-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
 
 set output 'arch-rsync-tar-warm.eps'
 plot 'arch-rsync-tar-warm.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
+
+set output 'arch-untar.eps'
+plot 'arch-untar.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col

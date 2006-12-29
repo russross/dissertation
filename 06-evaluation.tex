@@ -42,7 +42,37 @@ Rapid and inexpensive deployment of services requires support from the file syst
 
 \subsection{Test environment}
 
-\subsubsection{Hardware}
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{l|l}
+machine      & \textbf{druid} \\ \hline
+processor    & AMD Opteron 240 1.4GHz ($\times$2) \\
+memory       & 6 GB \\
+disk         & Maxtor Diamond Plus 9 160GB SATA/133 7200 RPM \\
+network      & Tigon3 BCM95704A7 10/100/1000BaseT Ethernet \\
+& \\
+machine      & \textbf{skiing} \\ \hline
+processor    & AMD Opteron 250 2.4GHz ($\times$2) \\
+memory       & 4 GB \\
+disk         & Seagate Cheetah 10K.6 73GB Ultra320 SCSI 10000rpm \\
+network      & Tigon3 BCM95703A30 10/100/1000BaseT Ethernet \\
+& \\
+machine      & \textbf{moonraider} \\ \hline
+processor    & Intel Xeon 2.4GHz with Hyper-threading ($\times$2) \\
+memory       & 2 GB \\
+disk         & Western Digital Caviar 120GB EIDE ATA/100 7200 RPM \\
+network      & Intel 82545EM Gigabit Ethernet Controller
+\end{tabular}
+\end{center}
+\caption[Machines used in the evaluation]{Evaluation machines used throughout this chapter. druid is the root server for most tests, while skiing is the remote client for most comparisons. moonraider is used when more than two nodes are required, and both skiing and moonraider host the storage layer services except where noted.}
+\label{tab:hardware}
+\end{table}
+
+Three test machines, named \emph{druid}, \emph{skiing}, and \emph{moonraider}, are referenced in this chapter. Each runs SUSE Linux Enterprise Server~10 installed to use Xen. Virtual machines are suffixed with a number, where zero is always the administrative VM that controls hardware directly. Other VMs access them through virtualized device interfaces. The administrative VM is configured with 512~MB of memory, and client VMs are given 256~MB each. The machines themselves are described in \tabref{tab:hardware}. All network connections use gigabit ethernet, and all three machines have more RAM than is allocated to the running virtual machines.
+
+Envoy is accessed from clients using the 9p client driver from version 2.6.18 of the Linux kernel, backported to the 2.6.16 kernel included in the Linux distribution. When the test requires it, client VMs are booted from Envoy, but for other tests they are each given a private partition. All services on each machine, including all VMs, Envoy's persistent cache, the storage layer object repositories, and file systems exported by NFS and 9p servers, are run from partitions on a single hard drive on each machine.
+
+druid-0 is the root server for all Envoy tests, and the only server for NFS and 9p tests. Additional Envoy nodes run on skiing-0 and moonraider-0, and Envoy clients on each machine connect to their respective nodes unless otherwise noted. NFS and 9p clients on other machines connect to the server on druid-0 in order to compare network overhead and other effects that arise when using multiple machines. The storage layer in this setup consists of two storage instances hosted on skiing-0 and moonraider-0. Additional tests move the moonraider-0 instance to druid-0, but this is noted in the text when it happens.
 
 \subsubsection{Benchmarks}
 
@@ -52,17 +82,24 @@ Bonnie runs in six phases, all involving a single file several times larger than
 
 Bonnie does not exercise metadata operations, and the character operations test aspects of the system that are not relevant here. Bonnie also fails to flush all buffers to disk between tests, leading to possibly skewed results in some cases. Nevertheless, it provides a useful starting point in evaluating Envoy that allows comparisons with other published results.
 
-To further explore the design of Envoy, a more controlled test is necessary. The Linux 2.6.18 kernel source tree provides a large block of data that can be used for various tests. 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/linux-sizes}
+\caption[Distribution of Linux kernel file sizes]{The distribution of file size in the Linux kernel source tree. 18,703 out of the 20,208 files are 32k or smaller and can fit in a single 9p protocol message.}
+\label{fig:linux-sizes}
+\end{figure}
 
-Linux source tree: stats about it
+To further explore the design of Envoy, a more controlled test is necessary. The Linux 2.6.18 kernel source tree provides a large block of data that can be used for various tests. \figref{fig:linux-sizes} shows the distribution of file sizes in the source tree. The kernel has 1238 directories, each holding an average of 16.32 files (not including subdirectories). The distribution is skewed, with a standard distribution of 31.95 and the largest directory holding 713 files. The median size is 8 files. The largest file is 853k, but 92.6\% of the files can be transmitted within a single 32k message using the 9p protocol.
 
-untar -- write test
+File sizes are significant particularly for read tests when files must be retrieved from the storage layer. Large files are read in parallel from the two storage servers, but for most files a single request to a randomly chosen storage node is sufficient, so parallel reads do not make a significant impact on the results. The prototype implementation also reads the entire file from the storage layer and writes it to the persistent cache before answering any requests from the client. For these reasons, latency will likely affect Linux kernel read tests more than transfer rates.
 
-tar > /dev/null -- read test
+For write tests, the file tree is extracted from a compressed \texttt{tar} archive hosted on a local disk partition. For each test, the compressed archive is first loaded into memory to prime the cache. When compressed, the archive is small enough to fit in memory on the clients, and decompression is quick enough to have negligible effect on the results. The uncompressed archive is 229~MB, and the extracted tree occupies about 350~MB of disk space due to internal fragmentation.
 
-rsync -- 2nd read test
+Reading all the files back into a new (uncompressed) \texttt{tar} archive provides one read test. The archive is piped to \texttt{/dev/null} to avoid incurring any local storage costs. \texttt{rsync} is also used to read the files, again piping all results to \texttt{/dev/null}. \texttt{rsync} differs from \texttt{tar} in that it reads multiple files concurrently, reducing the overhead of latency from synchronous read requests. Both tests scan all directories and read metadata for each file in addition to reading file contents.
 
-Bonnie: info about it
+Three different cache settings are relevant for Envoy. The first is a cold cache, which requires retrieving all data and metadata from the storage layer. The second is a warm cache, where data is available from the node-local persistent cache, but not in memory. For cold and warm cache tests, all servers are restarted and all partitions remounted to ensure that in-memory buffers are empty. This also forces Envoy to verify persistent cache data with the storage layer before using it, but this is a quick metadata operation that adds little overhead to the results. Hot cache results pull data from the in-memory cache, but server processes are still restarted between tests and the storage layer must still be consulted to verify data validity.
+
+For \texttt{npfs}, a multi-threaded userspace 9p server used for comparison testing, a cold cache environment corresponds most closely to the warm cache setting for Envoy. \texttt{unfsd}, the userspace NFS server, has client-side caching with three basic configurations, where data is retrieved from the server's disk, the server's memory, or the client's local cache memory. In the final case, the server is not restarted and the client not remounted to avoid flushing the cache. Individual tests are accompanied by details of the cache status for each server.
 
 \section{Independent clients}\label{sec:independent-clients}
 
@@ -152,15 +189,53 @@ These tests do show a clear performance benefit to coupling control of territori
 \label{fig:arch-rsync-tar-hot}
 \end{figure}
 
-\figref{fig:arch-rsync-tar-hot} compares using \texttt{tar} and \texttt{rsync} to read the Linux kernel source tree from cache using Envoy and 9p. \texttt{rsync} reads asynchronously from multiple files at one time, whereas \texttt{tar} reads one file to completion before starting the next. The increase in time required for both tests between druid-1 and skiing-1---which are the two important client locations---is quite consistent, inviting a cautious comparison between the two. Envoy sees a time increase of 88\% for \texttt{tar} and 85\% for \texttt{rsync}, while 9p sees 67\% for \texttt{tar} and 63\% for \texttt{rsync}. It appears that forwarding skiing-1 requests through the envoy on skiing-0 exacts an overhead of roughly 20\% compared to sending requests directly to druid-0.
+\figref{fig:arch-rsync-tar-hot} compares using \texttt{tar} and \texttt{rsync} to read the Linux kernel source tree from cache using Envoy and 9p. \texttt{rsync} reads asynchronously from multiple files at one time, whereas \texttt{tar} reads one file to completion before starting the next. The increase in time required for both tests between druid-1 and skiing-1---which are the two important client locations---is reasonably consistent. Envoy sees a time increase of 88\% for \texttt{tar} and 85\% for \texttt{rsync}, while 9p sees 67\% for \texttt{tar} and 63\% for \texttt{rsync}.
 
-Envoy uses the 9p protocol to connect to clients, and it also uses an extended version of it between envoy instances. Comparisons between Envoy and a simple 9p server using similar data paths and cached results demonstrates that the 9p server is consistently faster, but performance degrades at a similar rate for both systems as obstacles are introduced to the data paths. The 9p server passes most requests directly to the file system, while Envoy is a more complex system that tracks additional state and offers more features. Nevertheless, the correlation between the two optimistically suggests that the Envoy prototype could optimised to a performance level close to that of the 9p server without introducing any architectural changes. A roughly 20\% overhead beyond network costs for remote transactions is imposed by the forwarding system, but this is a reasonable tradeoff for simplified recovery and transparent territory migrations that the Envoy architecture enables.
+Connecting skiing-1 directly to druid-0 instead of to the envoy instance on skiing-0 yields increases of 40\% for both tests over the respective druid-1 results, or a reduction of 34\% and 33\% compared to the same tests using the envoy on skiing-0. The average times---168.97 for \texttt{tar} and 118.71 for \texttt{rsync}---compare more favorably to the simpler 9p server, taking 8\% longer for both tests.
+
+Envoy uses the 9p protocol to connect to clients, and it also uses an extended version of it between envoy instances. Comparisons between Envoy and a simple 9p server using similar data paths and cached results demonstrates that the 9p server is consistently faster, but performance degrades at a similar rate for both systems as obstacles are introduced to the data paths. The 9p server passes most requests directly to the file system, while Envoy is a more complex system that tracks additional state and offers more features. Nevertheless, the correlation between the two optimistically suggests that the Envoy prototype could optimised to a performance level close to that of the 9p server without introducing any architectural changes. A roughly 33\% overhead beyond network costs for remote transactions is imposed by the forwarding system, but this is a reasonable tradeoff for simplified recovery and the possibility of removing forwarding overhead completely through territory migration.
 
 \subsection{Cache}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-cold-vs-nocache}
+\caption[Cold cache results with and without persistent cache]{Cold cache read and write tests with the persistent cache enabled and disabled. \texttt{tar} times are faster with the cache, even though it requires writing all data to the local disk. \texttt{untar}, the write test, is faster with the cache disabled.}
+\label{fig:envoy-cold-vs-nocache}
+\end{figure}
 
 In addition to the data paths imposed by the architecture, Envoy requests interact with different cache states. When the cache is \emph{hot}, data is available from the in-memory cache on the envoy that owns the relevant territory. A \emph{warm} cache holds data in the local on-disk cache, but not the in-memory cache. When data must be retrieved from the storage layer, the cache is said to be \emph{cold}, and for all tests the storage servers themselves were restarted and data partitions remounted to empty in-memory buffers.
 
 For all Envoy tests, the server was restarted between each iteration, reseting the server's internal state. For both hot and warm cache tests, the server must initially validate cached objects against the storage servers, but can then proceed to use them from the local cache. Testing found this to have little effect on the results, so all figures presented here use the more conservative method.
+
+The persistent cache stores objects on the same node as the envoy that uses them, which is generally a performance win. For write operations, however, it simply adds another write destination for data that is already being sent to multiple storage nodes. The \texttt{untar} part of \figref{fig:envoy-cold-vs-nocache} shows modest overhead for write operations, since the writes proceed in parallel with those on the storage nodes.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-nocache}
+\caption[Cold and hot storage servers with no persistent cache]{\texttt{tar} and \texttt{rsync} tests run with the persistent cache disabled. The cache status (hot or cold) refers to the in-memory cache on the storage servers. Error bars show the standard deviation over ten runs.}
+\label{fig:envoy-nocache}
+\end{figure}
+
+Reads in the \texttt{tar} test are faster with the cache, even though all data must come from the storage layer in either case, and enabling the cache requires writing everything to the local disk in addition to returning it to the client. This is because the disk is otherwise idle, and most of the write operations can be absorbed by the buffer cache and proceed asynchronously. In return, having the data in memory on the local node prevents read operations from being directed back to the storage layer. The in-memory cache is provided by the host operating system through operations on the object store, so disabling the persistent cache disables the in-memory cache as well. Even though the test is primarily based on write operations, disabling the cache results in a 41\% increase in the number of messages sent to the storage layer in this test.
+
+Even with the persistent cache disabled, there are still other cache factors to consider. \figref{fig:envoy-nocache} examines read test results with the persistent cache disabled, varying the status of the in-memory cache on the storage servers. As expected, a hot cache improves performance considerably. The improvement in cold cache results moving from \texttt{tar} to \texttt{rsync} is particularly dramatic, because \texttt{rsync} is able to schedule reads from both storage servers at once, whereas \texttt{tar} leaves one completely idle while waiting for the other.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-tar}
+\caption[The \texttt{tar} test with all cache modes]{\texttt{tar} test results for hot, warm, and cold cache states on all client locations. Error bars show the standard deviation over ten runs.}
+\label{fig:envoy-tar}
+\end{figure}
+
+\figref{fig:envoy-tar} compares the \texttt{tar} test run on Envoy's three basic cache states. As demonstrated earlier when the persistent cache was disabled, many requests are absorbed by the in-memory cache even when it starts out empty. Microbenchmarks would probably show a greater difference between the three cache states, but reading a series of files is a common and realistic workload. In addition to the performance gained from caching objects on each host, the load on storage servers is reduced. Particularly when storage servers and envoy servers are hosted on the same nodes, localizing traffic as much as possible helps both performance and scalability.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-rsync}
+\caption[The \texttt{rsync} test with all cache modes]{\texttt{rsync} test results for hot, warm, and cold cache states on all client locations. Error bars show the standard deviation over ten runs.}
+\label{fig:envoy-rsync}
+\end{figure}
 
 \section{Shared images}\label{sec:shared-images}
 
@@ -183,9 +258,6 @@ shared image with (independent) home directories
 2 log files in one directory
 
 producer-consumer
-
-\subsubsection{Sharing application}
-something that shares in a complex but predictable fashion
 
 \section{Image operations}\label{sec:image-operations}
 
@@ -216,18 +288,18 @@ Besides making service deployment quick, an important goal of snapshot and fork 
 \begin{table}[t]
 \begin{center}
 \begin{tabular}{l|>{\ttfamily}l>{\ttfamily}l}
-                        & \textrm{Cold cache} & \textrm{Hot cache} \\ \hline
-Client requests/bytes   & 70,016/1,264,742    & 71,648/1,296,578 \\
-Client responses/bytes  & 70,016/79,457,018   & 71,648/81,323,281 \\
-Storage requests/bytes  & 2,764/288,858       & 2,059/285,429 \\
-Storage responses/bytes & 2,764/17,476,789    & 2,059/675,196
+& \textbf{\textrm{cold cache}} & \textbf{\textrm{hot cache}} \\ \hline
+client requests/bytes   & 70,016/\hfill 1,264,742    & 71,648/\hfill 1,296,578 \\
+client responses/bytes  & 70,016/\hfill 79,457,018   & 71,648/\hfill 81,323,281 \\
+storage requests/bytes  & 2,764/\hfill 288,858       & 2,059/\hfill 285,429 \\
+storage responses/bytes & 2,764/\hfill 17,476,789    & 2,059/\hfill 675,196
 \end{tabular}
 \end{center}
 \caption[Service deployment storage overlap figures]{Messages and bytes transferred when a virtual machine boots from an Linux template image. The first was booted with a cold cache, and the second after restarting Envoy but not clearing the in-memory or on-disk cache. In the hot cache case, objects had to be validated against the storage server because of the server restart, hence the similar message counts, but data could be retrieved from the cache.}
 \label{tab:deployment-stats}
 \end{table}
 
-To measure this effect, a template image was prepared with SUSE Linux Enterprise Server~10, and a virtual machine booted from a fork of this image with a cold cache. Another VM booted from a second fork of the image, this time with the cache primed from the first one. Boot times as measured with a stopwatch were about 50~seconds in either case, with the hot cache a few seconds faster (compared to about 30~seconds when booting from a local partition).
+To measure this effect, a template image was prepared with SUSE Linux Enterprise Server~10, and a virtual machine booted from a fork of this image with a cold cache. Another VM booted from a second fork of the image, this time with the cache primed from the first one. Boot times as measured with a stopwatch were about 50~seconds in either case, with the hot cache a few seconds faster (compared to about 30~seconds when booting from a local partition). Boot times were hurt by the lack of client-side cache, particularly for memory-mapped files including shared libraries. While optimizations could make node-level caching sufficient for most conventional file operations, support for executables and shared libraries is rather poor in the current cache model.
 
 \tabref{tab:deployment-stats} shows the results collected by an instrumented version of Envoy. The server was restarted between tests, so the hot cache results include message traffic to validate cached objects with the storage servers. Booting the second image pulled less than 4\% of the bytes retrieved from the storage layer when starting the first image, showing a heavy overlap between read-only data in the two instances. Combined with the lightweight snapshot and fork operations, this suggests that service instances can be created and deployed quickly and with little impact beyond the local machine.
 
