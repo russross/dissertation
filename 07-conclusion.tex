@@ -1,11 +1,21 @@
 \chapter{Conclusion}\label{cha:conclusion}
 
+This dissertation concludes with a discussion of opportunities for future research and a summary of the work presented here.
+
 \section{Future Work}
+
+Storage clusters are only partially specified in this work, and much additional research is necessary to make them a reality. Even the storage component that is the focus of this dissertation is only partially specified. Also, some parts of the existing design point to areas for future work. A few of these areas are addressed in this section.
+
+\subsection{Storage layer}
+
+The prototype implementation of Envoy relies on a simplistic storage layer that is statically allocated and managed. Much of the work discussed in \secref{sec:storage-layer-systems} could be applied to create a robust and performant storage service. 
+
+\subsection{Envoy}
+
 \subsection{Read-only leases}
 \subsection{Custom protocol}
 Cache at client for unshared objects, at envoy for shared
 \subsection{Storage-informed load balancing}
-\subsection{Object layer}
 \subsection{Recovery}
 
 \section{Summary}

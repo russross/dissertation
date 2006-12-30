@@ -10,7 +10,7 @@ The goals of the prototype are more modest than the goals of the Envoy design. T
 
 Other aspects of the design and its suitability for the intended task can be validated by testing an implementation of the file system, even in the absence of a complete service cluster environment. The prototype was implemented to allow empirical testing of the basic structure of Envoy, and to expose practical issues that could lead to refinement of the design. The design presented in the previous chapter reflects many lessons learned from the prototype implementation, and the next chapter presents measurements from using it.
 
-The remainder of this chapter describes the artifact itself. The Envoy design calls for a client-server file system interface for connecting individual clients to the distributed system, but it does not require a specific one. The prototype is written to support a specific interface, and the rest of the prototype takes design cues from that interface. While the storage layer structure is not specified in the general design, a prototype supporting the general interface and redundant layout required by Envoy was necessary for testing; its implementation is also described here.
+The remainder of this chapter describes the artefact itself. The Envoy design calls for a client-server file system interface for connecting individual clients to the distributed system, but it does not require a specific one. The prototype is written to support a specific interface, and the rest of the prototype takes design cues from that interface. While the storage layer structure is not specified in the general design, a prototype supporting the general interface and redundant layout required by Envoy was necessary for testing; its implementation is also described here.
 
 \subsection{Implementation shortcuts}
 
@@ -447,3 +447,9 @@ Still, nothing precludes this area from being split up. Tracking authentication 
 The more serious issue is that the prototype cannot migrate control of the root to another envoy. The standard mechanism for migrating territories is applicable, but in addition all envoys need to be notified of the change so that mount requests (which always start from the root of the namespace) could be properly routed. Straightforward solutions exist, but they were of little value in accomplishing the goals of the prototype and so were not pursued.
 
 \section{Summary}
+
+The Envoy prototype uses the 9p protocol to export the file system to clients, and uses extensions of 9p for its internal messages. The file system and cache system of the underlying operation system are both exploited to avoid duplicate work and to gain access to optimised systems.
+
+The storage layer is simple placeholder that exports a stateless object interface. Objects are stored as files in the host file system, with extended attributes stored as part of the file name. Redundant storage nodes are supported, but object placement is hard-coded and no recovery facilities are implemented.
+
+The envoy layer creates a file system from storage objects. Territories are a basic management unit, and the root of each territory is always made writable to prevent requests from involving multiple envoy nodes. Deadlock is prevented by following a top-down locking discipline along the territory hierarchy when multiple envoys are involved. Some operations require cooperation between multiple envoys, but others can be localised by changing territory boundaries before performing the requested action. Careful coordination ensures that dynamic territory re-alignments do not interfere with pending requests.
