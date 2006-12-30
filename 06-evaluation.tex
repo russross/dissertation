@@ -270,7 +270,7 @@ The prototype is instrumented to output a report after each transfer, including 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\figwidth]{figures/territory-home}
-\caption[Territory graph for home directory sharing]{The territory graph when sharing an image divided into home directories. Squares denote territory roots, and colours indicate the host that owns a directory. druid (red) is the root server and directs its requests to \texttt{char}, skiing (blue) accesses \texttt{block}, and moonraider (green) sends requests to \texttt{net} and \texttt{usb}. The tree on the left depicts the setup, while the one on the right shows the actual layout created by Envoy.}
+\caption[Territory graph for home directory sharing]{The territory graph when sharing an image divided into home directories. Rectangles denote territory roots, and colours indicate the host that owns a directory. druid (red) is the root server and directs its requests to \texttt{char}, skiing (blue) accesses \texttt{block}, and moonraider (green) sends requests to \texttt{net} and \texttt{usb}. The tree on the left depicts the setup, while the one on the right shows the actual layout created by Envoy.}
 \label{fig:territory-home}
 \end{figure}
 
@@ -282,7 +282,24 @@ The order in which transfers occur affects the final layout. Had moonraider intr
 
 \subsubsection{Log files}
 
+Directory boundaries are not always the ideal place to partition shared files. Multiple clients may also access individual files that are stored in a common directory. A common example of this is in log files that collect data and results from multiple servers in a shared directory. For this situation, there is no sharing within the files themselves.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/territory-logs}
+\caption[Territory graph for log files in a shared directory]{The territory graph when sharing a directory hosting privately-accessed files. Rectangles denote territory roots, and colours indicate the host that owns a directory. Clients on each of the three servers were given three files each within one directory to access at a constant rate. The tree shows the final steady-state result produced by Envoy.}
+\label{fig:territory-logs}
+\end{figure}
+
+\figref{fig:territory-logs} shows the result of this test, where three files were assigned to each client. It took longer to achieve the final layout with this test for two reasons. Instead of accessing random files in a directory, clients accessed individual files, so fewer requests were generated. Navigation steps leading to the file went through shared directories and did not contribute to the urgency of transfers. In a more realistic setting, the client would likely hold an open handle for each file yielding a similar effect, so this difference is a artifact of the test script. The second reason is that more transfers had to take place, with enforced minimum delays between each. druid was the only host to initiate transfers, and each one involved the same root territory, so the process was completely sequential.
+
+After reaching a steady state, no further traffic between envoys would be necessary if each client maintained an open handle to each file. True to Envoy's goal, having the files in the same directory would be convenient but not prevent individual machines from handling file traffic locally. With no actual sharing taking place and a consistent traffic load, no overhead for coordination is necessary.
+
 \subsubsection{Sharing files}
+
+The next test involves actual sharing between clients. 
+
+\subsubsection{Failure}
 
 
 \section{Image operations}\label{sec:image-operations}
