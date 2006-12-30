@@ -67,22 +67,22 @@
   pagebackref=true,
   plainpages=false,
   pdfpagelabels=true,
-  hypertexnames=false,
   breaklinks=true]{hyperref}
 \hypersetup{
   pdfauthor   = {Russell Glen Ross},
   pdftitle    = {\thesistitle},
   pdfsubject  = {A dissertation submitted to the University of Cambridge
                   for the degree of Doctor of Philosophy},
-  pdfkeywords = {File Systems, Distributed Systems, Cluster Storage,
-                 Commodity Computation, Virtualization},
-  pdfcreator  = {LaTeX with hyperref package},
+  pdfkeywords = {File Systems, Distributed Systems, Distributed File Systems,
+                 Cluster Storage, Commodity Computation, Virtualization},
   pdfproducer = {pdftex}}
 
 \begin{document}
 
 % front matter
 
+% avoid numbering the title page with a number that will be used later
+\pagenumbering{alph}
 \pagestyle{empty}
 \include{titlepage}
 \cleardoublepage
