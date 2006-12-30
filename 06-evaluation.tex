@@ -255,26 +255,35 @@ The dynamic algorithm is configured by specifying the two endpoints of the urgen
 
 Determining suitable values for these parameters requires knowledge of workloads and the demands of the specific environment. If stability is valued over a fine-grained territory layout, the system can be made more reluctant to enact changes. If workloads change more rapidly, a more eager policy can be adopted. The previous section compared the performance of local and remote clients, and concluded that local control yields a performance advantage as expected. Private images are always ceded to the client's envoy at mount time, so it is only in the presence of workloads with actual sharing that the dynamic algorithm comes into play.
 
-The previous section explored the performance of the Envoy prototype under various condition, and this section turns to dynamic behaviour under shared conditions. Migrating active state between nodes is a quick operation, similar to the metadata operations discussed in the next section. Write operations are always committed to the storage layer before returning, so no cache flush needs to take place, either. Cache effects will create some extra delays as the new owner loads active objects that were already in memory on the previous host, but the results of the previous section suggest that these will largely be offset by the improvements derived from local control.
+The previous section explored the performance of the Envoy prototype under various condition, and this section turns to dynamic behaviour under shared conditions. Migrating active state between nodes is a quick operation, similar to the metadata operations discussed in the next section. The prototype also completes the operation that triggers a territory change before executing the transfer, so any pause happens between client requests. Write operations are always committed to the storage layer before returning, so no cache flush needs to take place, either. Cache effects will create some extra delays as the new owner loads active objects that were already in memory on the previous host, but the results of the previous section suggest that these will largely be offset by the improvements derived from local control.
 
 \subsection{Dynamic behaviour}
 
-A series of typical sharing scenarios were layed out and simulated, and the response of the dynamic territory algorithm observed. For the tests, a half-life of five seconds was used to give a gradual and predictable response to simulated traffic. An urgency of 100 triggers a change after five seconds, while a modest threshold of five triggers a change after 120 seconds.
+A series of typical sharing scenarios were laid out and simulated, and the response of the dynamic territory algorithm observed. For the tests, a half-life of five seconds was used to give a gradual and predictable response to simulated traffic. An urgency of 100 triggers a change after five seconds, while a modest threshold of five triggers a change after 120 seconds.
 
 To generate load, a script walks to and opens files at random within a subtree of the Linux kernel sources at a specified rate. Each operation sends multiple requests to the server, walking from the root of the tree (the Linux 9p driver generates a new requests for each step in the directory traversal), opening the file, and immediately closing it. The script can generate load in multiple trees and can ignore subtrees within a target region.
 
 The prototype is instrumented to output a report after each transfer, including a graph of the complete territory structure at each end of the transfer. After being combined and plotted using the \texttt{graphviz} graph-drawing package \cite{gansner}, the output represents a live snapshot of the territories and active claims in the running system.
 
+\subsubsection{Home directories}
 
-Test dynamic territory management, less about performance than behaviour
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/territory-home}
+\caption[Territory graph for home directory sharing]{The territory graph when sharing an image divided into home directories. Squares denote territory roots, and colours indicate the host that owns a directory. druid (red) is the root server and directs its requests to \texttt{char}, skiing (blue) accesses \texttt{block}, and moonraider (green) sends requests to \texttt{net} and \texttt{usb}. The tree on the left depicts the setup, while the one on the right shows the actual layout created by Envoy.}
+\label{fig:territory-home}
+\end{figure}
 
-probabilistic traffic driven to overlapping areas
+One common pattern in using existing file servers is to share a file system divided into home directories. While multiple users share a single image, in practice their activities are largely partitioned into specific subdirectories. As the root server and host to the first client to mount the image, druid-0 started out owning the entire territory. Four directories within the Linux tree are assigned to clients on the three servers, which start opening two randomly chosen files per second in each directory. The tree on the left of \figref{fig:territory-home} depicts the territory tree as planned, with the four directories at the bottom acting as home directories. The tree on the right is the actual result from testing this configuration on Envoy.
 
-shared image with (independent) home directories
+While druid had its own client traffic, it also had requests coming at an equal rate from skiing and twice as many from moonraider, which was assigned two directories. The envoy on druid had the options of ceding control of one directory to skiing and the other two to moonraider, or transferring control of the whole image to moonraider and allowing it to make further splits. The imbalance as viewed at the root of the image would be equal to that at the root of each target directory, except that each client request traversed from the root of the tree. The extra overlapping traffic near the root tipped the balance in favour of ceding control of the whole territory to moonraider, which then waited until enough time had elapsed to transfer control of the two remotely-accessed directories to their respective hosts.
 
-2 log files in one directory
+The order in which transfers occur affects the final layout. Had moonraider introduced its requests one directory at a time, druid would have retained control of the top-level directories. The greedy algorithm used in Envoy does not guarantee optimal layouts, but it does try to produce useful behaviour with simple rules.
 
-producer-consumer
+\subsubsection{Log files}
+
+\subsubsection{Sharing files}
+
 
 \section{Image operations}\label{sec:image-operations}
 
