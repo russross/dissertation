@@ -26,7 +26,7 @@ set xtics ("druid-0" 0, "druid-1" 1, "skiing-0" 2, "skiing-1" 3)
 set terminal postscript eps color
 
 set output 'arch-tar-hot.eps'
-plot 'arch-tar-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
+plot 'arch-tar-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col lc rgb "yellow"
 
 set output 'arch-tar-warm.eps'
 plot 'arch-tar-warm.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col
@@ -37,10 +37,10 @@ plot 'arch-rsync-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti
 set key left
 
 set output 'arch-rsync-tar-hot.eps'
-plot 'arch-rsync-tar-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
+plot 'arch-rsync-tar-hot.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col lc rgb "yellow"
 
 set output 'arch-rsync-tar-warm.eps'
 plot 'arch-rsync-tar-warm.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9 ti col
 
-set output 'arch-untar.eps'
-plot 'arch-untar.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col
+# set output 'arch-untar.eps'
+# plot 'arch-untar.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col

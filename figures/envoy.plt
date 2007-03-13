@@ -29,7 +29,7 @@ set output "envoy-rsync.eps"
 plot 'envoy-rsync.dat' using 9:10 ti col, '' using 6:7 ti col, '' using 3:4:xticlabels(1) ti col
 
 set output "envoy-nocache.eps"
-plot 'envoy-nocache.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9:xticlabels(1) ti col
+plot 'envoy-nocache.dat' using 2:3 ti col, '' using 4:5 ti col, '' using 6:7 ti col, '' using 8:9:xticlabels(1) ti col lc rgb "yellow"
 
 set key default
 set key left Left reverse
@@ -38,4 +38,4 @@ set style histogram rowstacked
 set xtics ("druid-0" 0, "druid-1" 1, "skiing-0" 2, "skiing-1" 3, "druid-0" 5, "druid-1" 6, "skiing-0" 7, "skiing-1" 8)
 set output "envoy-cold-vs-nocache.eps"
 plot newhistogram "tar", 'envoy-cold-vs-nocache-tar.dat' using 3 ti col, '' using 2 ti col, \
-     newhistogram "untar", 'envoy-cold-vs-nocache-untar.dat' using 2 ti col, '' using 3 ti col
+     newhistogram "untar", 'envoy-cold-vs-nocache-untar.dat' using 2 ti col, '' using 3 ti col lc rgb "yellow"

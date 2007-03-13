@@ -1,9 +1,9 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: envoy-cold-vs-nocache.eps
 %%Creator: gnuplot 4.3 patchlevel 0
-%%CreationDate: Fri Dec 29 19:12:22 2006
+%%CreationDate: Tue Mar 13 15:54:25 2007
 %%DocumentFonts: (atend)
-%%BoundingBox: 50 45 410 302
+%%BoundingBox: 50 50 410 302
 %%EndComments
 %%BeginProlog
 /gnudict 256 dict def
@@ -48,7 +48,7 @@ SDict begin [
   /Author (Russell Ross)
 %  /Producer (gnuplot)
 %  /Keywords ()
-  /CreationDate (Fri Dec 29 19:12:22 2006)
+  /CreationDate (Tue Mar 13 15:54:25 2007)
   /DOCINFO pdfmark
 end
 } ifelse
@@ -433,6 +433,51 @@ newpath
 /Helvetica findfont 140 scalefont setfont
 /Helvetica findfont 140 scalefont setfont
 /Helvetica findfont 140 scalefont setfont
+gsave % colour palette begin
+/maxcolors 0 def
+/HSV2RGB {  exch dup 0.0 eq {pop exch pop dup dup} % achromatic gray
+  { /HSVs exch def /HSVv exch def 6.0 mul dup floor dup 3 1 roll sub
+     /HSVf exch def /HSVi exch cvi def /HSVp HSVv 1.0 HSVs sub mul def
+	 /HSVq HSVv 1.0 HSVs HSVf mul sub mul def 
+	 /HSVt HSVv 1.0 HSVs 1.0 HSVf sub mul sub mul def
+	 /HSVi HSVi 6 mod def 0 HSVi eq {HSVv HSVt HSVp}
+	 {1 HSVi eq {HSVq HSVv HSVp}{2 HSVi eq {HSVp HSVv HSVt}
+	 {3 HSVi eq {HSVp HSVq HSVv}{4 HSVi eq {HSVt HSVp HSVv}
+	 {HSVv HSVp HSVq} ifelse} ifelse} ifelse} ifelse} ifelse
+  } ifelse} def
+/Constrain {
+  dup 0 lt {0 exch pop}{dup 1 gt {1 exch pop} if} ifelse} def
+/YIQ2RGB {
+  3 copy -1.702 mul exch -1.105 mul add add Constrain 4 1 roll
+  3 copy -0.647 mul exch -0.272 mul add add Constrain 5 1 roll
+  0.621 mul exch -0.956 mul add add Constrain 3 1 roll } def
+/CMY2RGB {  1 exch sub exch 1 exch sub 3 2 roll 1 exch sub 3 1 roll exch } def
+/XYZ2RGB {  3 copy -0.9017 mul exch -0.1187 mul add exch 0.0585 mul exch add
+  Constrain 4 1 roll 3 copy -0.0279 mul exch 1.999 mul add exch
+  -0.9844 mul add Constrain 5 1 roll -0.2891 mul exch -0.5338 mul add
+  exch 1.91 mul exch add Constrain 3 1 roll} def
+/SelectSpace {ColorSpace (HSV) eq {HSV2RGB}{ColorSpace (XYZ) eq {
+  XYZ2RGB}{ColorSpace (CMY) eq {CMY2RGB}{ColorSpace (YIQ) eq {YIQ2RGB}
+  if} ifelse} ifelse} ifelse} def
+/InterpolatedColor false def
+/cF7 {sqrt} bind def	% sqrt(x)
+/cF5 {dup dup mul mul} bind def	% x^3
+/cF15 {360 mul sin} bind def	% sin(360x)
+/pm3dround {maxcolors 0 gt {dup 1 ge
+	{pop 1} {maxcolors mul floor maxcolors 1 sub div} ifelse} if} def
+/pm3dGamma 1.0 1.5 div def
+/ColorSpace (RGB) def
+Color true and { % COLOUR vs. GRAY map
+  InterpolatedColor { %% Interpolation vs. RGB-Formula
+    /g {stroke pm3dround /grayv exch def interpolate
+        SelectSpace setrgbcolor} bind def
+  }{
+  /g {stroke pm3dround dup cF7 Constrain exch dup cF5 Constrain exch cF15 Constrain 
+       SelectSpace setrgbcolor} bind def
+  } ifelse
+}{
+  /g {stroke pm3dround pm3dGamma exp setgray} bind def
+} ifelse
 1.000 UL
 LTb
 1.000 UL
@@ -800,12 +845,12 @@ Z stroke
 LT2
 1.000 UL
 LT3
-/Helvetica findfont 140 scalefont setfont
+1.00 1.00 0.00 C /Helvetica findfont 140 scalefont setfont
 LTb
 1533 4179 M
 (cache) Lshow
 LT3
-1.000 1050 4144 399 70 BoxColFill
+1.00 1.00 0.00 C 1050 4144 N 0 -70 399 0 0 70 h
 LTb
 1050 4144 N
 399 0 V
@@ -814,7 +859,7 @@ LTb
 0 -70 V
 Z stroke
 LT3
-1.000 4303 2349 556 133 BoxColFill
+1.00 1.00 0.00 C 4303 2349 N 0 -133 556 0 0 133 h
 LTb
 4303 2349 N
 0 132 V
@@ -823,7 +868,7 @@ LTb
 -555 0 V
 Z stroke
 LT3
-1.000 4919 2933 556 169 BoxColFill
+1.00 1.00 0.00 C 4919 2933 N 0 -169 556 0 0 169 h
 LTb
 4919 2933 N
 0 168 V
@@ -832,7 +877,7 @@ LTb
 -555 0 V
 Z stroke
 LT3
-1.000 5536 4038 556 171 BoxColFill
+1.00 1.00 0.00 C 5536 4038 N 0 -171 556 0 0 171 h
 LTb
 5536 4038 N
 0 170 V
@@ -841,7 +886,7 @@ LTb
 -555 0 V
 Z stroke
 LT3
-1.000 6152 4435 556 149 BoxColFill
+1.00 1.00 0.00 C 6152 4435 N 0 -149 556 0 0 149 h
 LTb
 6152 4435 N
 0 148 V
@@ -850,7 +895,7 @@ LTb
 -555 0 V
 Z stroke
 LT3
-1.000 UL
+1.00 1.00 0.00 C 1.000 UL
 LTb
 882 4872 N
 882 280 L
