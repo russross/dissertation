@@ -156,7 +156,7 @@ Cache utilisation is most effective when clients on a single machine use file sy
 \label{fig:request-paths}
 \end{figure}
 
-To summarise the architecture of Envoy, consider the data paths followed by typical file system requests. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk. This sequence is summarized in \figref{fig:request-paths}, and depicted graphically in \figref{fig:hops}.
+To summarise the architecture of Envoy, consider the data paths followed by typical file system requests. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk. This sequence is summarised in \figref{fig:request-paths}, and depicted graphically in \figref{fig:hops}.
 
 \begin{figure}[t]
 \centering
