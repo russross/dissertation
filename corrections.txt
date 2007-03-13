@@ -1,0 +1,87 @@
+Russ Ross Dissertation Corrections:
+
+
+Typos:
+
+p 42 last para: first sentence structure is odd
+  from => Modern virtualization managers like Xen have low enough overhead to
+          justify partitioning a machine even absent concerns about security
+          and control of the machine [Bar03a].
+  to   => Modern virtualization managers like Xen have low enough overhead
+          [Bar03a] to justify partitioning a machine purely for convenience of
+          management.
+
+p 69 line 1: nearest _to_ the requested datum. Because (the) of the large
+  => corrected (now on page 70)
+
+p 81 para 2: through -> though
+  => corrected (now on page 83)
+
+p 85 para 2 line 4: to detect forks _is_ to log them.
+  => corrected (now on page 85)
+
+p 88 para 2: is handed over _the_ the relevant envoy
+  => corrected (now on page 90)
+
+p 92: principle -> principal
+  => corrected (now on page 94)
+
+p114: disbursement -> dispersal
+  => corrected (now on page 116)
+
+p123 line 4: attributed -> attribute
+  => corrected (now on page 125)
+
+p123 line 2 up: reason -> reasons
+  => corrected (now on page 125)
+
+p137 Sec 5.4.7, line 1: include -> includes
+  => corrected (now on page 139)
+
+p139 Sec 5.5 para 1: operation system -> operating system
+  => corrected (now on page 141)
+  => note: same typo corrected on page 5, line 5 up
+
+p139 Sec 5.5 para 2: The storage layer is _a_ simple placeholder
+  => corrected (now on page 141)
+
+p158 line 5 up: prototype could _be_ optimised
+  => corrected (now on page 160)
+
+p165 para 2: requests -> request
+  => corrected (now on page 167)
+
+
+Graph color changes:
+
+p 155: Figure 6.5
+  => pink changed to yellow (now on page 157)
+
+p 158: Figure 6.7
+  => pink changed to yellow (now on page 160)
+
+p 159: Figure 6.8
+  => pink changed to yellow (now on page 161)
+
+p 160: Figure 6.9
+  => pink changed to yellow (now on page 162)
+
+
+Figures added:
+
+p 64 Sec 4.2.2
+  => 1st para extended to reference new Figure 4.4
+  => new Figure 4.4 added (now on page 65)
+
+p 66
+  => last para extended to reference new Figure 4.6 (now on page 67)
+  => new Figure 4.6 added (now on page 68)
+
+p 70 Sec 4.2.5
+  => last para modified to reference new Figure 4.7 (now on page 72-73)
+  => new Figure 4.7 added (now on page 72)
+
+note: all three new figures and their captions relate directly to para 2 of the
+    chapter 4 summary (page 97 old, page 99 new), so I have not added another
+    figure to that part of the text.  The remaining figures from my slides
+    were duplicates of existing figures.
