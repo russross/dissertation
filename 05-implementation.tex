@@ -199,7 +199,7 @@ While the mechanism for authenticating envoys at connection time exists, no auth
 
 \subsubsection{Replica groups}
 
-The top half of the storage layer, i.e., the part that maps object IDs to storage servers, is essentially absent from the prototype. For any large deployment, a suitable disbursement of objects across storage servers is essential. Different degrees of failure protection may be desirable as well, with increased replication being available to clients at a premium cost.
+The top half of the storage layer, i.e., the part that maps object IDs to storage servers, is essentially absent from the prototype. For any large deployment, a suitable dispersal of objects across storage servers is essential. Different degrees of failure protection may be desirable as well, with increased replication being available to clients at a premium cost.
 
 \subsubsection{Redistribution}
 
@@ -306,11 +306,11 @@ Most basic file and directory operations have a straightforward implementation. 
 
 \subsubsection{Reading files and attributes}
 
-The most straightforward operations are \texttt{read} and \texttt{stat}, which read the data and metadata of files, respectively. These requests can be filled using the data paths described in \secref{sec:data-paths-read}. The only complication involved is handling the \texttt{atime} attributed, which tracks the last time the data from a file was accessed by a \texttt{read} or \texttt{write} operation. Read operations always proceed through a single envoy, so this attribute can be tracked accurately: the envoy can send a message with the time stamp (to ensure that it is consistently applied to all replicas, even if all clocks are not in sync or network latencies between the different storage servers vary) to all replicas in the storage layer which can then update the attribute.
+The most straightforward operations are \texttt{read} and \texttt{stat}, which read the data and metadata of files, respectively. These requests can be filled using the data paths described in \secref{sec:data-paths-read}. The only complication involved is handling the \texttt{atime} attribute, which tracks the last time the data from a file was accessed by a \texttt{read} or \texttt{write} operation. Read operations always proceed through a single envoy, so this attribute can be tracked accurately: the envoy can send a message with the time stamp (to ensure that it is consistently applied to all replicas, even if all clocks are not in sync or network latencies between the different storage servers vary) to all replicas in the storage layer which can then update the attribute.
 
 The intended meaning of the \texttt{atime} attribute becomes obscured when applied to frozen files, however. Since attributes are part of the object, akin to inodes in traditional Unix file systems, changing the attribute will affect all files that are backed by that same object. Those instances may be in read-only snapshots of the same file system image, or in common files available in an unrelated file system image. In the former case, the read-only property of the snapshot is broken, and in the latter case the isolation of the two images is compromised. Updating the \texttt{atime} attribute would give an unrelated client using the same template file system image the ability to loosely track file accesses, which could represent a security risk.
 
-Accurately tracking the \texttt{atime} attribute is problematic with frozen files, and if it is only updated on some files (the set of which may change over time as successive snapshots are taken), it is too unreliable to be useful. It also generates network and disk traffic for every read, even those that can be satisfied from the cache. For these reason, the \texttt{atime} attribute is present in Envoy for compatibility, but it effectively mirrors the modified time attribute.
+Accurately tracking the \texttt{atime} attribute is problematic with frozen files, and if it is only updated on some files (the set of which may change over time as successive snapshots are taken), it is too unreliable to be useful. It also generates network and disk traffic for every read, even those that can be satisfied from the cache. For these reasons, the \texttt{atime} attribute is present in Envoy for compatibility, but it effectively mirrors the modified time attribute.
 
 \subsubsection{Reading from directories}\label{sec:walk-cache}
 
@@ -424,7 +424,7 @@ For some requests this will result in nothing more than a pause, while for other
 
 \subsection{Limitations}
 
-The prototype include some limitations that are artifacts of the implementation, rather than being inherent to the Envoy model. These are problems that can be solved with some routine engineering, and would need to be addressed in a production system. For the prototype, however, solving them adds little value at the expense of extra complexity.
+The prototype includes some limitations that are artifacts of the implementation, rather than being inherent to the Envoy model. These are problems that can be solved with some routine engineering, and would need to be addressed in a production system. For the prototype, however, solving them adds little value at the expense of extra complexity.
 
 \subsubsection{Envoys as failure points}
 
@@ -448,8 +448,8 @@ The more serious issue is that the prototype cannot migrate control of the root 
 
 \section{Summary}
 
-The Envoy prototype uses the 9p protocol to export the file system to clients, and uses extensions of 9p for its internal messages. The file system and cache system of the underlying operation system are both exploited to avoid duplicate work and to gain access to optimised systems.
+The Envoy prototype uses the 9p protocol to export the file system to clients, and uses extensions of 9p for its internal messages. The file system and cache system of the underlying operating system are both exploited to avoid duplicate work and to gain access to optimised systems.
 
-The storage layer is simple placeholder that exports a stateless object interface. Objects are stored as files in the host file system, with extended attributes stored as part of the file name. Redundant storage nodes are supported, but object placement is hard-coded and no recovery facilities are implemented.
+The storage layer is a simple placeholder that exports a stateless object interface. Objects are stored as files in the host file system, with extended attributes stored as part of the file name. Redundant storage nodes are supported, but object placement is hard-coded and no recovery facilities are implemented.
 
 The envoy layer creates a file system from storage objects. Territories are a basic management unit, and the root of each territory is always made writable to prevent requests from involving multiple envoy nodes. Deadlock is prevented by following a top-down locking discipline along the territory hierarchy when multiple envoys are involved. Some operations require cooperation between multiple envoys, but others can be localised by changing territory boundaries before performing the requested action. Careful coordination ensures that dynamic territory re-alignments do not interfere with pending requests.
