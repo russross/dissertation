@@ -74,7 +74,14 @@ The overall distributed architecture of Envoy is based around partitioning contr
 
 \subsection{Storage layer}
 
-The objective of the storage layer is to provide a simple, stateless interface for accessing objects. The storage layer provides redundancy to enhance availability and reliability, and distributes objects to balance the load on individual servers. Like many of the cluster file systems described in \secref{sec:cluster-storage-systems}, Envoy uses an object-based interface to storage \cite{factor}. Disk layout policies are left to individual storage nodes, and replica placement is left to the storage system.
+The objective of the storage layer is to provide a simple, stateless interface for accessing objects. The storage layer provides redundancy to enhance availability and reliability, and distributes objects to balance the load on individual servers. Like many of the cluster file systems described in \secref{sec:cluster-storage-systems}, Envoy uses an object-based interface to storage \cite{factor}. Disk layout policies are left to individual storage nodes, and replica placement is left to the storage system. \figref{fig:envoy-vs-storage} depicts the connectivity between the Envoy file system layer and the object storage system layer. Envoy servers actively connect to each other to form a coherent service, while stateless storage servers are passive, waiting for data requests and functioning as independent nodes.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-vs-storage}
+\caption[Network layout of Envoy and storage servers]{Envoy service instances connect to each other when necessary to form a single distributed service. Storage servers are stateless and act as independent nodes. All connections are direct, with no network overlay structure. In practice, both services are hosted on the same set of machines.}
+\label{fig:envoy-vs-storage}
+\end{figure}
 
 Envoy puts a memory cache and a persistent disk cache between the object storage layer and the file system layer. File system traces show that with large caches, the operations that go to storage are dominated by writes and non-sequential operations \cite{ruemmler}, and traditional layout optimisation in layered systems is of questionable value \cite{stein05}, so the envoy layer does not take an active role in object placement decisions.
 
@@ -99,7 +106,14 @@ A single instance of the envoy service runs on each physical machine, and the gl
 
 This partitioning of the global namespace and the resulting federation of constituent parts is what gives Envoy its name. When clients request operations that stray from local territories, the requests are handed off to the envoy on the appropriate machine. It follows that each instance must know not only the boundaries of its own territories, but how to find the envoy for neighbouring territories, i.e., those that can be reached by a single directory traversal (up or down) from a local territory.
 
-The envoy service is stateful, and tracks not only its territories and neighbours, but the state of all files and directories in use by its client services. When a client navigates beyond the boundaries of a local territory, requests are forwarded directly to the envoy that owns the neighbouring territory. If further navigation moves beyond the boundaries of the neighbour's territories, the neighbour does not forward it to the next envoy, but instead bounces the request back to the originator with the address of the envoy that can answer the request.
+The envoy service is stateful, and tracks not only its territories and neighbours, but the state of all files and directories in use by its client services, as illustrated in \figref{fig:envoy-territories}. When a client navigates beyond the boundaries of a local territory, requests are forwarded directly to the envoy that owns the neighbouring territory. If further navigation moves beyond the boundaries of the neighbour's territories, the neighbour does not forward it to the next envoy, but instead bounces the request back to the originator with the address of the envoy that can answer the request.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/envoy-territories}
+\caption[Territories and file handles]{Files that are part of locally-owned territories (enclosed in boxes) are accessed directly, while those in remotely-owned territories are accessed through forwarded requests. Envoy instances connect to each other when they have shared territory boundaries, or when one is forwarding requests for a file in the territory of another.}
+\label{fig:envoy-territories}
+\end{figure}
 
 Under this system, two envoys maintain a direct relationship with each other only when they are immediate neighbours in territory ownership, or when one is serving requests for a client of the other. It follows that if territories are alloted such that the owner of a territory is also its most active user, traffic on an envoy instance will generally be dominated by its local clients.
 
@@ -135,7 +149,14 @@ Cache utilisation is most effective when clients on a single machine use file sy
 
 \subsection{Data paths for typical requests}\label{sec:data-paths}
 
-To summarise the architecture of Envoy, consider the data paths followed by typical file system requests as depicted in \figref{fig:hops}. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\figwidth]{figures/request-paths}
+\caption[Possible data paths for an individual operation]{Individual requests may be filled through one of several possible data paths, each with higher latency than the last. High-latency paths are designed to be less common than low-latency paths, and Envoy introduces caching and dynamically re-arranges territories to reduce the average data path length.}
+\label{fig:request-paths}
+\end{figure}
+
+To summarise the architecture of Envoy, consider the data paths followed by typical file system requests. The best case is retrieval from in-memory cache on the same machine and is designed to be the most common. Extra steps are required in progressively less-common operations until the worst case, where a request travels from a client to the local envoy service, is forwarded to a remote envoy, misses the local cache and is forwarded to a storage server instance where the data is retrieved from disk. This sequence is summarized in \figref{fig:request-paths}, and depicted graphically in \figref{fig:hops}.
 
 \begin{figure}[t]
 \centering
