@@ -1,0 +1,8 @@
+*.aux
+*.log
+draft.bbl
+draft.brf
+draft.toc
+draft.blg
+draft.out
+draft.pdf
